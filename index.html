@@ -1,251 +1,3204 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Log in</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rollbux - Live Affiliate Stats</title>
+  <!-- Suppress cdn.tailwindcss.com production warning in console -->
+  <script>
+    (function(){
+      const _origWarn = console.warn;
+      console.warn = function(...args) {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+        _origWarn.apply(console, args);
+      };
+
+      // Suppress noisy browser extension errors (e.g. 200.js / M_ID fetch wrappers)
+      window.addEventListener('error', function(e) {
+        if (e && (e.filename?.includes('200.js') || e.message?.includes('M_ID'))) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function(e) {
+        if (e && (e.reason?.stack?.includes('200.js') || String(e.reason)?.includes('M_ID'))) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }, true);
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body, html {
-      width: 100%;
-      height: 100%;
-      background-color: #242424;
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    body {
+      background-color: #121418;
+      background-image: linear-gradient(180deg, #15171d 0%, #101115 100%);
+      background-attachment: fixed;
       color: #ffffff;
-      -webkit-font-smoothing: antialiased;
-      overflow: hidden;
-      user-select: none;
-    }
-
-    .cue-auth-screen {
       min-height: 100vh;
-      width: 100vw;
-      background-color: #242424;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+      font-family: 'Inter', sans-serif;
     }
-
-    .cue-auth-box {
-      width: 290px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
     }
-
-    .cue-auth-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 18px;
-    }
-
-    .cue-auth-form {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .cue-session-input {
-      width: 100%;
-      height: 40px;
-      background-color: #1e1e1e;
-      border: 1px solid #2a2a2a;
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #1c2538;
       border-radius: 9999px;
-      padding: 0 18px;
-      font-size: 12px;
-      color: #ffffff;
-      text-align: center;
-      outline: none !important;
-      box-shadow: none !important;
-      font-family: inherit;
-      transition: border-color 0.15s ease;
     }
-
-    .cue-session-input:focus,
-    .cue-session-input:focus-visible,
-    .cue-session-input:active {
-      outline: none !important;
-      box-shadow: none !important;
-      border-color: #383838 !important;
+    /* Hide input number spinner arrows */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
     }
-
-    .cue-session-input::placeholder {
-      color: #555555;
-    }
-
-    .cue-continue-btn {
-      width: 100%;
-      height: 40px;
-      background-color: #1c1c1c;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      border-radius: 9999px;
-      color: #777777;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.15s ease, color 0.15s ease;
-      outline: none;
-      font-family: inherit;
-    }
-
-    .cue-continue-btn:hover:not(:disabled) {
-      background-color: #262626;
-      color: #ffffff;
-    }
-
-    .cue-continue-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .cue-error-msg {
-      color: #ef4444;
-      font-size: 11px;
-      text-align: center;
-      margin-top: 8px;
-      line-height: 1.4;
-    }
-
-    .cue-status-msg {
-      color: #10b981;
-      font-size: 11px;
-      text-align: center;
-      margin-top: 8px;
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
     }
   </style>
 </head>
-<body>
-  <div class="cue-auth-screen">
-    <div class="cue-auth-box">
-      <h1 class="cue-auth-title">Log in</h1>
-
-      <form id="authForm" class="cue-auth-form">
-        <input
-          id="sessionInput"
-          type="password"
-          class="cue-session-input"
-          placeholder="Enter Session Cookie"
-          autocomplete="off"
-          autofocus
-          required
-        />
-
-        <button id="continueBtn" type="submit" class="cue-continue-btn">
+<body class="selection:bg-[#acff46] selection:text-[#0e131f]">
+  <!-- Login Overlay — shown when no session, hidden after auth -->
+  <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#242424;display:flex;align-items:center;justify-content:center;">
+    <div style="width:290px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;">
+      <p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;">Log in</p>
+      <form id="loginForm" style="width:100%;display:flex;flex-direction:column;gap:10px;">
+        <input id="loginSessionInput" type="password" placeholder="Enter Session Cookie" autocomplete="off" autofocus
+          style="width:100%;height:40px;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:9999px;padding:0 18px;font-size:12px;color:#fff;text-align:center;outline:none;font-family:inherit;" />
+        <button id="loginContinueBtn" type="submit"
+          style="width:100%;height:40px;background:#1c1c1c;border:1px solid rgba(255,255,255,0.04);border-radius:9999px;color:#777;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,color .15s;">
           Continue
         </button>
       </form>
+      <p id="loginError" style="display:none;color:#ef4444;font-size:11px;margin-top:4px;"></p>
+    </div>
+  </div>
+  <div id="dashboardContent" style="display:none;">
 
-      <p id="errorMsg" class="cue-error-msg" style="display: none;"></p>
-      <p id="statusMsg" class="cue-status-msg" style="display: none;"></p>
+  <!-- Main Container -->
+  <div class="flex w-full justify-center pb-[40px] pt-[35px]" bis_skin_checked="1">
+    <div data-node-id="671:32993" class="flex w-full max-w-[1536px] flex-col items-start gap-[28px] px-4 md:px-8" bis_skin_checked="1">
+      <div data-node-id="671:32994" class="flex w-full flex-col items-start gap-[28px]" bis_skin_checked="1">
+        
+
+
+        <!-- Layout Body -->
+        <div data-node-id="671:33011" class="flex w-full flex-col items-start" bis_skin_checked="1">
+          <div data-node-id="671:33012" class="flex w-full flex-col items-start" bis_skin_checked="1">
+            <div data-node-id="671:33013" class="flex w-full flex-col items-start gap-[24px] lg:flex-row lg:gap-[28px]" bis_skin_checked="1">
+              <!-- Right Main Content -->
+              <div data-node-id="671:33061" class="flex flex-1 min-w-0 w-full flex-col items-start gap-[24px]" bis_skin_checked="1">
+                
+                <!-- Overview Section -->
+                <div data-node-id="671:33062" class="flex w-full shrink-0 flex-col items-start justify-center gap-[16px]" bis_skin_checked="1">
+                  <div class="flex w-full shrink-0 flex-wrap items-center justify-between gap-3" bis_skin_checked="1">
+                    <div data-node-id="671:33063" class="flex shrink-0 items-center gap-[10px]" bis_skin_checked="1">
+                      <p data-node-id="671:33065" class="whitespace-nowrap text-[20px] leading-[30px] text-white font-bold italic">Overview</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <!-- Currency Switcher Pill -->
+                      <div class="flex items-center gap-2 bg-[#0e131f] px-3 py-1.5 rounded-[10px] border border-white/[0.03] text-[12px]">
+                        <span class="text-[#9aa3a8] font-medium text-xs">Display Unit:</span>
+                        <div class="flex gap-1 bg-[#131a29] p-0.5 rounded-md">
+                          <button id="unitBuxBtn" type="button" class="px-2.5 py-1 rounded text-[11px] font-bold bg-[#acff46] text-[#121418] transition">BUX</button>
+                          <button id="unitUsdBtn" type="button" class="px-2.5 py-1 rounded text-[11px] font-bold text-[#9aa3a8] hover:text-white transition">USD</button>
+                          <button id="unitSolBtn" type="button" class="px-2.5 py-1 rounded text-[11px] font-bold text-[#9aa3a8] hover:text-white transition">SOL</button>
+                        </div>
+                      </div>
+                      <button id="clearOverviewBtn" type="button" class="relative flex h-[32px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[14px] py-[6px] bg-[#acff46] text-[#121418] font-bold text-[13px] hover:brightness-110 active:scale-95 transition shadow-sm">
+                        <span>Clear</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 4 Stats Cards Grid (Responsive 4-column) -->
+                  <div data-node-id="671:33067" class="grid grid-cols-1 sm:grid-cols-2 gap-[16px] w-full" bis_skin_checked="1">
+                    
+                    <!-- 3. Total Earnings -->
+                    <div data-node-id="671:33086" class="relative flex w-full flex-col items-start gap-[6px] overflow-clip rounded-[12px] px-[20px] py-[16px] border border-white/[0.03]" bis_skin_checked="1">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                      <p class="relative w-full text-[14px] font-medium leading-[20px] text-[#9aa3a8]">Total Earnings</p>
+                      <div class="relative flex shrink-0 items-center gap-[8px]" bis_skin_checked="1">
+                        <span id="earningsCoinIcon" data-name="cryptocurrency-color:eth" class="relative size-[24px] shrink-0 overflow-clip">
+                          <img alt="" class="absolute inset-0 block size-full max-w-none" src="/figma/af-coin-24.svg">
+                        </span>
+                        <p id="statTotalEarnings" class="whitespace-nowrap text-[20px] font-bold leading-[30px] text-white">0.00</p>
+                      </div>
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0" style="border-radius: 12px; box-shadow: rgba(114, 144, 231, 0.04) 0px 4px 0px 0px inset;"></span>
+                    </div>
+
+                    <!-- 4. Current Balance -->
+                    <div data-node-id="671:33100" class="relative flex w-full items-center justify-between gap-[12px] overflow-clip rounded-[12px] border border-solid border-[rgba(172,255,70,0.12)] px-[20px] py-[16px]" bis_skin_checked="1">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px]" style="background-image: linear-gradient(90deg, rgba(172, 255, 70, 0.16) 0%, rgba(172, 255, 70, 0) 100%), linear-gradient(90deg, rgb(14, 19, 31) 0%, rgb(14, 19, 31) 100%);"></span>
+                      <div data-node-id="671:33101" class="relative flex min-w-0 shrink flex-col items-start gap-[6px]" bis_skin_checked="1">
+                        <p data-node-id="671:33102" class="whitespace-nowrap text-[14px] font-medium leading-[20px] text-[#acff46]">Current Balance</p>
+                        <div data-node-id="671:33103" class="flex shrink-0 items-center gap-[8px]" bis_skin_checked="1">
+                          <span id="balanceCoinIcon" data-node-id="671:33104" data-name="cryptocurrency-color:eth" class="relative size-[24px] shrink-0 overflow-clip">
+                            <img alt="" class="absolute inset-0 block size-full max-w-none" src="/figma/af-coin-24.svg">
+                          </span>
+                          <p id="statCurrentBalance" class="whitespace-nowrap text-[20px] font-bold leading-[30px] text-white">0.00</p>
+                        </div>
+                      </div>
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0" style="border-radius: 12px; box-shadow: rgba(114, 144, 231, 0.04) 0px 4px 0px 0px inset;"></span>
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- Statistics + Auto Upgrader + Auto Battle Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-[1fr_270px_270px] gap-5 w-full items-start">
+                  
+                  <!-- Left: Statistics Section -->
+                  <div data-node-id="671:33117" class="flex w-full min-w-0 flex-col items-start gap-[16px]" bis_skin_checked="1">
+                    <div class="flex w-full shrink-0 items-center justify-between" bis_skin_checked="1">
+                      <p data-node-id="671:33118" class="whitespace-nowrap text-[20px] font-bold italic leading-[30px] text-white">Statistics</p>
+                      <div class="flex items-center gap-3">
+                        <!-- Green Clear Button for Stats Graph -->
+                        <button id="clearStatsBtn" type="button" class="relative flex h-[32px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[14px] py-[6px] bg-[#acff46] text-[#121418] font-bold text-[13px] hover:brightness-110 active:scale-95 transition shadow-sm">
+                          <span>Clear</span>
+                        </button>
+                        <!-- Timeframe Pills -->
+                        <div class="relative flex shrink-0 items-center gap-[2px] rounded-[8px] p-[2px] bg-[#0e131f] border border-white/[0.04]" bis_skin_checked="1">
+                          <button type="button" class="tab-btn active relative flex h-[32px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[12px] py-[8px] transition" data-tab="24h">
+                            <span aria-hidden="true" class="tab-bg pointer-events-none absolute inset-0 rounded-[7px] bg-[#131a29]"></span>
+                            <span class="tab-text relative whitespace-nowrap text-[14px] font-semibold leading-[20px] text-white">24H</span>
+                          </button>
+                          <button type="button" class="tab-btn relative flex h-[32px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[12px] py-[8px] transition" data-tab="week">
+                            <span aria-hidden="true" class="tab-bg pointer-events-none absolute inset-0 rounded-[7px] hidden bg-[#131a29]"></span>
+                            <span class="tab-text relative whitespace-nowrap text-[14px] font-semibold leading-[20px] text-[#9aa3a8] hover:text-white">Week</span>
+                          </button>
+                          <button type="button" class="tab-btn relative flex h-[32px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[12px] py-[8px] transition" data-tab="month">
+                            <span aria-hidden="true" class="tab-bg pointer-events-none absolute inset-0 rounded-[7px] hidden bg-[#131a29]"></span>
+                            <span class="tab-text relative whitespace-nowrap text-[14px] font-semibold leading-[20px] text-[#9aa3a8] hover:text-white">Month</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Chart Container Card -->
+                    <div data-node-id="671:33119" class="relative flex w-full shrink-0 flex-col items-start justify-center overflow-clip rounded-[12px] p-[24px] border border-white/[0.03]" bis_skin_checked="1">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                      
+                      <div data-node-id="671:33120" class="custom-scroll relative h-[348px] w-full shrink-0 overflow-x-auto overflow-y-clip" bis_skin_checked="1">
+                        <div class="relative h-full w-full min-w-[500px]" bis_skin_checked="1">
+                          <!-- Y-Axis Labels -->
+                          <div id="chartYLabels" data-node-id="671:33121" class="absolute left-0 top-0 flex flex-col items-start justify-between h-[330px] whitespace-nowrap text-[12px] font-bold text-[#6d7680]" bis_skin_checked="1">
+                            <p id="yAxisTop" class="leading-[18px]">100</p>
+                            <p class="leading-[18px]">&nbsp;</p>
+                            <p class="leading-[18px]">&nbsp;</p>
+                            <p class="leading-[18px]">&nbsp;</p>
+                            <p class="leading-[18px]">&nbsp;</p>
+                            <p class="leading-[18px]">&nbsp;</p>
+                            <p class="leading-[18px] text-white font-bold">0</p>
+                          </div>
+
+                          <!-- Dashed horizontal grid lines -->
+                          <span class="absolute left-[56px] h-0 right-0" style="top: 9px;"><span class="absolute bottom-0 left-0 right-0 top-[-1px]"><img alt="" class="block w-full max-w-none opacity-60" src="/figma/af-grid-line.svg"></span></span>
+                          <span class="absolute left-[56px] h-0 right-0" style="top: 64px;"><span class="absolute bottom-0 left-0 right-0 top-[-1px]"><img alt="" class="block w-full max-w-none opacity-60" src="/figma/af-grid-line.svg"></span></span>
+                          <span class="absolute left-[56px] h-0 right-0" style="top: 119px;"><span class="absolute bottom-0 left-0 right-0 top-[-1px]"><img alt="" class="block w-full max-w-none opacity-60" src="/figma/af-grid-line.svg"></span></span>
+                          <span class="absolute left-[56px] h-0 right-0" style="top: 174px;"><span class="absolute bottom-0 left-0 right-0 top-[-1px]"><img alt="" class="block w-full max-w-none opacity-60" src="/figma/af-grid-line.svg"></span></span>
+                          <span class="absolute left-[56px] h-0 right-0" style="top: 229px;"><span class="absolute bottom-0 left-0 right-0 top-[-1px]"><img alt="" class="block w-full max-w-none opacity-60" src="/figma/af-grid-line.svg"></span></span>
+                          <span class="absolute left-[56px] h-0 right-0" style="top: 284px;"><span class="absolute bottom-0 left-0 right-0 top-[-1px]"><img alt="" class="block w-full max-w-none opacity-60" src="/figma/af-grid-line.svg"></span></span>
+                          <span class="absolute left-[56px] h-0 right-0" style="top: 339px;"><span class="absolute bottom-0 left-0 right-0 top-[-1px]"><img alt="" class="block w-full max-w-none opacity-60" src="/figma/af-grid-line.svg"></span></span>
+
+                          <!-- SVG Chart Area & Path -->
+                          <div id="chartInteractiveWrap" class="absolute cursor-crosshair" style="left: 56px; top: 9px; width: calc(100% - 56px); height: 330px;">
+                            <svg id="chartSvg" class="absolute inset-0 size-full" viewBox="0 0 744 330" preserveAspectRatio="none">
+                              <defs>
+                                <linearGradient id="sp-af-area" x1="0" y1="0" x2="0" y2="1">
+                                  <stop stop-color="#7974FF"></stop>
+                                  <stop offset="1" stop-color="#7974FF" stop-opacity="0"></stop>
+                                </linearGradient>
+                              </defs>
+                              <path id="chartAreaPath" d="M0 330 L744 330 L744 330 L0 330 Z" fill="url(#sp-af-area)" opacity="0.3"></path>
+                              <path id="chartLinePath" d="M0 330 L744 330" fill="none" stroke="#7974FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+                              <!-- Hover vertical guide line -->
+                              <line id="chartHoverLine" x1="0" y1="0" x2="0" y2="330" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="4 4" class="opacity-0 transition-opacity pointer-events-none"></line>
+                              <!-- Hover active point pulse/glow -->
+                              <circle id="chartHoverGlow" cx="-20" cy="-20" r="8" fill="#7974FF" opacity="0.25" class="opacity-0 transition-opacity pointer-events-none"></circle>
+                              <circle id="chartHoverDot" cx="-20" cy="-20" r="4.5" fill="#ffffff" stroke="#7974FF" stroke-width="2.5" class="opacity-0 transition-opacity pointer-events-none"></circle>
+                            </svg>
+
+                            <!-- Floating Tooltip Box -->
+                            <div id="chartTooltip" class="pointer-events-none absolute z-20 flex flex-col items-start gap-1 rounded-lg bg-[#121622] border border-white/10 px-2.5 py-1.5 shadow-2xl transition-all duration-75 opacity-0 transform -translate-x-1/2">
+                              <span id="chartTooltipTime" class="text-[11px] font-semibold text-[#9aa3a8] leading-none">--</span>
+                              <div class="flex items-center gap-1.5 mt-0.5">
+                                <img id="chartTooltipCoinIcon" src="https://rollbux.com/icons/token.png" alt="Coin" class="size-3.5 object-contain">
+                                <span id="chartTooltipValue" class="text-[13px] font-black tracking-tight text-white leading-none">0.00</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0" style="border-radius: 12px; box-shadow: rgba(114, 144, 231, 0.04) 0px 4px 0px 0px inset;"></span>
+                    </div>
+                  
+
+                    <!-- Your Accounts Card (Placed directly under graph card) -->
+                    <div class="relative flex w-full flex-col items-start gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[20px] shadow-sm border border-white/[0.03]">
+                      <div class="flex w-full items-center justify-between gap-3">
+                        <div>
+                          <p class="text-[14px] font-bold text-white">Your Accounts</p>
+                          <p id="dashboardAccountName" class="mt-1 text-[11px] text-[#9aa3a8]">Your accounts list</p>
+                        </div>
+                      </div>
+                      <a id="dashboardAccountLink" href="/accounts" class="w-full rounded-lg bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] py-2 text-center text-xs font-bold text-white transition hover:brightness-110 active:scale-95">Open Your Accounts</a>
+                    </div>
+                  </div>
+
+                  <!-- Right: Clean Auto Upgrader GUI -->
+                  <div id="autoUpgraderSection" class="flex w-full flex-col items-start gap-[16px]">
+                    <div class="flex w-full shrink-0 items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Upgrader</p>
+                        <span id="upgraderStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
+                      </div>
+                      <!-- Master On/Off Switch -->
+                      <label class="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" id="upgraderMasterToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#acff46]"></div>
+                      </label>
+                    </div>
+
+                    <!-- Clean Card Box -->
+                    <div class="relative flex w-full flex-col items-center justify-center gap-4 overflow-clip rounded-[12px] bg-[#0e131f] p-[20px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+
+                      <!-- Authentic Unbox.gg / RollBux Style Wheel (No top indicator, no second middle layer, clean arc) -->
+                      <div class="relative flex flex-col items-center justify-center w-full select-none py-2">
+                        <div id="upgraderWheelContainer" class="relative size-[210px] flex items-center justify-center cursor-grab active:cursor-grabbing">
+                          <svg id="upgraderWheelSvg" class="size-full overflow-visible" viewBox="0 0 200 200">
+                            <defs>
+                              <linearGradient id="wheelBevel" x1="0" y1="0" x2="0" y2="100%">
+                                <stop offset="0%" stop-color="#181d2a" />
+                                <stop offset="100%" stop-color="#0b0e15" />
+                              </linearGradient>
+                            </defs>
+
+                            <!-- Outer Beveled Dark Track -->
+                            <circle cx="100" cy="100" r="78" fill="#0c0f17" stroke="url(#wheelBevel)" stroke-width="15" />
+                            <circle cx="100" cy="100" r="70" fill="none" stroke="#121622" stroke-width="1.5" />
+                            <circle cx="100" cy="100" r="86" fill="none" stroke="#242b3d" stroke-width="1.5" />
+
+                            <!-- Active Clean Purple Arc (Smooth transition, shows exact play position on wheel) -->
+                            <circle id="upgraderArc" cx="100" cy="100" r="78" fill="none" stroke="#8b5cf6" stroke-width="15"
+                              stroke-dasharray="220.5 490.09" stroke-dashoffset="0"
+                              transform="rotate(-90 100 100)" style="transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), stroke-dasharray 0.2s ease;" />
+
+                            <!-- End-Point 1 White Dot Knob (Start) -->
+                            <circle id="upgraderKnobStart" cx="100" cy="22" r="6.5" fill="#ffffff" stroke="#8b5cf6" stroke-width="2" class="filter drop-shadow" style="transition: cx 0.35s cubic-bezier(0.4, 0, 0.2, 1), cy 0.35s cubic-bezier(0.4, 0, 0.2, 1);" />
+                            
+                            <!-- End-Point 2 White Dot Knob (End) -->
+                            <circle id="upgraderKnobEnd" cx="100" cy="22" r="6.5" fill="#ffffff" stroke="#8b5cf6" stroke-width="2" class="filter drop-shadow" style="transition: cx 0.35s cubic-bezier(0.4, 0, 0.2, 1), cy 0.35s cubic-bezier(0.4, 0, 0.2, 1);" />
+                          </svg>
+
+                          <!-- Center Info: Big Bold Percentage -->
+                          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                            <span id="upgraderChanceDisplay" class="text-[34px] font-black text-white tracking-tight leading-none">45.00%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Multiplier Target Under Wheel -->
+                      <div class="relative z-10 flex flex-col gap-1.5 w-full">
+                        <div class="flex items-center justify-between text-[11px] font-black tracking-tight text-[#9aa3a8]">
+                          <span class="tracking-wide">MULTIPLIER TARGET</span>
+                          <span id="upgraderMultiplierLabel" class="text-white font-black tracking-tight">2.00x</span>
+                        </div>
+                        <div class="relative flex items-center">
+                          <input type="number" id="upgraderMultiplierInput" min="1.1" max="100" step="0.05" value="2.00" class="w-full bg-[#131a29] border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-black tracking-tight focus:border-[#8b5cf6] outline-none">
+                          <span class="absolute right-3 text-xs text-gray-400 font-black">x</span>
+                        </div>
+                      </div>
+
+
+                      <!-- Auto Random with Turn On/Off Switch -->
+                      <div class="relative z-10 flex items-center justify-between p-2.5 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs font-black tracking-tight text-white">Auto Random</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer select-none">
+                          <input type="checkbox" id="upgraderRandomPosCheck" class="sr-only peer">
+                          <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#8b5cf6]"></div>
+                        </label>
+                      </div>
+
+                      <!-- Auto Sell with Turn On/Off Switch -->
+                      <div class="relative z-10 flex items-center justify-between p-2.5 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs font-black tracking-tight text-white">Auto Sell</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer select-none">
+                          <input type="checkbox" id="upgraderAutoSellCheck" class="sr-only peer">
+                          <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#8b5cf6]"></div>
+                        </label>
+                      </div>
+
+                      <!-- Target Account Selector Button -->
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
+                        <button type="button" id="upgraderAccountBtn" onclick="openAccountSelectorModal('upgrader')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
+                          <span id="upgraderAccountLabel" class="truncate">Select Acc</span>
+                        </button>
+                      </div>
+
+                      <!-- Feedback + Manual Play Button -->
+                      <div class="relative z-10 flex items-center gap-2 w-full">
+                        <span id="upgraderFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready</span>
+                        <button id="upgraderManualPlayBtn" type="button" class="shrink-0 px-4 py-2 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white text-xs font-black tracking-tight rounded-lg transition active:scale-95 shadow-sm">
+                          Play
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Right: Clean Auto Battle GUI -->
+                  <div id="autoBattleSection" class="flex w-full flex-col items-start gap-[16px]">
+                    <div class="flex w-full shrink-0 items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-bold italic">Auto Battle</p>
+                        <span id="battleStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
+                      </div>
+                      <!-- Master On/Off Switch -->
+                      <label class="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" id="battleMasterToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#acff46]"></div>
+                      </label>
+                    </div>
+
+                    <!-- Clean Battle Card Box -->
+                    <div class="relative flex w-full flex-col items-center justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+
+                      <!-- RollBux Borrow Mode Toggle Component -->
+                      <div class="relative z-10 w-full">
+                        <label for="battleBorrowToggle" class="transition-all hover:bg-neutral-800/60 px-3 py-2.5 rounded-lg flex items-center justify-between gap-2 bg-[#131a29] border border-white/[0.06] shadow-sm cursor-pointer select-none">
+                          <span class="flex items-center space-x-2">
+                            <!-- Borrow SVG Pie Icon -->
+                            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-5 text-red-500 shrink-0">
+                              <path d="M24.7075 5.51752C25.8966 5.37738 27.0948 5.69151 28.0623 6.39704C29.0297 7.10257 29.695 8.14744 29.925 9.32252L29.9875 9.74002L30 10V27.5C30.0001 28.1124 30.2249 28.7034 30.6318 29.161C31.0387 29.6185 31.5994 29.9109 32.2075 29.9825L32.5 30H49.5C50.8261 30 52.0978 30.5268 53.0355 31.4645C53.9732 32.4022 54.5 33.6739 54.5 35C54.4999 35.1902 54.4781 35.3798 54.435 35.565C53.4345 39.8817 51.3047 43.8549 48.2637 47.0777C45.2226 50.3005 41.3797 52.6572 37.1283 53.9063C32.877 55.1555 28.37 55.2523 24.0689 54.1868C19.7679 53.1213 15.8273 50.9317 12.6507 47.8424C9.47416 44.7531 7.17577 40.875 5.99091 36.6053C4.80605 32.3355 4.77731 27.8276 5.90762 23.5431C7.03794 19.2586 9.28669 15.3516 12.4236 12.222C15.5605 9.09241 19.4729 6.8528 23.76 5.73252L24.435 5.56502L24.7075 5.51752Z" fill="currentColor"></path>
+                              <path d="M35 8.75006V22.5001C35 23.1631 35.2634 23.799 35.7322 24.2678C36.2011 24.7367 36.837 25.0001 37.5 25.0001H51.25C51.6496 25 52.0433 24.9041 52.3982 24.7204C52.7531 24.5368 53.0588 24.2707 53.2897 23.9446C53.5206 23.6185 53.67 23.2417 53.7253 22.846C53.7805 22.4502 53.7402 22.047 53.6075 21.6701C52.3659 18.1434 50.349 14.9401 47.7054 12.2962C45.0619 9.65216 41.859 7.63478 38.3325 6.39256C37.9554 6.2594 37.5519 6.21863 37.1558 6.27368C36.7597 6.32873 36.3827 6.478 36.0562 6.70895C35.7297 6.93989 35.4634 7.24578 35.2797 7.60094C35.0959 7.9561 35 8.35017 35 8.75006Z" fill="currentColor"></path>
+                            </svg>
+                            <span class="font-semibold text-xs text-white">Borrow Mode</span>
+                          </span>
+                          <!-- Switch Input -->
+                          <div class="relative inline-flex items-center">
+                            <input type="checkbox" id="battleBorrowToggle" checked class="sr-only peer">
+                            <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#acff46]"></div>
+                          </div>
+                        </label>
+                      </div>
+
+                      <!-- Crazy Mode 50/50 Chance Toggle -->
+                      <div class="relative z-10 w-full">
+                        <label for="battleCrazyModeToggle" class="transition-all hover:bg-neutral-800/60 px-3 py-2.5 rounded-lg flex items-center justify-between gap-2 bg-[#131a29] border border-white/[0.06] shadow-sm cursor-pointer select-none">
+                          <span class="flex items-center space-x-2">
+                            <!-- Crazy Mode Vortex SVG Icon -->
+                            <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-5 text-[#8b5cf6] shrink-0">
+                              <path d="M27.9008 31.6231L17.3403 43.451C16.9427 43.8963 16.246 43.8963 15.8484 43.451L5.28781 31.6231C4.71244 30.9787 5.16985 29.9571 6.03375 29.9571H8.94142C9.49371 29.9571 9.93803 29.5096 9.98256 28.9591C10.4323 23.3987 14.5962 15.933 23.759 12.5572C30.1536 10.2013 35.6029 12.5258 38.5717 14.7543C39.2441 15.2591 38.885 16.2423 38.0545 16.373C28.647 17.8535 24.3435 24.5623 23.0383 28.7787C22.8517 29.3815 23.3242 29.9571 23.9552 29.9571H27.1549C28.0188 29.9571 28.4762 30.9787 27.9008 31.6231Z" fill="currentColor"></path>
+                              <path d="M31.8995 28.8029L42.46 16.9751C42.8576 16.5298 43.5543 16.5298 43.9519 16.9751L54.5125 28.8029C55.0879 29.4473 54.6304 30.4689 53.7665 30.4689L50.8589 30.4689C50.3066 30.4689 49.8623 30.9164 49.8177 31.4669C49.368 37.0273 45.2041 44.493 36.0413 47.8688C29.6467 50.2247 24.1974 47.9002 21.2286 45.6717C20.5562 45.167 20.9153 44.1837 21.7458 44.053C31.1533 42.5725 35.4568 35.8637 36.7619 31.6473C36.9485 31.0445 36.4761 30.4689 35.845 30.4689L32.6454 30.4689C31.7815 30.4689 31.3241 29.4473 31.8995 28.8029Z" fill="currentColor"></path>
+                            </svg>
+                            <span class="font-semibold text-xs text-white">50/50 Crazy Mode</span>
+                          </span>
+                          <!-- Switch Input -->
+                          <div class="relative inline-flex items-center">
+                            <input type="checkbox" id="battleCrazyModeToggle" checked class="sr-only peer">
+                            <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#8b5cf6]"></div>
+                          </div>
+                        </label>
+                      </div>
+
+                      <!-- Mode Badges: 3v3 & Jackpot -->
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <span class="text-[11px] font-semibold text-[#9aa3a8]">Modifiers</span>
+                        <div class="flex items-center gap-1.5">
+                          <span class="px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/30 text-[11px] font-extrabold text-yellow-400 tracking-wider">JACKPOT</span>
+                          <span class="px-2 py-0.5 rounded bg-[#acff46]/10 border border-[#acff46]/20 text-[11px] font-extrabold text-[#acff46] tracking-wider">3v3</span>
+                        </div>
+                      </div>
+
+                      <!-- Target Account Selector Button -->
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
+                        <button type="button" id="battleAccountBtn" onclick="openAccountSelectorModal('battle')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
+                          <span id="battleAccountLabel" class="truncate">Select Acc</span>
+                        </button>
+                      </div>
+
+                      <!-- Action Feedback & Manual Battle Create Button -->
+                      <div class="relative z-10 flex items-center gap-2 w-full pt-1">
+                        <span id="battleFeedback" class="text-xs text-[#9aa3a8] truncate flex-1">Ready</span>
+                        <button id="battleManualCreateBtn" type="button" class="shrink-0 px-4 py-2 bg-[#acff46] hover:brightness-110 text-[#121418] text-xs font-bold rounded-lg transition active:scale-95 shadow-sm">
+                          Create
+                        </button>
+                      </div>
+
+                    </div>
+
+                    <!-- ── Auto Mines (below battle card, same column) ── -->
+                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
+                      <div class="flex items-center gap-2">
+                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Mines</p>
+                        <span id="minesStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" id="minesMasterToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#acff46]"></div>
+                      </label>
+                    </div>
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                      <!-- Target Account Selector Button -->
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
+                        <button type="button" id="minesAccountBtn" onclick="openAccountSelectorModal('mines')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
+                          <span id="minesAccountLabel" class="truncate">Select Acc</span>
+                        </button>
+                      </div>
+                      <div class="relative z-10 flex items-center gap-2 w-full">
+                        <span id="minesFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready</span>
+                        <button id="minesManualPlayBtn" type="button" class="shrink-0 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-black tracking-tight rounded-lg transition active:scale-95 shadow-sm">Play</button>
+                      </div>
+                    </div>
+
+                    <!-- Auto Tip (below Auto Mines, same column) -->
+                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
+                      <div class="flex items-center gap-2">
+                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Tip</p>
+                        <span id="tipStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" id="tipMasterToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#acff46]"></div>
+                      </label>
+                    </div>
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                      <!-- Target Recipient Account Selector -->
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <span class="text-[11px] font-semibold text-[#9aa3a8]">Tip To (Main)</span>
+                        <button type="button" id="tipAccountBtn" onclick="openAccountSelectorModal('tip')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
+                          <span id="tipAccountLabel" class="truncate">Select Main</span>
+                        </button>
+                      </div>
+                      <div class="relative z-10 flex items-center gap-2 w-full">
+                        <span id="tipFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready (1m Cooldown)</span>
+                        <button id="tipManualBtn" type="button" class="shrink-0 px-4 py-2 bg-[#acff46] hover:brightness-110 text-[#121418] text-xs font-black tracking-tight rounded-lg transition active:scale-95 shadow-sm cursor-pointer">Tip Now</button>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <!-- Spacer -->
+                <div class="flex w-full shrink-0 flex-col items-start gap-[16px]" bis_skin_checked="1"></div>
+
+                <!-- Rains Section -->
+                <div data-node-id="671:33156" class="flex w-full shrink-0 flex-col items-start gap-[16px]" bis_skin_checked="1">
+                  <div data-node-id="671:33157" class="flex w-full shrink-0 items-center justify-between" bis_skin_checked="1">
+                    <p data-node-id="671:33158" class="whitespace-nowrap text-[20px] leading-[30px] text-white font-bold italic">Rains</p>
+                    <div class="flex items-center gap-3">
+                      <!-- Green Clear Button for Rains List -->
+                      <button id="clearRainsBtn" type="button" class="relative flex h-[30px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[12px] py-[5px] bg-[#acff46] text-[#121418] font-bold text-[12px] hover:brightness-110 active:scale-95 transition shadow-sm">
+                        <span>Clear Rains</span>
+                      </button>
+                      <span id="rainCountBadge" class="text-[13px] text-[#9aa3a8]">1 rain</span>
+                    </div>
+                  </div>
+                  
+                  <div data-node-id="671:33164" class="flex w-full shrink-0 flex-col items-center gap-[12px]" bis_skin_checked="1">
+                    <div class="custom-scroll w-full max-w-full overflow-x-auto overflow-y-hidden" bis_skin_checked="1">
+                      <div data-node-id="671:33165" class="relative w-full min-w-[650px] shrink-0 rounded-[12px] border border-white/[0.03] overflow-hidden" style="min-height: 164px;" bis_skin_checked="1">
+                        <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                        
+                        <!-- Table Column Headers: Account | Time Left | Amount | Time | Action -->
+                        <div class="relative z-10 grid grid-cols-[1fr_1fr_1fr_1fr_40px] items-center gap-[12px] px-[16px] py-[14px] text-[13px] font-semibold tracking-[0.28px] text-[#9aa3a8] border-b border-white/[0.04]">
+                          <div>Account</div>
+                          <div class="text-center">Time Left</div>
+                          <div class="text-center">Amount</div>
+                          <div class="text-right pr-2">Time</div>
+                          <div class="text-center"></div>
+                        </div>
+                        
+                        <!-- Rains Table Rows Container -->
+                        <div id="transactionsList" class="relative z-10 flex flex-col divide-y divide-white/[0.02]">
+                          <!-- Empty State Message -->
+                          <div id="emptyState" class="flex h-[120px] items-center justify-center px-[32px] text-center">
+                            <p class="text-[13px] leading-[20px] text-[#9aa3a8]">Nobody is using your code yet. Share the link above — a referee appears here as soon as they attach it.</p>
+                          </div>
+                        </div>
+                        
+                        <span aria-hidden="true" class="pointer-events-none absolute inset-0" style="border-radius: 12px; box-shadow: rgb(66, 66, 66) 0px 2px 0px 0px inset; mix-blend-mode: color-dodge;"></span>
+                      </div>
+                    </div>
+                    <!-- Pagination Bar -->
+                    <div id="rainPagination" class="hidden flex items-center justify-center gap-[6px] pt-[10px] pb-[2px] select-none"></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
+  <!-- Farmer Token Modal -->
+  <div id="farmerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="glass-card w-full max-w-md rounded-2xl p-6 bg-[#0e131f] border border-white/10 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 id="modalTitle" class="text-base font-bold text-white">Configure Cloud Farmer</h3>
+        <button id="closeFarmerModalBtn" class="text-gray-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <p class="text-xs text-gray-400 leading-relaxed">
+        Paste your RollBux <code class="text-white bg-white/10 px-1 py-0.5 rounded">authjs.session-token</code> cookie below. The 24/7 cloud worker will use it to maintain rain eligibility and auto-join rain cycles.
+      </p>
+
+      <form id="farmerForm" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-semibold text-gray-400 uppercase mb-1">Account Name</label>
+          <input type="text" id="farmerNameInput" placeholder="e.g. Sotarium" required class="w-full bg-[#131a29] border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#acff46]">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-gray-400 uppercase mb-1">Session Token (JWT)</label>
+          <input type="password" id="farmerTokenInput" placeholder="eyJhbGciOiJIUzI1Ni..." required class="w-full bg-[#131a29] border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#acff46] font-mono">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
+          <button type="button" id="cancelFarmerModalBtn" class="px-4 py-2 text-xs font-semibold text-gray-400 hover:text-white transition">Cancel</button>
+          <button type="submit" id="saveFarmerTokenBtn" class="px-5 py-2 bg-[#acff46] text-[#121418] font-bold text-xs rounded-lg hover:bg-[#96e036] transition shadow-md shadow-[#acff46]/10">Save & Start Farming</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Account Selector Overlay Modal -->
+  <div id="accountSelectorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-card w-full max-w-sm rounded-2xl p-5 bg-[#0e131f] border border-white/10 space-y-4 shadow-2xl">
+      <!-- Modal Header: Game Mode displayed top-left -->
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex flex-col">
+          <span id="accountSelectorModeLabel" class="text-[10px] uppercase font-bold text-[#acff46] tracking-wider">Auto Game Mode</span>
+          <h3 class="text-base font-black tracking-tight text-white italic">Select Account</h3>
+        </div>
+        <button id="closeAccountSelectorModalBtn" type="button" class="text-gray-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <!-- Accounts List (Vertical Column) -->
+      <div id="accountSelectorList" class="custom-scroll max-h-72 overflow-y-auto space-y-1.5 pr-1">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="pt-3 border-t border-white/10 flex items-center justify-between">
+        <button type="button" id="closeAccountSelectorModalBtn2" class="px-3 py-1.5 text-xs font-semibold text-gray-400 hover:text-white transition">Cancel</button>
+        <button type="button" onclick="saveAccountsFromOverlay()" class="px-4 py-1.5 rounded-lg bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Script for Live User Stats & Dynamic Countdown -->
   <script>
-    // Browser auto-recognition: if session already exists, redirect straight to dashboard
-    (function checkExistingSession() {
-      try {
-        const savedToken = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
-        if (savedToken && savedToken.length > 10) {
-          fetch('/api/verify-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: savedToken })
-          }).then(r => r.ok ? r.json() : null).then(data => {
-            if (data && data.success) {
-              window.location.replace('/dashboard/user');
-            }
-          }).catch(() => {});
-        }
-      } catch (e) {}
-    })();
+    let currentUnit = 'BUX';
+    let liveUserData = null;
+    let liveSolPrice = 150.00;
+    let currentRainPage = 1;
+    const RAINS_PER_PAGE = 10;
 
-    const form = document.getElementById('authForm');
-    const input = document.getElementById('sessionInput');
-    const btn = document.getElementById('continueBtn');
-    const errorMsg = document.getElementById('errorMsg');
-    const statusMsg = document.getElementById('statusMsg');
-
-    input.addEventListener('input', () => {
-      errorMsg.style.display = 'none';
-      if (input.value.trim().length > 0) {
-        btn.style.color = '#ffffff';
-        btn.style.backgroundColor = '#262626';
-      } else {
-        btn.style.color = '#777777';
-        btn.style.backgroundColor = '#1c1c1c';
+    function getUsernameFromUrl() {
+      const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+      const parts = path.split('/');
+      if (!path) return 'Sotarium';
+      if (path === 'dashboard/user') return 'Sotarium';
+      if (parts[0] === 'dashboard' && parts[1]) return decodeURIComponent(parts[1]);
+      if (path === 'users') {
+        window.location.replace('/users.html');
+        return 'Sotarium';
       }
-    });
+      if (parts[0] === 'user' && parts[1]) {
+        return decodeURIComponent(parts[1]);
+      }
+      if (parts[0] && parts[0] !== 'user' && parts[0] !== 'users') {
+        return decodeURIComponent(parts[0]);
+      }
+      return 'Sotarium';
+    }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errorMsg.style.display = 'none';
-      statusMsg.style.display = 'none';
+    let savedUser = null;
+    try {
+      savedUser = JSON.parse(localStorage.getItem('sotarium_user_profile') || 'null');
+    } catch (e) {}
 
-      const token = input.value.trim();
-      if (!token) {
-        errorMsg.textContent = 'Please enter your session cookie.';
-        errorMsg.style.display = 'block';
+    let targetUsername = (savedUser && savedUser.username) ? savedUser.username : getUsernameFromUrl();
+    const isRootDashboard = true;
+    let sessionIdentityResolved = false;
+
+    // DOM Elements
+    const headerUsername = document.getElementById('headerUsername');
+    const userAvatarImg = document.getElementById('userAvatarImg');
+    const refCodeDisplay = document.getElementById('refCodeDisplay');
+    const refLinkDisplay = document.getElementById('refLinkDisplay');
+    const statRainsJoined = document.getElementById('statRainsJoined');
+    const statHowMuchTime = document.getElementById('statHowMuchTime');
+    const statTotalEarnings = document.getElementById('statTotalEarnings');
+    const statCurrentBalance = document.getElementById('statCurrentBalance');
+    const rainCountBadge = document.getElementById('rainCountBadge');
+    const transactionsList = document.getElementById('transactionsList');
+    const rainPagination = document.getElementById('rainPagination');
+    const emptyState = document.getElementById('emptyState');
+    const chartAreaPath = document.getElementById('chartAreaPath');
+    const chartLinePath = document.getElementById('chartLinePath');
+    const yAxisTop = document.getElementById('yAxisTop');
+    const chartInteractiveWrap = document.getElementById('chartInteractiveWrap');
+    const chartHoverLine = document.getElementById('chartHoverLine');
+    const chartHoverDot = document.getElementById('chartHoverDot');
+    const chartHoverGlow = document.getElementById('chartHoverGlow');
+    const chartTooltip = document.getElementById('chartTooltip');
+    const chartTooltipTime = document.getElementById('chartTooltipTime');
+    const chartTooltipValue = document.getElementById('chartTooltipValue');
+    const chartTooltipEarning = document.getElementById('chartTooltipEarning');
+    const chartTooltipCoinIcon = document.getElementById('chartTooltipCoinIcon');
+
+    const unitSolBtn = document.getElementById('unitSolBtn');
+    const unitUsdBtn = document.getElementById('unitUsdBtn');
+    const unitBuxBtn = document.getElementById('unitBuxBtn');
+
+    function updateCurrencyIcons() {
+      const earningsIcon = document.querySelector('#earningsCoinIcon img');
+      const balanceIcon = document.querySelector('#balanceCoinIcon img');
+      let iconUrl = '/figma/af-coin-24.svg';
+      if (currentUnit === 'BUX') {
+        iconUrl = 'https://rollbux.com/icons/token.png';
+      } else if (currentUnit === 'USD') {
+        iconUrl = 'https://betdice.net/currency/USD.svg';
+      }
+      if (earningsIcon) earningsIcon.src = iconUrl;
+      if (balanceIcon) balanceIcon.src = iconUrl;
+      if (chartTooltipCoinIcon) chartTooltipCoinIcon.src = iconUrl;
+    }
+
+    function setUnit(unit) {
+      currentUnit = unit;
+      [unitSolBtn, unitUsdBtn, unitBuxBtn].forEach(b => {
+        b.className = 'px-2.5 py-1 rounded text-[11px] font-bold text-[#9aa3a8] hover:text-white transition';
+      });
+      if (unit === 'SOL') unitSolBtn.className = 'px-2.5 py-1 rounded text-[11px] font-bold bg-[#acff46] text-[#121418] transition';
+      if (unit === 'USD') unitUsdBtn.className = 'px-2.5 py-1 rounded text-[11px] font-bold bg-[#acff46] text-[#121418] transition';
+      if (unit === 'BUX') unitBuxBtn.className = 'px-2.5 py-1 rounded text-[11px] font-bold bg-[#acff46] text-[#121418] transition';
+      updateCurrencyIcons();
+      if (liveUserData) renderDashboard(liveUserData);
+    }
+
+    updateCurrencyIcons();
+
+    // Clear Function (no window confirmation prompt, executes instantly)
+    async function handleClearStats() {
+      // Clear client-side transaction cache
+      const cacheKey = `rollbux_cached_txs_${targetUsername.toLowerCase()}`;
+      localStorage.removeItem(cacheKey);
+      localStorage.setItem(`rollbux_cleared_at_${targetUsername.toLowerCase()}`, String(Date.now()));
+
+      // Optimistic UI update: reset locally immediately
+      if (liveUserData && liveUserData.user) {
+        const savedActiveRain = liveUserData.user.active_rain;
+        liveUserData.user.transactions = [];
+        liveUserData.user.total_earnings_bux = 0;
+        liveUserData.user.rains_joined = 0;
+        liveUserData.user.history = [];
+        liveUserData.user.first_tx_time = null;
+        if (savedActiveRain) liveUserData.user.active_rain = savedActiveRain;
+        renderDashboard(liveUserData);
+      }
+      try {
+        const res = await fetch(`/api/user/${encodeURIComponent(targetUsername)}/clear`, { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.user) {
+            const currentActive = liveUserData?.user?.active_rain;
+            liveUserData.user = data.user;
+            if (currentActive && (!data.user.active_rain || !data.user.active_rain.time_left)) {
+              liveUserData.user.active_rain = currentActive;
+            }
+            renderDashboard(liveUserData);
+          }
+        }
+      } catch (err) {
+        console.error('Error clearing stats:', err);
+      }
+    }
+
+    const clearOverviewBtn = document.getElementById('clearOverviewBtn');
+    if (clearOverviewBtn) clearOverviewBtn.addEventListener('click', handleClearStats);
+
+    const clearStatsBtn = document.getElementById('clearStatsBtn');
+    if (clearStatsBtn) clearStatsBtn.addEventListener('click', handleClearStats);
+
+    const clearRainsBtn = document.getElementById('clearRainsBtn');
+    if (clearRainsBtn) clearRainsBtn.addEventListener('click', handleClearStats);
+
+    unitSolBtn.addEventListener('click', () => setUnit('SOL'));
+    unitUsdBtn.addEventListener('click', () => setUnit('USD'));
+    unitBuxBtn.addEventListener('click', () => setUnit('BUX'));
+
+    // ──────────────────────────────────────────
+    // GAME HISTORY — localStorage-backed log
+    // ──────────────────────────────────────────
+    function getGameHistoryKey() {
+      return `rollbux_game_history_${targetUsername.toLowerCase()}`;
+    }
+    const MAX_GAME_HISTORY = 100;
+
+    function loadGameHistory() {
+      try { return JSON.parse(localStorage.getItem(getGameHistoryKey()) || '[]'); } catch { return []; }
+    }
+    function saveGameHistory(list) {
+      try { localStorage.setItem(getGameHistoryKey(), JSON.stringify(list.slice(0, MAX_GAME_HISTORY))); } catch {}
+    }
+
+    // Call this from Upgrader / Battle / Mines result handlers
+    window.pushGameHistory = function({ account, mode, success, betBux, amountBux }) {
+      const list = loadGameHistory();
+      list.unshift({
+        account: account || targetUsername,
+        mode,
+        success: !!success,
+        betBux: betBux || 0,
+        amountBux: amountBux || 0,
+        ts: Date.now()
+      });
+      saveGameHistory(list);
+      renderGameHistory();
+    };
+
+    function renderGameHistory() {
+      const list = loadGameHistory();
+      const gameHistoryList = document.getElementById('gameHistoryList');
+      const gameHistoryEmpty = document.getElementById('gameHistoryEmpty');
+      const gameHistoryCountBadge = document.getElementById('gameHistoryCountBadge');
+
+      if (!gameHistoryList) return;
+      if (gameHistoryCountBadge) gameHistoryCountBadge.textContent = `${list.length} round${list.length !== 1 ? 's' : ''}`;
+
+      if (list.length === 0) {
+        gameHistoryList.innerHTML = `<div id="gameHistoryEmpty" class="flex h-[120px] items-center justify-center px-[32px] text-center"><p class="text-[13px] leading-[20px] text-[#9aa3a8]">No game rounds yet. Start Auto Upgrader, Battle, or Mines to see history here.</p></div>`;
         return;
       }
 
-      btn.disabled = true;
-      btn.textContent = 'Verifying...';
+      const modeColors = {
+        'Upgrader': '#7974FF',
+        'Battle':   '#f59e0b',
+        'Mines':    '#ef4444'
+      };
+
+      gameHistoryList.innerHTML = list.map(entry => {
+        const modeColor = modeColors[entry.mode] || '#9aa3a8';
+        const resultBadge = entry.success
+          ? `<span class="px-2 py-0.5 rounded bg-[#acff46]/10 border border-[#acff46]/20 text-[11px] font-extrabold text-[#acff46] tracking-wider uppercase">Success</span>`
+          : `<span class="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-[11px] font-extrabold text-red-400 tracking-wider uppercase">Loss</span>`;
+
+        // Format bet and win/loss amount
+        const betAmt = entry.betBux ? parseFloat(entry.betBux).toFixed(2) : null;
+        const outAmt = entry.amountBux ? parseFloat(entry.amountBux).toFixed(2) : '0.00';
+        
+        let amtDisplayHtml = '';
+        if (betAmt && entry.success) {
+          amtDisplayHtml = `<div class="flex flex-col items-center leading-tight">
+            <span class="text-[13px] font-bold text-[#50f07b]">+${outAmt} BUX</span>
+            <span class="text-[10px] text-[#9aa3a8]">Bet: ${betAmt}</span>
+          </div>`;
+        } else if (betAmt && !entry.success) {
+          amtDisplayHtml = `<div class="flex flex-col items-center leading-tight">
+            <span class="text-[13px] font-bold text-[#ff6b6b]">-${betAmt} BUX</span>
+            <span class="text-[10px] text-[#9aa3a8]">Bet: ${betAmt}</span>
+          </div>`;
+        } else {
+          amtDisplayHtml = `<span class="text-[13px] font-bold text-[#c2c6db]">${outAmt} BUX</span>`;
+        }
+
+        const timeDisplay = entry.ts ? new Date(entry.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
+
+        return `<div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] items-center gap-[12px] relative min-h-[56px] px-[16px] py-[10px] transition-colors hover:bg-[rgba(255,255,255,0.02)]" role="row">
+          <span class="truncate text-[14px] font-bold italic tracking-[0.3px] text-white">${entry.account}</span>
+          <span class="flex items-center justify-center"><span class="text-[13px] font-bold" style="color:${modeColor}">${entry.mode}</span></span>
+          <span class="flex items-center justify-center">${resultBadge}</span>
+          <span class="flex items-center justify-center">${amtDisplayHtml}</span>
+          <span class="flex items-center justify-end pr-2 text-[12px] text-[#9aa3a8]">${timeDisplay}</span>
+        </div>`;
+      }).join('');
+    }
+
+    // Clear game history button
+    const clearGameHistoryBtn = document.getElementById('clearGameHistoryBtn');
+    if (clearGameHistoryBtn) {
+      clearGameHistoryBtn.addEventListener('click', () => {
+        localStorage.removeItem(getGameHistoryKey());
+        renderGameHistory();
+      });
+    }
+
+    // Initial render on load
+    renderGameHistory();
+
+    function formatValue(bux) {
+      const buxVal = parseFloat(bux) || 0;
+      const usdVal = buxVal * 0.002;
+      const solVal = liveSolPrice > 0 ? (usdVal / liveSolPrice) : 0;
+
+      if (currentUnit === 'SOL') {
+        return solVal.toFixed(4).replace(/\.?0+$/, '') || '0.00';
+      }
+      if (currentUnit === 'USD') {
+        return '$' + usdVal.toFixed(2);
+      }
+      return (Number.isInteger(buxVal) ? buxVal.toLocaleString() : buxVal.toFixed(2));
+    }
+
+    function formatHowMuchTime(user) {
+      let startTime = null;
+      if (user.first_tx_time) {
+        startTime = user.first_tx_time;
+      } else if (user.transactions && user.transactions.length > 0) {
+        const lastTx = user.transactions[user.transactions.length - 1];
+        startTime = lastTx.timestamp;
+      }
+
+      if (!startTime) {
+        return '0S';
+      }
+
+      const startMs = new Date(startTime).getTime();
+      if (isNaN(startMs)) return '0S';
+      const diffSec = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
+
+      const years = Math.floor(diffSec / (365 * 24 * 3600));
+      const days = Math.floor((diffSec % (365 * 24 * 3600)) / (24 * 3600));
+      const hours = Math.floor((diffSec % (24 * 3600)) / 3600);
+      const minutes = Math.floor((diffSec % 3600) / 60);
+      const seconds = diffSec % 60;
+
+      if (years > 0) return `${years}Y`;
+      if (days > 0) return `${days}D`;
+      if (hours > 0) return `${hours}H`;
+      if (minutes > 0) return `${minutes}M`;
+      return `${seconds}S`;
+    }
+
+    function formatSeconds(sec) {
+      if (!sec || sec <= 0) return '00:00';
+      const mins = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function getRainEndTime(secondsLeft) {
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const targetDate = new Date(Date.now() + Math.max(0, Number(secondsLeft) || 0) * 1000);
+      const day = targetDate.getDate();
+      const month = months[targetDate.getMonth()];
+      const hours = String(targetDate.getHours()).padStart(2, '0');
+      const mins = String(targetDate.getMinutes()).padStart(2, '0');
+      const secs = String(targetDate.getSeconds()).padStart(2, '0');
+      return `${day} ${month} ${hours}h${mins}:${secs}`;
+    }
+
+    // Format transaction time strictly in the user's browser local timezone
+    function formatTransactionTime(tx) {
+      if (!tx) return '';
+      let ms = tx.timestamp;
+      if (!ms && tx.date) {
+        ms = typeof tx.date === 'number' ? tx.date : new Date(tx.date).getTime();
+      }
+      if (!ms && tx.time) {
+        const parsed = new Date(tx.time).getTime();
+        if (!isNaN(parsed)) ms = parsed;
+      }
+      if (!ms) return tx.time || '';
+
+      const d = new Date(ms);
+      if (isNaN(d.getTime())) return tx.time || '';
+
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const day = d.getDate();
+      const month = months[d.getMonth()];
+      const hours = String(d.getHours()).padStart(2, '0');
+      const mins = String(d.getMinutes()).padStart(2, '0');
+      return `${day} ${month}, ${hours}h${mins}`;
+    }
+
+    let activeTimerLeft = 0;
+    let lockedActivePot = null;
+    let joinTickFired = false; // prevent firing join tick multiple times per cycle
+    setInterval(() => {
+      if (activeTimerLeft > 0) {
+        activeTimerLeft--;
+        const activeTimerEl = document.getElementById('activeRainTimer');
+        if (activeTimerEl) {
+          activeTimerEl.textContent = formatSeconds(activeTimerLeft);
+        }
+        // Trigger a safety tick near the end of an active live rain window.
+        if (activeTimerLeft <= 60 && !joinTickFired) {
+          joinTickFired = true;
+          console.log('[RainRoach] Join window reached, firing tick for auto-join...');
+          fetch('/api/roach/tick', { method: 'POST' })
+            .then(r => r.json())
+            .then(d => console.log('[RainRoach] Join tick response:', d.accounts?.map(a => `${a.name}: ${a.join_status}`)))
+            .catch(e => console.error('[RainRoach] Join tick error:', e));
+        }
+      } else if (activeTimerLeft === 0 && joinTickFired) {
+        // Reset flag when cycle ends (new cycle will have fresh timer > 0)
+        joinTickFired = false;
+      }
+    }, 1000);
+
+    function renderDashboard(data) {
+      const user = data.user;
+      liveSolPrice = data.solPrice || 150.00;
+
+      if (typeof headerUsername !== 'undefined' && headerUsername) headerUsername.textContent = user.username;
+      const customCode = getCustomRefCode ? getCustomRefCode() : null;
+      const codeToDisplay = customCode || user.username;
+      if (refCodeDisplay) refCodeDisplay.textContent = codeToDisplay;
+      if (refLinkDisplay) refLinkDisplay.textContent = `https://rollbux.com/r/${codeToDisplay.toLowerCase()}`;
+
+      if (typeof statRainsJoined !== 'undefined' && statRainsJoined) statRainsJoined.textContent = `${user.rains_joined || 0} Rains`;
+      if (typeof statHowMuchTime !== 'undefined' && statHowMuchTime) statHowMuchTime.textContent = formatHowMuchTime(user);
+
+      const balanceBux = user.balance_bux || 0;
+      const earningsBux = user.total_earnings_bux || 0;
+
+      statTotalEarnings.textContent = formatValue(earningsBux);
+      statCurrentBalance.textContent = formatValue(balanceBux);
+
+      // Render Rains Table
+      let txs = user.transactions || [];
+      try {
+        const localDeleted = JSON.parse(localStorage.getItem('rollbux_deleted_txs') || '[]');
+        if (localDeleted.length > 0) {
+          txs = txs.filter(t => {
+            const accKey = (t.account || '').toLowerCase().trim();
+            if (t.cycle_id && localDeleted.includes(t.cycle_id)) return false;
+            if (localDeleted.includes(`${accKey}_${t.amount_bux}_${t.time || ''}`)) return false;
+            if (localDeleted.includes(`${t.amount_bux}_${t.time || ''}`)) return false;
+            if (t.timestamp && localDeleted.includes(String(t.timestamp))) return false;
+            return true;
+          });
+        }
+      } catch (e) {}
+
+      const activeRain = user.active_rain;
+      const hasActiveRain = activeRain && (activeRain.time_left > 0 || activeRain.pot_amount > 0);
+
+      if (hasActiveRain && activeRain.time_left > 0) {
+        activeTimerLeft = activeRain.time_left;
+      }
+
+      const totalCount = txs.length + (hasActiveRain ? 1 : 0);
+      rainCountBadge.textContent = `${totalCount} rain${totalCount !== 1 ? 's' : ''}`;
+
+      // --- Pagination helpers ---
+      const totalPages = Math.max(1, Math.ceil(txs.length / RAINS_PER_PAGE));
+      // Clamp page to valid range
+      if (currentRainPage > totalPages) currentRainPage = totalPages;
+      if (currentRainPage < 1) currentRainPage = 1;
+
+      // Slice completed txs for current page (txs[0] = newest, txs[last] = oldest)
+      const pageStart = (currentRainPage - 1) * RAINS_PER_PAGE;
+      const pageTxs = txs.slice(pageStart, pageStart + RAINS_PER_PAGE);
+
+      let rowsHtml = '';
+
+      // 1. Active In-Progress Rain Countdown Row — pinned to page 1
+      if (hasActiveRain && currentRainPage === 1) {
+        const timerFormatted = formatSeconds(activeTimerLeft);
+        const endTimeStr = getRainEndTime(activeTimerLeft);
+
+        rowsHtml += `
+          <div class="grid grid-cols-[1fr_1fr_1fr_1fr_40px] items-center gap-[12px] relative min-h-[64px] px-[16px] py-[10px] transition-colors bg-[rgba(172,255,70,0.03)]" role="row">
+            <span class="flex min-w-0 items-center gap-[12px]">
+              <span class="flex min-w-0 flex-col">
+                <span class="truncate text-[15px] font-bold italic tracking-[0.3px] text-[#acff46]">${targetUsername}</span>
+              </span>
+            </span>
+            <span class="flex items-center justify-center gap-[6px]">
+              <span id="activeRainTimer" class="whitespace-nowrap text-[14px] font-bold leading-[20px] tracking-[0.5px] text-[#acff46] font-mono">${timerFormatted}</span>
+            </span>
+            <span class="flex items-center justify-center gap-[6px]">
+              <span class="whitespace-nowrap text-[14px] font-semibold text-[#c2c6db] italic">In Progress</span>
+            </span>
+            <span class="flex items-center justify-end pr-2">
+              <span class="flex h-[24px] items-center rounded-[6px] px-[8px] text-[12px] font-semibold leading-[16px] text-[#50f07b] bg-[rgba(80,240,123,0.12)]">${endTimeStr}</span>
+            </span>
+            <span class="flex items-center justify-center"></span>
+          </div>`;
+      }
+
+      // 2. Completed Rains Rows (current page slice)
+      if (pageTxs.length > 0) {
+        rowsHtml += pageTxs.map((tx, localIdx) => {
+          const globalIdx = pageStart + localIdx;
+          const formattedAmt = formatValue(tx.amount_bux);
+          const timeDisplay = formatTransactionTime(tx);
+          const txTimestamp = tx.timestamp || 0;
+          const accountName = tx.account || targetUsername;
+
+          return `
+            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_40px] items-center gap-[12px] relative min-h-[64px] px-[16px] py-[10px] transition-colors hover:bg-[rgba(255,255,255,0.02)] group" role="row">
+              <span class="flex min-w-0 items-center gap-[12px]">
+                <span class="flex min-w-0 flex-col">
+                  <span class="truncate text-[15px] font-bold italic tracking-[0.3px] text-white">${accountName}</span>
+                </span>
+              </span>
+              <span class="flex items-center justify-center gap-[6px]">
+                <span class="whitespace-nowrap text-[14px] font-semibold leading-[20px] tracking-[0.28px]" style="color: rgb(255, 107, 107);">Completed</span>
+              </span>
+              <span class="flex items-center justify-center gap-[6px]">
+                <span class="whitespace-nowrap text-[15px] font-bold italic tracking-[0.3px] text-[#c2c6db]">${formattedAmt}</span>
+              </span>
+              <span class="flex items-center justify-end pr-2">
+                <span class="flex h-[24px] items-center rounded-[6px] px-[8px] text-[12px] font-semibold leading-[16px] text-[#50f07b] bg-[rgba(80,240,123,0.12)]">${timeDisplay}</span>
+              </span>
+              <!-- Red X Delete Button -->
+              <span class="flex items-center justify-center">
+                <button type="button" class="delete-rain-btn flex items-center justify-center size-[26px] rounded-[6px] text-[#ff4b4b] hover:bg-[#ff4b4b]/20 hover:text-white transition active:scale-90" data-timestamp="${txTimestamp}" data-index="${globalIdx}" title="Delete this rain">
+                  <svg class="size-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </span>
+            </div>`;
+        }).join('');
+      }
+
+      if (!rowsHtml) {
+        transactionsList.innerHTML = `
+          <div id="emptyState" class="flex h-[120px] items-center justify-center px-[32px] text-center">
+            <p class="text-[13px] leading-[20px] text-[#9aa3a8]">Nobody is using your code yet. Share the link above — a referee appears here as soon as they attach it.</p>
+          </div>`;
+      } else {
+        transactionsList.innerHTML = rowsHtml;
+      }
+
+      // --- Render Pagination Bar ---
+      renderRainPagination(totalPages);
+
+      renderChart(user);
+    }
+
+    function renderRainPagination(totalPages) {
+      if (!rainPagination) return;
+      if (totalPages <= 1) {
+        rainPagination.classList.add('hidden');
+        rainPagination.innerHTML = '';
+        return;
+      }
+      rainPagination.classList.remove('hidden');
+
+      const p = currentRainPage;
+      const btnBase = 'flex items-center justify-center h-[32px] min-w-[32px] px-[8px] rounded-[7px] text-[13px] font-semibold transition cursor-pointer select-none';
+      const btnActive = `${btnBase} bg-[#acff46] text-[#121418]`;
+      const btnIdle = `${btnBase} text-[#9aa3a8] hover:bg-white/[0.06] hover:text-white`;
+      const btnArrow = `${btnBase} text-[#9aa3a8] hover:bg-white/[0.06] hover:text-white`;
+      const btnDisabled = `${btnBase} text-[#3a3f4a] cursor-not-allowed`;
+
+      // Build page numbers to show: always first, last, current and neighbours, ellipsis elsewhere
+      const pages = new Set([1, totalPages, p, p - 1, p + 1].filter(x => x >= 1 && x <= totalPages));
+      const sorted = [...pages].sort((a, b) => a - b);
+
+      let html = '';
+
+      // Prev arrow
+      html += `<button class="${p === 1 ? btnDisabled : btnArrow}" id="pgPrev" ${p === 1 ? 'disabled' : ''}>&#8249;</button>`;
+
+      let prev = 0;
+      for (const n of sorted) {
+        if (n - prev > 1) {
+          // Ellipsis — clicking it opens an inline input to jump to any page
+          html += `<button class="${btnIdle} rain-page-ellipsis" title="Jump to page…">…</button>`;
+        }
+        html += `<button class="${n === p ? btnActive : btnIdle} rain-page-btn" data-page="${n}">${n}</button>`;
+        prev = n;
+      }
+
+      // Next arrow
+      html += `<button class="${p === totalPages ? btnDisabled : btnArrow}" id="pgNext" ${p === totalPages ? 'disabled' : ''}>&#8250;</button>`;
+
+      rainPagination.innerHTML = html;
+
+      // Prev / Next handlers
+      rainPagination.querySelector('#pgPrev')?.addEventListener('click', () => {
+        if (currentRainPage > 1) { currentRainPage--; renderDashboard(liveUserData); }
+      });
+      rainPagination.querySelector('#pgNext')?.addEventListener('click', () => {
+        if (currentRainPage < totalPages) { currentRainPage++; renderDashboard(liveUserData); }
+      });
+
+      // Page number buttons
+      rainPagination.querySelectorAll('.rain-page-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const pg = parseInt(btn.getAttribute('data-page'), 10);
+          if (pg !== currentRainPage) { currentRainPage = pg; renderDashboard(liveUserData); }
+        });
+      });
+
+      // Ellipsis → inline page input
+      rainPagination.querySelectorAll('.rain-page-ellipsis').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.min = 1;
+          input.max = totalPages;
+          input.value = currentRainPage;
+          input.className = 'w-[52px] h-[32px] rounded-[7px] bg-[#1a1f2e] border border-white/[0.1] text-center text-[13px] text-white font-semibold outline-none focus:border-[#acff46] transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none';
+          btn.replaceWith(input);
+          input.focus();
+          input.select();
+          const go = () => {
+            const val = Math.max(1, Math.min(totalPages, parseInt(input.value, 10) || 1));
+            currentRainPage = val;
+            renderDashboard(liveUserData);
+          };
+          input.addEventListener('keydown', e => { if (e.key === 'Enter') go(); if (e.key === 'Escape') renderDashboard(liveUserData); });
+          input.addEventListener('blur', go);
+        });
+      });
+    }
+
+
+
+    // Handle Individual Rain Deletion
+    if (transactionsList) {
+      transactionsList.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.delete-rain-btn');
+        if (!btn) return;
+        const ts = parseInt(btn.getAttribute('data-timestamp'), 10);
+        const idx = parseInt(btn.getAttribute('data-index'), 10);
+
+        // Optimistic UI update
+        let removedTx = null;
+        if (liveUserData && liveUserData.user && Array.isArray(liveUserData.user.transactions)) {
+          if (!isNaN(ts) && ts > 0) {
+            removedTx = liveUserData.user.transactions.find(t => t.timestamp === ts);
+            liveUserData.user.transactions = liveUserData.user.transactions.filter(t => t.timestamp !== ts);
+          } else if (!isNaN(idx)) {
+            removedTx = liveUserData.user.transactions.splice(idx, 1)[0];
+          }
+          let total = 0;
+          for (const t of liveUserData.user.transactions) {
+            total += (t.amount_bux || 0);
+          }
+          liveUserData.user.total_earnings_bux = total;
+          liveUserData.user.rains_joined = liveUserData.user.transactions.length;
+          renderDashboard(liveUserData);
+
+          // Update cached transactions
+          const cacheKey = `rollbux_cached_txs_${targetUsername.toLowerCase()}`;
+          localStorage.setItem(cacheKey, JSON.stringify(liveUserData.user.transactions));
+        }
+
+        // Keep local blacklist in localStorage as well
+        if (removedTx) {
+          try {
+            const accKey = (removedTx.account || '').toLowerCase().trim();
+            const localDeleted = JSON.parse(localStorage.getItem('rollbux_deleted_txs') || '[]');
+            if (removedTx.cycle_id) localDeleted.push(removedTx.cycle_id);
+            localDeleted.push(`${accKey}_${removedTx.amount_bux}_${removedTx.time || ''}`);
+            localDeleted.push(`${removedTx.amount_bux}_${removedTx.time || ''}`);
+            if (removedTx.timestamp) localDeleted.push(String(removedTx.timestamp));
+            localStorage.setItem('rollbux_deleted_txs', JSON.stringify(localDeleted));
+          } catch (e) {}
+        }
+
+        try {
+          await fetch('/api/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'delete_transaction',
+              username: targetUsername,
+              timestamp: !isNaN(ts) && ts > 0 ? ts : undefined,
+              index: !isNaN(idx) ? idx : undefined,
+              cycle_id: removedTx ? removedTx.cycle_id : undefined,
+              signature: removedTx ? `${removedTx.amount_bux}_${removedTx.time || ''}` : undefined
+            })
+          });
+        } catch (err) {
+          console.error('Error deleting rain transaction:', err);
+        }
+      });
+    }
+
+    let currentChartPoints = [];
+
+    function renderChart(user) {
+      let history = [];
+
+      // Prioritize building chart from cumulative rain earnings so rain distributions show growth
+      if (user.transactions && user.transactions.length > 0) {
+        const sorted = [...user.transactions].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        
+        const firstTime = (sorted[0].timestamp || Date.now()) - 3600000;
+        history.push({
+          time: new Date(firstTime).toISOString(),
+          balance_bux: 0,
+          earnings_bux: 0
+        });
+
+        let cumulative = 0;
+        sorted.forEach(tx => {
+          cumulative += (tx.amount_bux || 0);
+          history.push({
+            time: new Date(tx.timestamp || Date.now()).toISOString(),
+            balance_bux: cumulative,
+            earnings_bux: tx.amount_bux
+          });
+        });
+      } else if (user.history && user.history.length >= 2) {
+        history = [...user.history];
+      }
+
+      if (history.length < 2) {
+        chartAreaPath.setAttribute('d', 'M0 330 L744 330 L744 330 L0 330 Z');
+        chartLinePath.setAttribute('d', 'M0 330 L744 330');
+        yAxisTop.textContent = formatValue(100);
+        currentChartPoints = [];
+        return;
+      }
+
+      const values = history.map(h => h.balance_bux || 0);
+      const rawMaxVal = Math.max(...values, 10);
+      // Add ~18% headroom so peak point doesn't get squeezed against the top edge
+      const maxVal = Math.ceil(rawMaxVal * 1.18);
+      yAxisTop.textContent = formatValue(maxVal);
+
+      const width = 744;
+      const height = 330;
+      currentChartPoints = history.map((h, idx) => {
+        const val = h.balance_bux || 0;
+        const x = (idx / (history.length - 1)) * width;
+        // Scale within comfortable height range with top padding
+        const y = height - (val / maxVal) * (height - 45) - 15;
+        return {
+          x,
+          y,
+          val,
+          earning: h.earnings_bux,
+          time: h.time
+        };
+      });
+
+      // Smooth Cubic Bezier Spline generation (Catmull-Rom interpolation)
+      function buildSmoothBezierPath(pts) {
+        if (!pts || pts.length === 0) return '';
+        if (pts.length === 1) return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+        if (pts.length === 2) {
+          return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)} L ${pts[1].x.toFixed(1)} ${pts[1].y.toFixed(1)}`;
+        }
+
+        let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+        const tension = 0.2; // Controls curve smoothness
+
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[Math.max(0, i - 1)];
+          const p1 = pts[i];
+          const p2 = pts[i + 1];
+          const p3 = pts[Math.min(pts.length - 1, i + 2)];
+
+          const cp1x = p1.x + (p2.x - p0.x) * tension;
+          const cp1y = p1.y + (p2.y - p0.y) * tension;
+
+          const cp2x = p2.x - (p3.x - p1.x) * tension;
+          const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+          d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+        }
+        return d;
+      }
+
+      const smoothLine = buildSmoothBezierPath(currentChartPoints);
+      const lastPt = currentChartPoints[currentChartPoints.length - 1];
+      const firstPt = currentChartPoints[0];
+      const smoothArea = `${smoothLine} L ${lastPt.x.toFixed(1)} 330 L ${firstPt.x.toFixed(1)} 330 Z`;
+
+      chartLinePath.setAttribute('d', smoothLine);
+      chartAreaPath.setAttribute('d', smoothArea);
+    }
+
+    // Chart Interactive Hover Event Handlers
+    if (chartInteractiveWrap) {
+      function formatTooltipDate(isoStr) {
+        if (!isoStr) return '';
+        const d = new Date(isoStr);
+        if (isNaN(d.getTime())) return '';
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const day = d.getDate();
+        const m = months[d.getMonth()];
+        const h = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${day} ${m} ${h}:${min}`;
+      }
+
+      chartInteractiveWrap.addEventListener('mousemove', (e) => {
+        if (!currentChartPoints || currentChartPoints.length < 2) return;
+        const rect = chartInteractiveWrap.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const svgRatio = 744 / rect.width;
+        const targetSvgX = mouseX * svgRatio;
+
+        // Find closest point
+        let closest = currentChartPoints[0];
+        let minDist = Infinity;
+        for (const pt of currentChartPoints) {
+          const dist = Math.abs(pt.x - targetSvgX);
+          if (dist < minDist) {
+            minDist = dist;
+            closest = pt;
+          }
+        }
+
+        const pointPixelX = (closest.x / 744) * rect.width;
+        const pointPixelY = (closest.y / 330) * rect.height;
+
+        // Position guideline & dot
+        chartHoverLine.setAttribute('x1', closest.x);
+        chartHoverLine.setAttribute('x2', closest.x);
+        chartHoverLine.classList.remove('opacity-0');
+
+        chartHoverDot.setAttribute('cx', closest.x);
+        chartHoverDot.setAttribute('cy', closest.y);
+        chartHoverDot.classList.remove('opacity-0');
+
+        chartHoverGlow.setAttribute('cx', closest.x);
+        chartHoverGlow.setAttribute('cy', closest.y);
+        chartHoverGlow.classList.remove('opacity-0');
+
+        // Update Tooltip Content
+        chartTooltipTime.textContent = formatTooltipDate(closest.time) || 'Rain Milestone';
+        chartTooltipValue.textContent = formatValue(closest.val);
+
+        // Keep Tooltip within bounds horizontally
+        const tooltipX = Math.max(50, Math.min(rect.width - 50, pointPixelX));
+
+        // Flip tooltip: show ABOVE dot normally, but BELOW when dot is near the bottom (bottom 25% of chart)
+        const bottomThreshold = rect.height * 0.75; // below this pixel = near bottom
+        const isNearBottom = pointPixelY >= bottomThreshold;
+        const TOOLTIP_GAP = 12; // px gap between dot and tooltip edge
+        const TOOLTIP_HEIGHT = 52; // approximate rendered height
+
+        if (isNearBottom) {
+          // Dot is near bottom: place tooltip BELOW the dot
+          chartTooltip.style.top = `${pointPixelY + TOOLTIP_GAP}px`;
+          chartTooltip.style.transform = 'translateX(-50%)';
+        } else {
+          // Default: place tooltip ABOVE the dot
+          chartTooltip.style.top = `${pointPixelY - TOOLTIP_HEIGHT - TOOLTIP_GAP}px`;
+          chartTooltip.style.transform = 'translateX(-50%)';
+        }
+
+        chartTooltip.style.left = `${tooltipX}px`;
+        chartTooltip.classList.remove('opacity-0');
+      });
+
+      chartInteractiveWrap.addEventListener('mouseleave', () => {
+        chartHoverLine.classList.add('opacity-0');
+        chartHoverDot.classList.add('opacity-0');
+        chartHoverGlow.classList.add('opacity-0');
+        chartTooltip.classList.add('opacity-0');
+      });
+    }
+
+
+    async function fetchUserData() {
+      try {
+        if (!sessionIdentityResolved) {
+          const sessionRes = await fetch('/api/auth/me', { credentials: 'include' });
+          let signedInName = null;
+          if (sessionRes.ok) {
+            const sessionData = await sessionRes.json();
+            signedInName = sessionData?.user?.username || sessionData?.user?.email;
+          }
+          if (!signedInName && savedUser?.username) {
+            signedInName = savedUser.username;
+          }
+          if (signedInName) {
+            targetUsername = signedInName;
+            const accountName = document.getElementById('dashboardAccountName');
+            if (accountName) accountName.textContent = `Signed in as ${signedInName}`;
+            const accountLink = document.getElementById('dashboardAccountLink');
+            if (accountLink) accountLink.href = '/accounts';
+          }
+          sessionIdentityResolved = true;
+          renderGameHistory();
+        }
+        const res = await fetch(`/api/user/${encodeURIComponent(targetUsername)}`);
+        if (res.status === 403) {
+          document.body.innerHTML = `
+            <div class="min-h-screen flex flex-col items-center justify-center bg-[#121418] text-[#c2c6db]">
+              <h1 class="text-3xl font-bold text-white mb-2">403 Forbidden</h1>
+              <p class="text-sm text-[#6d7680]">Access to this resource is restricted.</p>
+            </div>
+          `;
+          return;
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.user) {
+            const cacheKey = `rollbux_cached_txs_${targetUsername.toLowerCase()}`;
+            const serverClearedAt = data.user.cleared_at || 0;
+            const lastClearedAt = parseInt(localStorage.getItem(`rollbux_cleared_at_${targetUsername.toLowerCase()}`) || '0', 10);
+
+            if (serverClearedAt > lastClearedAt) {
+              localStorage.removeItem(cacheKey);
+              localStorage.setItem(`rollbux_cleared_at_${targetUsername.toLowerCase()}`, String(serverClearedAt));
+            }
+
+            let cachedTxs = [];
+            try {
+              cachedTxs = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+            } catch (e) {}
+
+            // Filter out any locally or permanently deleted transactions
+            let localDeleted = [];
+            try {
+              localDeleted = JSON.parse(localStorage.getItem('rollbux_deleted_txs') || '[]');
+            } catch (e) {}
+
+            const serverDeleted = Array.isArray(data.user.deleted_signatures) ? data.user.deleted_signatures : [];
+            const allDeleted = new Set([...localDeleted, ...serverDeleted]);
+
+            const serverTxs = Array.isArray(data.user.transactions) ? data.user.transactions : [];
+
+            const activeClearedAt = Math.max(serverClearedAt, lastClearedAt);
+
+            // Merge server transactions and cached transactions
+            const txMap = new Map();
+            cachedTxs.forEach(t => {
+              const txTime = t.timestamp || 0;
+              if (activeClearedAt > 0 && txTime > 0 && txTime <= activeClearedAt) return;
+              const accKey = (t.account || '').toLowerCase().trim();
+              const sig = `${accKey}_` + (t.cycle_id || `${t.amount_bux}_${t.timestamp || t.time}`);
+              if (!allDeleted.has(sig) && !allDeleted.has(`${accKey}_${t.amount_bux}_${t.time}`) && !(t.cycle_id && allDeleted.has(t.cycle_id))) {
+                txMap.set(sig, t);
+              }
+            });
+            serverTxs.forEach(t => {
+              const txTime = t.timestamp || 0;
+              if (activeClearedAt > 0 && txTime > 0 && txTime <= activeClearedAt) return;
+              const accKey = (t.account || '').toLowerCase().trim();
+              const sig = `${accKey}_` + (t.cycle_id || `${t.amount_bux}_${t.timestamp || t.time}`);
+              if (!allDeleted.has(sig) && !allDeleted.has(`${accKey}_${t.amount_bux}_${t.time}`) && !(t.cycle_id && allDeleted.has(t.cycle_id))) {
+                txMap.set(sig, t);
+              }
+            });
+
+            const merged = Array.from(txMap.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            data.user.transactions = merged;
+            localStorage.setItem(cacheKey, JSON.stringify(merged));
+            let total = 0;
+            merged.forEach(t => { total += (t.amount_bux || 0); });
+            data.user.total_earnings_bux = total;
+            data.user.rains_joined = merged.length;
+          }
+
+          liveUserData = data;
+          renderDashboard(data);
+
+          // Check Auto Upgrader Automated Triggers
+          if (typeof checkAutoUpgraderConditions === 'function') {
+            checkAutoUpgraderConditions(data);
+          }
+
+          // Check Auto Battle Automated Triggers
+          if (typeof checkAutoBattleConditions === 'function') {
+            checkAutoBattleConditions(data);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+      }
+    }
+
+    fetchUserData();
+    setInterval(fetchUserData, 2500);
+
+    const copyCodeBtn = document.getElementById('copyCodeBtn');
+    const editCodeBtn = document.getElementById('editCodeBtn');
+    const refCodeInput = document.getElementById('refCodeInput');
+
+    function getCustomRefCode() {
+      return localStorage.getItem(`rollbux_ref_code_${targetUsername.toLowerCase()}`);
+    }
+
+    function setCustomRefCode(code) {
+      if (code) {
+        localStorage.setItem(`rollbux_ref_code_${targetUsername.toLowerCase()}`, code);
+      } else {
+        localStorage.removeItem(`rollbux_ref_code_${targetUsername.toLowerCase()}`);
+      }
+    }
+
+    if (editCodeBtn && refCodeInput) {
+      editCodeBtn.addEventListener('click', () => {
+        if (refCodeInput.classList.contains('hidden')) {
+          // Switch to edit mode
+          refCodeInput.value = refCodeDisplay.textContent.trim();
+          refCodeDisplay.classList.add('hidden');
+          refCodeInput.classList.remove('hidden');
+          refCodeInput.focus();
+          refCodeInput.select();
+          editCodeBtn.textContent = 'Save';
+          editCodeBtn.classList.add('text-[#acff46]');
+        } else {
+          // Save edit mode
+          const val = refCodeInput.value.trim();
+          if (val) {
+            setCustomRefCode(val);
+            refCodeDisplay.textContent = val;
+            refLinkDisplay.textContent = `https://rollbux.com/r/${val.toLowerCase()}`;
+          }
+          refCodeInput.classList.add('hidden');
+          refCodeDisplay.classList.remove('hidden');
+          editCodeBtn.textContent = 'Edit';
+          editCodeBtn.classList.remove('text-[#acff46]');
+        }
+      });
+
+      refCodeInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          editCodeBtn.click();
+        }
+      });
+    }
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', (e) => {
+        // Clear local transaction cache for current player
+        localStorage.removeItem(`rollbux_cached_txs_${targetUsername.toLowerCase()}`);
+      });
+    }
+
+    if (copyCodeBtn) {
+      copyCodeBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(refCodeDisplay.textContent.trim());
+        copyCodeBtn.textContent = 'Copied!';
+        copyCodeBtn.classList.add('text-[#acff46]');
+        setTimeout(() => {
+          copyCodeBtn.textContent = 'Copy';
+          copyCodeBtn.classList.remove('text-[#acff46]');
+        }, 1800);
+      });
+    }
+
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    if (copyLinkBtn) {
+      copyLinkBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(refLinkDisplay.textContent);
+        copyLinkBtn.style.outline = '1px solid #acff46';
+        setTimeout(() => {
+          copyLinkBtn.style.outline = 'none';
+        }, 1500);
+      });
+    }
+
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.querySelector('.tab-bg')?.classList.add('hidden');
+          const txt = t.querySelector('.tab-text');
+          if (txt) {
+            txt.classList.remove('text-white');
+            txt.classList.add('text-[#9aa3a8]');
+          }
+        });
+        tab.querySelector('.tab-bg')?.classList.remove('hidden');
+        const currentTxt = tab.querySelector('.tab-text');
+        if (currentTxt) {
+          currentTxt.classList.add('text-white');
+          currentTxt.classList.remove('text-[#9aa3a8]');
+        }
+      });
+    });
+    // Cloud Farmer Configuration & Modal
+    const farmerModal = document.getElementById('farmerModal');
+    const configureFarmerBtn = document.getElementById('configureFarmerBtn');
+    const closeFarmerModalBtn = document.getElementById('closeFarmerModalBtn');
+    const cancelFarmerModalBtn = document.getElementById('cancelFarmerModalBtn');
+    const farmerForm = document.getElementById('farmerForm');
+    const farmerNameInput = document.getElementById('farmerNameInput');
+    const farmerTokenInput = document.getElementById('farmerTokenInput');
+    const accountsListContainer = document.getElementById('accountsListContainer');
+    const addAnotherTokenBtn = document.getElementById('addAnotherTokenBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    const autoMessagesToggle = document.getElementById('autoMessagesToggle');
+
+    let autoMessagesEnabled = false;
+
+    // Fetch and bind Auto Messages toggle
+    async function loadAutoMessagesConfig() {
+      try {
+        const res = await fetch('/api/roach/config');
+        if (res.ok) {
+          const cfg = await res.json();
+          autoMessagesEnabled = Boolean(cfg.auto_messages);
+          if (autoMessagesToggle) {
+            autoMessagesToggle.checked = autoMessagesEnabled;
+          }
+          localStorage.setItem('rollbux_auto_messages', autoMessagesEnabled ? 'true' : 'false');
+        }
+      } catch (e) {
+        if (autoMessagesToggle) {
+          autoMessagesToggle.checked = localStorage.getItem('rollbux_auto_messages') === 'true';
+          autoMessagesEnabled = autoMessagesToggle.checked;
+        }
+      }
+    }
+    loadAutoMessagesConfig();
+
+    if (autoMessagesToggle) {
+      autoMessagesToggle.addEventListener('change', async () => {
+        autoMessagesEnabled = autoMessagesToggle.checked;
+        localStorage.setItem('rollbux_auto_messages', autoMessagesEnabled ? 'true' : 'false');
+        try {
+          await fetch('/api/roach/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ auto_messages: autoMessagesEnabled })
+          });
+        } catch (e) {
+          console.error('Failed to save auto_messages toggle:', e);
+        }
+        tickChatCountdown();
+      });
+    }
+
+    let lastKnownRoachCycle = null;
+
+    async function checkFarmerStatus() {
+      try {
+        const [accRes, statusRes] = await Promise.all([
+          fetch('/api/roach/accounts'),
+          fetch('/api/roach/status')
+        ]);
+
+        let accs = [];
+        if (accRes.ok) {
+          const data = await accRes.json();
+          accs = data.accounts || [];
+        }
+
+        let sData = null;
+        let liveAccsMap = {};
+        let isStaleCycle = false;
+
+        if (statusRes.ok) {
+          sData = await statusRes.json();
+          const currentCycleId = sData?.status?.cycle_id;
+
+          // Detect a new live cycle from the API rather than assuming hourly rotation.
+          if (currentCycleId) {
+            if (lastKnownRoachCycle && lastKnownRoachCycle !== currentCycleId) {
+              console.log('[RainRoach] New rain cycle detected! Resetting countdown and chat counters.');
+              chatIntervalTimer = -1;
+            }
+            lastKnownRoachCycle = currentCycleId;
+          }
+
+          // Rains now begin at randomized times. Only use the live status age
+          // to detect stale state; never infer it from an hourly-length timer.
+          const statusAge = sData?.status?.updated_at
+            ? Date.now() - new Date(sData.status.updated_at).getTime()
+            : 0;
+          if (statusAge > 90000 && Number(sData?.status?.seconds_remaining || 0) <= 0) {
+            isStaleCycle = true;
+          }
+
+          const liveList = sData?.status?.accounts || [];
+          liveList.forEach(a => {
+            liveAccsMap[(a.name || '').toLowerCase()] = a;
+          });
+        }
+
+        if (accountsListContainer) {
+          if (accs.length === 0) {
+            accountsListContainer.innerHTML = '<div class="text-[11px] text-gray-500">No accounts registered yet.</div>';
+          } else {
+            accountsListContainer.innerHTML = accs.map(a => {
+              const nameLower = (a.name || '').toLowerCase();
+              const live = liveAccsMap[nameLower];
+              // If stale old cycle, show 0 until tick completes
+              const count = (!isStaleCycle && live && live.chat_count !== undefined) ? live.chat_count : 0;
+              const isCurrent = nameLower === targetUsername.toLowerCase();
+              const nameColor = isCurrent ? 'text-[#acff46]' : 'text-white';
+              return `
+                <div class="flex items-center justify-between py-1">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[12px] font-bold ${nameColor}">${a.name} :</span>
+                    <span class="text-[13px] font-black tracking-tight leading-none ${count >= 3 ? 'text-[#acff46]' : 'text-white'}">${count} / 3</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-gray-500">${a.token_preview || 'Configured'}</span>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+
+        // Live Chat Countdown Circle Logic
+        // Always compute true live seconds remaining using Date.now() against cycle_end
+        let secondsRemaining = activeTimerLeft;
+        if (sData?.status?.updated_at && sData?.status?.seconds_remaining !== undefined) {
+          const elapsedSinceUpdate = Math.max(0, Math.floor((Date.now() - new Date(sData.status.updated_at).getTime()) / 1000));
+          const liveCalculated = Math.max(0, sData.status.seconds_remaining - elapsedSinceUpdate);
+          if (activeTimerLeft > 0) {
+            secondsRemaining = activeTimerLeft;
+          } else {
+            secondsRemaining = liveCalculated;
+          }
+        }
+        const liveList = isStaleCycle ? [] : (sData?.status?.accounts || []);
+        if (secondsRemaining > 0) {
+          updateChatCountdownCircle(secondsRemaining, accs, liveList);
+        }
+
+        // If cycle rotated or stale, trigger a background tick immediately so Redis reflects fresh state
+        if (isStaleCycle) {
+          fetch('/api/roach/tick', { method: 'POST' }).catch(() => {});
+        }
+      } catch (e) {
+        console.error('checkFarmerStatus error:', e);
+      }
+    }
+
+    const chatCountdownRing = document.getElementById('chatCountdownRing');
+    const chatCountdownText = document.getElementById('chatCountdownText');
+    const chatCountdownSub = document.getElementById('chatCountdownSub');
+
+    let chatIntervalTimer = -1; // -1 means uninitialized / waiting for cycle data
+    const CHAT_INTERVAL_SEC = 1100;
+
+    function updateChatCountdownCircle(secondsRemaining, accs, liveList) {
+      if (!chatCountdownText || !chatCountdownRing) return;
+      if (!autoMessagesEnabled) {
+        chatIntervalTimer = -4; // -4 = Disabled / Off
+        chatCountdownText.textContent = 'OFF';
+        if (chatCountdownSub) {
+          chatCountdownSub.textContent = 'Disabled';
+          chatCountdownSub.className = 'text-[9px] text-gray-500 uppercase font-semibold';
+        }
+        chatCountdownRing.setAttribute('stroke-dasharray', '0, 100');
+        return;
+      }
+
+      if (accs.length === 0) {
+        chatCountdownText.textContent = '--:--';
+        if (chatCountdownSub) chatCountdownSub.textContent = 'No Accs';
+        chatCountdownRing.setAttribute('stroke-dasharray', '0, 100');
+        return;
+      }
+
+      // Check if all accounts have reached their 3/3 quota for this cycle
+      const allDone = accs.every(a => {
+        const live = (liveList || []).find(l => (l.name || '').toLowerCase() === (a.name || '').toLowerCase());
+        return live && (live.chat_count || 0) >= 3;
+      });
+
+      if (allDone) {
+        chatIntervalTimer = -2; // -2 signals permanently completed for this cycle
+        chatCountdownText.textContent = '3 / 3';
+        if (chatCountdownSub) {
+          chatCountdownSub.textContent = 'Done';
+          chatCountdownSub.className = 'text-[9px] text-[#acff46] uppercase font-semibold';
+        }
+        chatCountdownRing.setAttribute('stroke-dasharray', '100, 100');
+        return;
+      }
+
+      // Find minimum chat count across active accounts to know which message we are waiting for
+      let minChatCount = 3;
+      accs.forEach(a => {
+        const live = (liveList || []).find(l => (l.name || '').toLowerCase() === (a.name || '').toLowerCase());
+        const c = live && live.chat_count !== undefined ? live.chat_count : 0;
+        if (c < minChatCount) minChatCount = c;
+      });
+
+      // Target threshold for next message:
+      // The live API only supplies a countdown during the active window.
+      // Keep the final three-message schedule anchored to that live window.
+      let nextTarget = 0;
+      if (minChatCount === 0) {
+        nextTarget = 2400;
+      } else if (minChatCount === 1) {
+        nextTarget = 1200;
+      } else if (minChatCount === 2) {
+        nextTarget = 220;
+      } else {
+        nextTarget = 60;
+      }
+
+      // If we are already past the threshold, timer is 0 (send now)
+      chatIntervalTimer = Math.max(0, secondsRemaining - nextTarget);
+      tickChatCountdown();
+    }
+
+    let isTriggeringTick = false;
+
+    function tickChatCountdown() {
+      if (!chatCountdownText || !chatCountdownRing) return;
+      if (!autoMessagesEnabled) {
+        chatCountdownText.textContent = 'OFF';
+        if (chatCountdownSub) {
+          chatCountdownSub.textContent = 'Disabled';
+          chatCountdownSub.className = 'text-[9px] text-gray-500 uppercase font-semibold';
+        }
+        chatCountdownRing.setAttribute('stroke-dasharray', '0, 100');
+        return;
+      }
+      if (chatIntervalTimer === -2) {
+        // Permanently locked at Done for this cycle
+        chatCountdownText.textContent = '3 / 3';
+        if (chatCountdownSub) {
+          chatCountdownSub.textContent = 'Done';
+          chatCountdownSub.className = 'text-[9px] text-[#acff46] uppercase font-semibold';
+        }
+        chatCountdownRing.setAttribute('stroke-dasharray', '100, 100');
+        return;
+      }
+      if (chatIntervalTimer === -1) {
+        chatCountdownText.textContent = '--:--';
+        if (chatCountdownSub) chatCountdownSub.textContent = 'Active';
+        return;
+      }
+      if (chatIntervalTimer === -3) {
+        // Pending: tick was fired, waiting for server response
+        chatCountdownText.textContent = 'Sending';
+        if (chatCountdownSub) chatCountdownSub.textContent = 'Now';
+        chatCountdownRing.setAttribute('stroke-dasharray', '100, 100');
+        return;
+      }
+      if (chatIntervalTimer === 0) {
+        chatCountdownText.textContent = 'Sending';
+        if (chatCountdownSub) chatCountdownSub.textContent = 'Now';
+        chatCountdownRing.setAttribute('stroke-dasharray', '100, 100');
+
+        // Automatically trigger tick to send message immediately when countdown finishes
+        if (!isTriggeringTick) {
+          isTriggeringTick = true;
+          chatIntervalTimer = -3; // -3 = "pending" — prevents re-triggering while waiting
+          fetch('/api/roach/tick', { method: 'POST' })
+            .then(() => checkFarmerStatus())
+            .catch(() => {})
+            .finally(() => {
+              setTimeout(() => { isTriggeringTick = false; }, 10000);
+            });
+        }
+        return;
+      }
+
+      const mins = Math.floor(chatIntervalTimer / 60);
+      const secs = chatIntervalTimer % 60;
+      chatCountdownText.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      if (chatCountdownSub) {
+        chatCountdownSub.textContent = 'Active';
+        chatCountdownSub.className = 'text-[9px] text-[#acff46] uppercase font-semibold';
+      }
+
+      const pct = Math.max(0, Math.min(100, (chatIntervalTimer / CHAT_INTERVAL_SEC) * 100));
+      chatCountdownRing.setAttribute('stroke-dasharray', `${pct.toFixed(1)}, 100`);
+    }
+
+    setInterval(() => {
+      if (chatIntervalTimer > 0) {
+        chatIntervalTimer--;
+        tickChatCountdown();
+      } else if (chatIntervalTimer === 0) {
+        tickChatCountdown();
+      }
+    }, 1000);
+
+    if (configureFarmerBtn) {
+      configureFarmerBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const m = document.getElementById('farmerModal');
+        if (m) {
+          m.classList.remove('hidden');
+          if (modalTitle) modalTitle.textContent = `Update Token for ${targetUsername}`;
+          if (farmerNameInput) farmerNameInput.value = targetUsername;
+          if (farmerTokenInput) {
+            farmerTokenInput.value = '';
+            farmerTokenInput.focus();
+          }
+        }
+      });
+    }
+
+    if (addAnotherTokenBtn) {
+      addAnotherTokenBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const m = document.getElementById('farmerModal');
+        if (m) {
+          m.classList.remove('hidden');
+          if (modalTitle) modalTitle.textContent = 'Add Another Account Token';
+          if (farmerNameInput) {
+            farmerNameInput.value = '';
+            farmerNameInput.focus();
+          }
+          if (farmerTokenInput) farmerTokenInput.value = '';
+        }
+      });
+    }
+
+    if (closeFarmerModalBtn) {
+      closeFarmerModalBtn.addEventListener('click', () => {
+        document.getElementById('farmerModal')?.classList.add('hidden');
+      });
+    }
+
+    if (cancelFarmerModalBtn) {
+      cancelFarmerModalBtn.addEventListener('click', () => {
+        document.getElementById('farmerModal')?.classList.add('hidden');
+      });
+    }
+
+    if (farmerForm) {
+      farmerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = (farmerNameInput?.value || targetUsername).trim();
+        let token = farmerTokenInput.value.trim();
+        if (!name || !token) return;
+
+        // Auto extract if full cookie or raw JWT is pasted
+        const cookieMatch = token.match(/(?:__Secure-)?authjs\.session-token\s*=\s*([^\s;]+)/i);
+        if (cookieMatch && cookieMatch[1]) token = cookieMatch[1].trim();
+        const jwtMatch = token.match(/eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/);
+        if (jwtMatch) token = jwtMatch[0];
+
+        const saveBtn = document.getElementById('saveFarmerTokenBtn');
+        if (saveBtn) {
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving...';
+        }
+
+        try {
+          const res = await fetch('/api/roach/accounts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, token })
+          });
+
+          if (res.ok) {
+            farmerTokenInput.value = '';
+            document.getElementById('farmerModal')?.classList.add('hidden');
+            await checkFarmerStatus();
+            fetch('/api/roach/tick', { method: 'POST' });
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            alert('Error saving token: ' + (errData.error || res.statusText));
+          }
+        } catch (err) {
+          alert('Network error: ' + err.message);
+        } finally {
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save & Start Farming';
+          }
+        }
+      });
+    }
+
+    checkFarmerStatus();
+    setInterval(checkFarmerStatus, 15000);
+
+    // ==========================================
+    // AUTO UPGRADER CONTROLLER & DRAGGABLE WHEEL
+    // ==========================================
+    const upgraderMasterToggle = document.getElementById('upgraderMasterToggle');
+    const upgraderStatusBadge = document.getElementById('upgraderStatusBadge');
+    const upgraderMultiplierInput = document.getElementById('upgraderMultiplierInput');
+    const upgraderBetAmountInput = document.getElementById('upgraderBetAmountInput');
+    const upgraderAllInBtn = document.getElementById('upgraderAllInBtn');
+    const upgraderAllInCheck = document.getElementById('upgraderAllInCheck');
+    const upgraderRandomPosCheck = document.getElementById('upgraderRandomPosCheck');
+    const upgraderAutoSellCheck = document.getElementById('upgraderAutoSellCheck');
+    const upgraderManualPlayBtn = document.getElementById('upgraderManualPlayBtn');
+    const upgraderFeedback = document.getElementById('upgraderFeedback');
+    const upgraderWheelContainer = document.getElementById('upgraderWheelContainer');
+    const upgraderArc = document.getElementById('upgraderArc');
+    const upgraderKnobStart = document.getElementById('upgraderKnobStart');
+    const upgraderKnobEnd = document.getElementById('upgraderKnobEnd');
+    const upgraderChanceDisplay = document.getElementById('upgraderChanceDisplay');
+    const upgraderMultiplierLabel = document.getElementById('upgraderMultiplierLabel');
+    const triggerAfterRain = document.getElementById('triggerAfterRain');
+    const triggerWhenBalance = document.getElementById('triggerWhenBalance');
+
+    const UPGRADER_RADIUS = 78;
+    const UPGRADER_CIRCUMFERENCE = 2 * Math.PI * UPGRADER_RADIUS; // 490.09
+    let upgraderAngle = parseFloat(localStorage.getItem('rollbux_upgrader_angle') || '0'); // degrees 0-360
+    let isDraggingKnob = false;
+    let isUpgraderExecuting = false;
+    let lastUpgraderTxCount = -1;
+
+    // Load saved settings
+    if (localStorage.getItem('rollbux_upgrader_active') === 'true' && upgraderMasterToggle) {
+      upgraderMasterToggle.checked = true;
+    }
+    if (localStorage.getItem('rollbux_upgrader_random') === 'true' && upgraderRandomPosCheck) {
+      upgraderRandomPosCheck.checked = true;
+      // If random is on, ensure we have an active position on the wheel
+      if (!localStorage.getItem('rollbux_upgrader_angle')) {
+        upgraderAngle = Math.floor(Math.random() * 360);
+        localStorage.setItem('rollbux_upgrader_angle', upgraderAngle.toFixed(2));
+      }
+    }
+    // Auto Sell defaults to true
+    if (upgraderAutoSellCheck) {
+      const savedAutoSell = localStorage.getItem('rollbux_upgrader_autosell');
+      upgraderAutoSellCheck.checked = savedAutoSell === null ? true : (savedAutoSell === 'true');
+      upgraderAutoSellCheck.addEventListener('change', () => {
+        localStorage.setItem('rollbux_upgrader_autosell', upgraderAutoSellCheck.checked ? 'true' : 'false');
+      });
+    }
+    const savedMult = localStorage.getItem('rollbux_upgrader_multiplier');
+    if (savedMult && upgraderMultiplierInput) {
+      upgraderMultiplierInput.value = savedMult;
+    }
+
+    const savedTrigger = localStorage.getItem('rollbux_upgrader_trigger');
+    if (savedTrigger === 'balance' && triggerWhenBalance) {
+      triggerWhenBalance.checked = true;
+    } else if (triggerAfterRain) {
+      triggerAfterRain.checked = true;
+    }
+
+    function syncUpgraderStatusBadge() {
+      const active = upgraderMasterToggle?.checked;
+      if (upgraderStatusBadge) {
+        if (active) {
+          upgraderStatusBadge.textContent = 'Active';
+          upgraderStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#acff46]/10 border border-[#acff46]/30 text-[#acff46]';
+        } else {
+          upgraderStatusBadge.textContent = 'Disabled';
+          upgraderStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400';
+        }
+      }
+    }
+
+    function calculateUpgraderChance(multiplier) {
+      const mult = Math.max(1.1, parseFloat(multiplier) || 2.0);
+      // RollBux Upgrader house edge = 1000 BP (10.00%), RTP = 9000 BP (90.00%)
+      // Chance % = RTP / Multiplier = 90 / mult
+      // Clamped between minChancePPM (0.0090%) and maxChancePPM (81.8181%)
+      const chance = Math.min(81.8181, Math.max(0.009, 90 / mult));
+      return chance;
+    }
+
+    // Displays the EXACT play position directly on the wheel arc and knobs
+    function updateUpgraderWheelUI() {
+      const mult = parseFloat(upgraderMultiplierInput?.value || '2.0');
+      const chance = calculateUpgraderChance(mult);
+
+      if (upgraderMultiplierLabel) {
+        upgraderMultiplierLabel.textContent = `${mult.toFixed(2)}x`;
+      }
+
+      // Arc length in SVG stroke dash
+      const arcLen = (chance / 100) * UPGRADER_CIRCUMFERENCE;
+      if (upgraderArc) {
+        upgraderArc.setAttribute('stroke-dasharray', `${arcLen.toFixed(2)} ${UPGRADER_CIRCUMFERENCE.toFixed(2)}`);
+        // The arc sits exactly at the play position
+        upgraderArc.setAttribute('transform', `rotate(${(upgraderAngle - 90).toFixed(2)} 100 100)`);
+        upgraderArc.style.opacity = '1';
+      }
+
+      // Compute exact positions of start and end white knobs on the circle
+      const startRad = (upgraderAngle - 90) * (Math.PI / 180);
+      const startX = 100 + UPGRADER_RADIUS * Math.cos(startRad);
+      const startY = 100 + UPGRADER_RADIUS * Math.sin(startRad);
+
+      const endDeg = upgraderAngle + (chance / 100) * 360;
+      const endRad = (endDeg - 90) * (Math.PI / 180);
+      const endX = 100 + UPGRADER_RADIUS * Math.cos(endRad);
+      const endY = 100 + UPGRADER_RADIUS * Math.sin(endRad);
+
+      if (upgraderKnobStart) {
+        upgraderKnobStart.setAttribute('cx', startX.toFixed(2));
+        upgraderKnobStart.setAttribute('cy', startY.toFixed(2));
+        upgraderKnobStart.style.opacity = '1';
+      }
+      if (upgraderKnobEnd) {
+        upgraderKnobEnd.setAttribute('cx', endX.toFixed(2));
+        upgraderKnobEnd.setAttribute('cy', endY.toFixed(2));
+        upgraderKnobEnd.style.opacity = '1';
+      }
+
+      if (upgraderChanceDisplay) {
+        upgraderChanceDisplay.textContent = `${chance.toFixed(2)}%`;
+      }
+    }
+
+    // Drag / Spin interaction for Wheel (only active in manual mode)
+    function handleWheelPointerEvent(e) {
+      if (upgraderRandomPosCheck?.checked) return;
+      if (!upgraderWheelContainer) return;
+      const rect = upgraderWheelContainer.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      
+      const rad = Math.atan2(clientY - cy, clientX - cx);
+      let deg = (rad * (180 / Math.PI)) + 90; // normalize so top = 0deg
+      if (deg < 0) deg += 360;
+      upgraderAngle = deg % 360;
+      localStorage.setItem('rollbux_upgrader_angle', upgraderAngle.toFixed(2));
+      updateUpgraderWheelUI();
+    }
+
+    if (upgraderWheelContainer) {
+      upgraderWheelContainer.addEventListener('mousedown', (e) => {
+        isDraggingKnob = true;
+        handleWheelPointerEvent(e);
+      });
+      upgraderWheelContainer.addEventListener('touchstart', (e) => {
+        isDraggingKnob = true;
+        handleWheelPointerEvent(e);
+      }, { passive: true });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isDraggingKnob) handleWheelPointerEvent(e);
+      });
+      window.addEventListener('touchmove', (e) => {
+        if (isDraggingKnob) handleWheelPointerEvent(e);
+      }, { passive: true });
+
+      window.addEventListener('mouseup', () => { isDraggingKnob = false; });
+      window.addEventListener('touchend', () => { isDraggingKnob = false; });
+    }
+
+    // Multiplier Input & Presets
+    if (upgraderMultiplierInput) {
+      upgraderMultiplierInput.addEventListener('input', () => {
+        localStorage.setItem('rollbux_upgrader_multiplier', upgraderMultiplierInput.value);
+        updateUpgraderWheelUI();
+      });
+    }
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const m = btn.getAttribute('data-mult');
+        if (m && upgraderMultiplierInput) {
+          upgraderMultiplierInput.value = parseFloat(m).toFixed(2);
+          localStorage.setItem('rollbux_upgrader_multiplier', upgraderMultiplierInput.value);
+          updateUpgraderWheelUI();
+        }
+      });
+    });
+
+    if (upgraderMasterToggle) {
+      upgraderMasterToggle.addEventListener('change', () => {
+        localStorage.setItem('rollbux_upgrader_active', upgraderMasterToggle.checked ? 'true' : 'false');
+        syncUpgraderStatusBadge();
+      });
+    }
+
+    if (upgraderRandomPosCheck) {
+      upgraderRandomPosCheck.addEventListener('change', () => {
+        const isRandom = upgraderRandomPosCheck.checked;
+        localStorage.setItem('rollbux_upgrader_random', isRandom ? 'true' : 'false');
+        if (isRandom) {
+          // Immediately pick a random position and move the wheel arc there to show the next spin location
+          upgraderAngle = Math.floor(Math.random() * 360);
+          localStorage.setItem('rollbux_upgrader_angle', upgraderAngle.toFixed(2));
+        }
+        updateUpgraderWheelUI();
+      });
+    }
+
+    if (triggerAfterRain) {
+      triggerAfterRain.addEventListener('change', () => {
+        localStorage.setItem('rollbux_upgrader_trigger', 'rain');
+      });
+    }
+    if (triggerWhenBalance) {
+      triggerWhenBalance.addEventListener('change', () => {
+        localStorage.setItem('rollbux_upgrader_trigger', 'balance');
+      });
+    }
+
+    // Play Execution logic
+    async function executeUpgraderPlay(isAuto = false, accountName = null) {
+      if (isUpgraderExecuting) return;
+      isUpgraderExecuting = true;
+
+      const currentAccount = accountName || targetUsername;
+      const mult = parseFloat(upgraderMultiplierInput?.value || '2.0');
+      const isRandom = Boolean(upgraderRandomPosCheck?.checked);
+
+      // Play at the exact position shown on the wheel arc
+      const startOffset = upgraderAngle / 360;
+
+      if (upgraderFeedback) {
+        upgraderFeedback.textContent = `[${currentAccount}] Upgrading...`;
+        upgraderFeedback.className = 'text-xs text-[#a78bfa] font-medium truncate flex-1';
+      }
+      if (upgraderManualPlayBtn) {
+        upgraderManualPlayBtn.disabled = true;
+        upgraderManualPlayBtn.classList.add('opacity-50');
+      }
 
       try {
-        const res = await fetch('/api/verify-session', {
+        const isAutoSell = upgraderAutoSellCheck ? upgraderAutoSellCheck.checked : true;
+        const res = await fetch('/api/upgrader/play', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token })
+          body: JSON.stringify({
+            username: currentAccount,
+            multiplier: mult,
+            betAmount: 'All In',
+            autoSell: isAutoSell,
+            range: [startOffset],
+            randomPosition: isRandom
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          const item = data.targetItem || {};
+          const won = data.won;
+          const accLabel = data.account || currentAccount;
+          if (won) {
+            const soldSuffix = data.autoSold ? ' (Sold)' : '';
+            upgraderFeedback.textContent = `[${accLabel}] Won ${item.name || 'Item'}${soldSuffix} !`;
+            upgraderFeedback.className = 'text-xs text-[#50f07b] font-bold truncate flex-1';
+          } else {
+            upgraderFeedback.textContent = `[${accLabel}] Lost.`;
+            upgraderFeedback.className = 'text-xs text-[#ff6b6b] font-bold truncate flex-1';
+          }
+          // Push to game history
+          if (typeof window.pushGameHistory === 'function') {
+            const stakeAmt = parseFloat(data.stakeBux || 0);
+            const prizeAmt = parseFloat(item.priceBux || 0);
+            window.pushGameHistory({
+              account: accLabel,
+              mode: 'Upgrader',
+              success: won,
+              betBux: stakeAmt,
+              amountBux: won ? prizeAmt : stakeAmt
+            });
+          }
+          // Refresh user data immediately to sync balance and inventory
+          fetchUserData();
+        } else {
+          const errDetail = typeof data.error === 'object' ? JSON.stringify(data.error) : String(data.error || 'Unknown error');
+          upgraderFeedback.textContent = `[${currentAccount}] Upgrade failed: ` + errDetail;
+          upgraderFeedback.className = 'text-xs text-[#ff6b6b] truncate flex-1';
+          console.error(`[AutoUpgrader][${currentAccount}] Play API error:`, errDetail);
+        }
+      } catch (e) {
+        if (upgraderFeedback) {
+          upgraderFeedback.textContent = `[${currentAccount}] Network error: ` + e.message;
+          upgraderFeedback.className = 'text-xs text-red-400 truncate flex-1';
+        }
+        console.error(`[AutoUpgrader][${currentAccount}] Error:`, e.message);
+      } finally {
+        isUpgraderExecuting = false;
+        if (upgraderManualPlayBtn) {
+          upgraderManualPlayBtn.disabled = false;
+          upgraderManualPlayBtn.classList.remove('opacity-50');
+        }
+
+        // Once the round is finished, immediately update the wheel to the next spin position!
+        if (isRandom) {
+          upgraderAngle = Math.floor(Math.random() * 360);
+          localStorage.setItem('rollbux_upgrader_angle', upgraderAngle.toFixed(2));
+          updateUpgraderWheelUI();
+        }
+      }
+    }
+
+    if (upgraderManualPlayBtn) {
+      upgraderManualPlayBtn.addEventListener('click', () => {
+        const selected = document.getElementById('upgraderAccountSelect')?.value;
+        const target = (selected && selected !== 'ALL') ? selected : targetUsername;
+        executeUpgraderPlay(false, target);
+      });
+    }
+
+    // Auto-trigger condition evaluator across ALL registered accounts
+    const lastUpgraderAccountPlayTimes = {};
+    let cachedRegisteredAccounts = [];
+    let lastAccountsFetchTime = 0;
+
+    async function getRegisteredAccountsList(force = false) {
+      const now = Date.now();
+      if (!force && cachedRegisteredAccounts.length > 0 && now - lastAccountsFetchTime < 15000) {
+        return cachedRegisteredAccounts;
+      }
+      try {
+        let res = await fetch('/api/account/accounts');
+        if (!res.ok) res = await fetch('/api/roach/accounts');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.accounts) && data.accounts.length > 0) {
+            cachedRegisteredAccounts = data.accounts;
+            lastAccountsFetchTime = now;
+            return cachedRegisteredAccounts;
+          }
+        }
+      } catch (e) {}
+      return cachedRegisteredAccounts.length > 0 ? cachedRegisteredAccounts : [{ name: targetUsername }];
+    }
+
+    // ── Global Account Selector Overlay System ───────────────────────────
+    let currentAccountSelectorMode = 'upgrader'; // 'upgrader' | 'battle' | 'mines'
+    const accountSelectorModal = document.getElementById('accountSelectorModal');
+    const accountSelectorModeLabel = document.getElementById('accountSelectorModeLabel');
+    const accountSelectorList = document.getElementById('accountSelectorList');
+    const closeAccountSelectorModalBtn = document.getElementById('closeAccountSelectorModalBtn');
+    const closeAccountSelectorModalBtn2 = document.getElementById('closeAccountSelectorModalBtn2');
+
+    const accountSettings = {
+      upgrader: {
+        labelEl: document.getElementById('upgraderAccountLabel'),
+        key: 'rollbux_upgrader_account',
+        title: 'Auto Upgrader'
+      },
+      battle: {
+        labelEl: document.getElementById('battleAccountLabel'),
+        key: 'rollbux_battle_account',
+        title: 'Auto Battle'
+      },
+      mines: {
+        labelEl: document.getElementById('minesAccountLabel'),
+        key: 'rollbux_mines_account',
+        title: 'Auto Mines'
+      },
+      tip: {
+        labelEl: document.getElementById('tipAccountLabel'),
+        key: 'rollbux_tip_recipient',
+        title: 'Tip Recipient (Main Account)'
+      }
+    };
+
+    function getSelectedAccountsForMode(mode) {
+      const raw = localStorage.getItem(accountSettings[mode]?.key);
+      if (mode === 'tip') {
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0] !== 'ALL') return [parsed[0]];
+            if (typeof parsed === 'string' && parsed !== 'ALL') return [parsed];
+          } catch (e) {
+            if (raw !== 'ALL') return [raw];
+          }
+        }
+        return ['sotarium'];
+      }
+      if (!raw) return ['ALL'];
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        if (raw) return [raw];
+      }
+      return ['ALL'];
+    }
+
+    function setSelectedAccountsForMode(mode, accList) {
+      const cfg = accountSettings[mode];
+      if (!cfg) return;
+      localStorage.setItem(cfg.key, JSON.stringify(accList));
+      updateAccountButtonLabel(mode, accList);
+    }
+
+    function updateAccountButtonLabel(mode, accList) {
+      const cfg = accountSettings[mode];
+      if (!cfg?.labelEl) return;
+      if (mode === 'tip') {
+        const target = (accList && accList.length > 0 && accList[0] !== 'ALL') ? accList[0] : 'Select Main';
+        cfg.labelEl.textContent = target;
+        return;
+      }
+      if (!accList || accList.length === 0 || accList.includes('ALL')) {
+        cfg.labelEl.textContent = 'All Accounts';
+      } else if (accList.length === 1) {
+        cfg.labelEl.textContent = accList[0];
+      } else {
+        cfg.labelEl.textContent = `${accList.length} Accs`;
+      }
+    }
+
+    function initAccountButtons() {
+      ['upgrader', 'battle', 'mines', 'tip'].forEach(mode => {
+        const current = getSelectedAccountsForMode(mode);
+        updateAccountButtonLabel(mode, current);
+
+        const btn = document.getElementById(`${mode}AccountBtn`);
+        if (btn) {
+          btn.addEventListener('click', () => openAccountSelectorModal(mode));
+        }
+      });
+    }
+
+    let tempSelectedAccounts = [];
+
+    window.openAccountSelectorModal = async function(mode) {
+      currentAccountSelectorMode = mode;
+      const cfg = accountSettings[mode];
+      if (accountSelectorModeLabel) {
+        accountSelectorModeLabel.textContent = cfg?.title || 'Auto Game Mode';
+      }
+
+      tempSelectedAccounts = [...getSelectedAccountsForMode(mode)];
+
+      if (accountSelectorList) {
+        accountSelectorList.innerHTML = '<div class="py-6 text-center text-xs text-gray-400">Loading accounts...</div>';
+      }
+      if (accountSelectorModal) accountSelectorModal.classList.remove('hidden');
+
+      const accounts = await getRegisteredAccountsList(true);
+      renderAccountSelectorList(accounts);
+    };
+
+    window.closeAccountSelectorModal = function() {
+      if (accountSelectorModal) accountSelectorModal.classList.add('hidden');
+    };
+
+    if (closeAccountSelectorModalBtn) closeAccountSelectorModalBtn.addEventListener('click', closeAccountSelectorModal);
+    if (closeAccountSelectorModalBtn2) closeAccountSelectorModalBtn2.addEventListener('click', closeAccountSelectorModal);
+
+    function renderAccountSelectorList(accounts) {
+      if (!accountSelectorList) return;
+      const isAllSelected = tempSelectedAccounts.includes('ALL') || tempSelectedAccounts.length === 0;
+
+      const items = currentAccountSelectorMode === 'tip'
+        ? accounts.map(a => ({ name: a.name, displayName: a.name, isAll: false, balance: a.balance_bux || a.balance }))
+        : [
+            { name: 'ALL', displayName: 'All Accounts', isAll: true },
+            ...accounts.map(a => ({ name: a.name, displayName: a.name, isAll: false, balance: a.balance_bux || a.balance }))
+          ];
+
+      accountSelectorList.innerHTML = items.map(item => {
+        const isChecked = item.isAll 
+          ? isAllSelected 
+          : (!isAllSelected && tempSelectedAccounts.some(x => x.toLowerCase() === item.name.toLowerCase()));
+
+        return `
+          <div onclick="toggleAccountInOverlay('${item.name}')" class="w-full flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none ${isChecked ? 'bg-[#7c3aed]/15 border-[#7c3aed] text-white shadow-sm' : 'bg-[#131a29] hover:bg-[#182133] border-white/5 text-gray-300'}">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="size-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'border-[#7c3aed] bg-[#7c3aed]' : 'border-gray-500 bg-transparent'}">
+                ${isChecked ? '<svg class="size-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+              </div>
+              <span class="text-xs font-black tracking-tight truncate">${item.displayName}</span>
+            </div>
+            ${item.isAll ? '<span class="text-[9px] uppercase font-bold text-gray-400 bg-white/5 px-2 py-0.5 rounded">All</span>' : (item.balance !== undefined ? `<span class="text-xs font-mono font-bold text-[#acff46]">${Number(item.balance).toFixed(2)} BUX</span>` : '')}
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleAccountInOverlay = async function(accName) {
+      if (currentAccountSelectorMode === 'tip') {
+        tempSelectedAccounts = [accName];
+      } else if (accName === 'ALL') {
+        tempSelectedAccounts = ['ALL'];
+      } else {
+        tempSelectedAccounts = tempSelectedAccounts.filter(x => x !== 'ALL');
+        const idx = tempSelectedAccounts.findIndex(x => x.toLowerCase() === accName.toLowerCase());
+        if (idx >= 0) {
+          tempSelectedAccounts.splice(idx, 1);
+          if (tempSelectedAccounts.length === 0) tempSelectedAccounts = ['ALL'];
+        } else {
+          tempSelectedAccounts.push(accName);
+        }
+      }
+      const accounts = await getRegisteredAccountsList(true);
+      renderAccountSelectorList(accounts);
+    };
+
+    window.saveAccountsFromOverlay = function() {
+      setSelectedAccountsForMode(currentAccountSelectorMode, tempSelectedAccounts);
+      closeAccountSelectorModal();
+    };
+
+    initAccountButtons();
+
+    async function checkAutoUpgraderConditions(userData) {
+      if (!upgraderMasterToggle || !upgraderMasterToggle.checked) return;
+      if (isUpgraderExecuting) return;
+
+      const accounts = await getRegisteredAccountsList();
+      const now = Date.now();
+
+      // Minimum required platform stake is 50 BUX
+      const minRequired = 50;
+
+      // Filter by user selection if specific accounts are chosen
+      const selectedAccounts = getSelectedAccountsForMode('upgrader').map(s => s.toLowerCase().trim());
+      const targetAccounts = (selectedAccounts.includes('all') || selectedAccounts.length === 0)
+        ? accounts 
+        : accounts.filter(a => selectedAccounts.includes((a.name || '').toLowerCase().trim()));
+
+      // Check each registered account for eligibility
+      for (const acc of targetAccounts) {
+        const accName = acc.name || 'Account';
+        const key = accName.toLowerCase().trim();
+
+        // 30s cooldown per individual account to prevent spamming
+        const lastPlay = lastUpgraderAccountPlayTimes[key] || 0;
+        if (now - lastPlay < 30000) continue;
+
+        // Determine account balance
+        let balance = 0;
+        if (key === targetUsername.toLowerCase()) {
+          balance = (liveUserData && liveUserData.user && liveUserData.user.balance_bux) || (userData && userData.user && userData.user.balance_bux) || 0;
+        } else {
+          // Check cached DB user balance
+          try {
+            const uRes = await fetch(`/api/user/${encodeURIComponent(accName)}`);
+            if (uRes.ok) {
+              const uData = await uRes.json();
+              balance = (uData && uData.user && uData.user.balance_bux) || 0;
+            }
+          } catch (e) {}
+        }
+
+        if (balance >= minRequired) {
+          lastUpgraderAccountPlayTimes[key] = now;
+          console.log(`[AutoUpgrader][${accName}] Active! Balance is ${balance.toFixed(2)} BUX (>= ${minRequired} BUX). Executing automatic upgrade...`);
+          await executeUpgraderPlay(true, accName);
+          break; // Process one account per cycle to avoid concurrency conflicts
+        }
+      }
+    }
+
+
+    syncUpgraderStatusBadge();
+    updateUpgraderWheelUI();
+
+    // ==========================================
+    // AUTO BATTLE CONTROLLER & STATE LOGIC
+    // ==========================================
+    const battleMasterToggle = document.getElementById('battleMasterToggle');
+    const battleStatusBadge = document.getElementById('battleStatusBadge');
+    const battleBorrowToggle = document.getElementById('battleBorrowToggle');
+    const battleManualCreateBtn = document.getElementById('battleManualCreateBtn');
+    const battleFeedback = document.getElementById('battleFeedback');
+    const battleTotalCostPreview = document.getElementById('battleTotalCostPreview');
+
+    let isBattleExecuting = false;
+    const lastBattleAccountPlayTimes = {};
+
+    function syncBattleStatusBadge() {
+      if (!battleStatusBadge || !battleMasterToggle) return;
+      if (battleMasterToggle.checked) {
+        battleStatusBadge.textContent = 'Active';
+        battleStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#acff46]/10 border border-[#acff46]/30 text-[#acff46]';
+      } else {
+        battleStatusBadge.textContent = 'Disabled';
+        battleStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400';
+      }
+    }
+
+    // Initialize stored toggle states
+    if (battleMasterToggle) {
+      battleMasterToggle.checked = localStorage.getItem('rollbux_battle_active') === 'true';
+      syncBattleStatusBadge();
+      battleMasterToggle.addEventListener('change', () => {
+        localStorage.setItem('rollbux_battle_active', battleMasterToggle.checked ? 'true' : 'false');
+        syncBattleStatusBadge();
+      });
+    }
+
+    if (battleBorrowToggle) {
+      const storedBorrow = localStorage.getItem('rollbux_battle_borrow');
+      battleBorrowToggle.checked = storedBorrow !== null ? storedBorrow === 'true' : true;
+      battleBorrowToggle.addEventListener('change', () => {
+        localStorage.setItem('rollbux_battle_borrow', battleBorrowToggle.checked ? 'true' : 'false');
+      });
+    }
+
+    // Execute Battle Creation
+    async function executeBattleCreate(isAuto = false, accountName = null) {
+      if (isBattleExecuting) return;
+      isBattleExecuting = true;
+
+      const currentAccount = accountName || targetUsername;
+      const borrowMode = battleBorrowToggle ? battleBorrowToggle.checked : true;
+      const crazyModeChecked = battleCrazyModeToggle ? battleCrazyModeToggle.checked : true;
+      // If 50/50 toggle is on, 50% chance of true; otherwise false
+      const isCrazyMode = crazyModeChecked ? (Math.random() < 0.5) : false;
+
+      if (battleFeedback) {
+        battleFeedback.textContent = `[${currentAccount}] Creating 3v3 battle (Crazy: ${isCrazyMode ? 'Yes' : 'No'})...`;
+        battleFeedback.className = 'text-xs text-[#acff46] font-medium truncate flex-1';
+      }
+      if (battleManualCreateBtn) {
+        battleManualCreateBtn.disabled = true;
+        battleManualCreateBtn.classList.add('opacity-50');
+      }
+
+      try {
+        const res = await fetch('/api/battles/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: currentAccount,
+            borrow: borrowMode,
+            crazy_mode: isCrazyMode,
+            mode: "3v3"
+          })
         });
 
         const data = await res.json();
 
-        if (res.ok && data.success && data.user) {
-          statusMsg.textContent = 'Success! Opening dashboard...';
-          statusMsg.style.display = 'block';
-
-          // Store session data locally
-          try {
-            localStorage.setItem('sotarium_registered_token', token);
-            localStorage.setItem('sotarium_session_token', token);
-            localStorage.setItem('sotarium_user_profile', JSON.stringify(data.user));
-          } catch (e) {}
-
-          // Redirect to user dashboard
-          setTimeout(() => {
-            window.location.href = '/dashboard/user';
-          }, 400);
-        } else {
-          btn.disabled = false;
-          btn.textContent = 'Continue';
-          errorMsg.textContent = data.error || 'Invalid session cookie. Verification failed.';
-          errorMsg.style.display = 'block';
+        if (!res.ok || !data.success) {
+          const errText = typeof data?.error === 'object' ? JSON.stringify(data.error) : (data?.error || 'Failed to create battle');
+          if (battleFeedback) {
+            battleFeedback.textContent = `[${currentAccount}] ${errText}`;
+            battleFeedback.className = 'text-xs text-red-400 truncate flex-1';
+          }
+          console.warn(`[AutoBattle][${currentAccount}] Failed:`, errText);
+          return;
         }
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Continue';
-        errorMsg.textContent = 'Unable to reach authentication service.';
-        errorMsg.style.display = 'block';
+
+        // Success!
+        const bId = data.battle_id || 'OK';
+        const cost = data.totalCostBux || '0.00';
+        const count = data.casesCount || 1;
+        if (battleFeedback) {
+          battleFeedback.textContent = `[${currentAccount}] Battle #${String(bId).slice(0, 6)} created! (${cost} BUX, ${count} cases)`;
+          battleFeedback.className = 'text-xs text-[#acff46] font-bold truncate flex-1';
+        }
+        // Push to game history — battle created = success entry (we don't know outcome yet)
+        if (typeof window.pushGameHistory === 'function') {
+          const paidAmt = parseFloat(data.actualPaidBux || cost);
+          window.pushGameHistory({
+            account: data.account || currentAccount,
+            mode: 'Battle',
+            success: true,
+            betBux: paidAmt,
+            amountBux: parseFloat(cost)
+          });
+        }
+        console.log(`[AutoBattle][${currentAccount}] Battle created successfully:`, data);
+      } catch (e) {
+        if (battleFeedback) {
+          battleFeedback.textContent = `[${currentAccount}] Network error: ` + e.message;
+          battleFeedback.className = 'text-xs text-red-400 truncate flex-1';
+        }
+        console.error(`[AutoBattle][${currentAccount}] Error:`, e.message);
+      } finally {
+        isBattleExecuting = false;
+        if (battleManualCreateBtn) {
+          battleManualCreateBtn.disabled = false;
+          battleManualCreateBtn.classList.remove('opacity-50');
+        }
       }
-    });
+    }
+
+    if (battleManualCreateBtn) {
+      battleManualCreateBtn.addEventListener('click', () => {
+        const selectedList = getSelectedAccountsForMode('battle');
+        const target = (selectedList && selectedList.length > 0 && selectedList[0] !== 'ALL') ? selectedList[0] : targetUsername;
+        executeBattleCreate(false, target);
+      });
+    }
+
+    // Auto Battle Condition Checker: Triggers for all registered accounts after a rain
+    async function checkAutoBattleConditions(userData) {
+      if (!battleMasterToggle || !battleMasterToggle.checked) return;
+      if (isBattleExecuting) return;
+
+      const accounts = await getRegisteredAccountsList();
+      const now = Date.now();
+
+      // Minimum required balance to open the cheapest case (~57.6 BUX)
+      const minRequired = 57.6;
+
+      // Filter by user selection if specific accounts are chosen
+      const selectedAccounts = getSelectedAccountsForMode('battle').map(s => s.toLowerCase().trim());
+      const targetAccounts = (selectedAccounts.includes('all') || selectedAccounts.length === 0)
+        ? accounts 
+        : accounts.filter(a => selectedAccounts.includes((a.name || '').toLowerCase().trim()));
+
+      for (const acc of targetAccounts) {
+        const accName = acc.name || 'Account';
+        const key = accName.toLowerCase().trim();
+
+        // 45s cooldown per account
+        const lastPlay = lastBattleAccountPlayTimes[key] || 0;
+        if (now - lastPlay < 45000) continue;
+
+        let balance = 0;
+        if (key === targetUsername.toLowerCase()) {
+          balance = (liveUserData && liveUserData.user && liveUserData.user.balance_bux) || (userData && userData.user && userData.user.balance_bux) || 0;
+        } else {
+          try {
+            const uRes = await fetch(`/api/user/${encodeURIComponent(accName)}`);
+            if (uRes.ok) {
+              const uData = await uRes.json();
+              balance = (uData && uData.user && uData.user.balance_bux) || 0;
+            }
+          } catch (e) {}
+        }
+
+        if (balance >= minRequired) {
+          lastBattleAccountPlayTimes[key] = now;
+          console.log(`[AutoBattle][${accName}] Triggered after rain! Balance is ${balance.toFixed(2)} BUX. Creating battle with borrow mode...`);
+          await executeBattleCreate(true, accName);
+          break; // Process one account per cycle to avoid concurrency conflicts
+        }
+      }
+    }
+
+    // ==========================================
+    // AUTO MINES CONTROLLER
+    // ==========================================
+    const minesMasterToggle = document.getElementById('minesMasterToggle');
+    const minesStatusBadge  = document.getElementById('minesStatusBadge');
+    const minesFeedback     = document.getElementById('minesFeedback');
+    const minesManualPlayBtn = document.getElementById('minesManualPlayBtn');
+
+    let isMinesExecuting = false;
+    let minesLoopTimer   = null;
+
+    function syncMinesStatusBadge() {
+      if (!minesStatusBadge || !minesMasterToggle) return;
+      if (minesMasterToggle.checked) {
+        minesStatusBadge.textContent = 'Active';
+        minesStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#acff46]/10 border border-[#acff46]/30 text-[#acff46]';
+        scheduleMinesLoop();
+      } else {
+        minesStatusBadge.textContent = 'Disabled';
+        minesStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400';
+        if (minesLoopTimer) { clearTimeout(minesLoopTimer); minesLoopTimer = null; }
+      }
+    }
+
+    if (minesMasterToggle) {
+      minesMasterToggle.checked = localStorage.getItem('rollbux_mines_active') === 'true';
+      syncMinesStatusBadge();
+      minesMasterToggle.addEventListener('change', () => {
+        localStorage.setItem('rollbux_mines_active', minesMasterToggle.checked ? 'true' : 'false');
+        syncMinesStatusBadge();
+      });
+    }
+
+    function setMinesFeedback(msg, color = '#9aa3a8') {
+      if (minesFeedback) {
+        minesFeedback.textContent = msg;
+        minesFeedback.style.color = color;
+      }
+    }
+
+    async function executeMinesRound(accountName) {
+      if (isMinesExecuting) return;
+      isMinesExecuting = true;
+      if (minesManualPlayBtn) { minesManualPlayBtn.disabled = true; minesManualPlayBtn.classList.add('opacity-50'); }
+
+      const acc = accountName || targetUsername;
+      setMinesFeedback(`${acc} : checking balance...`, '#acff46');
+
+      try {
+        // 1. Get balance for all-in bet
+        const uRes = await fetch(`/api/user/${encodeURIComponent(acc)}`);
+        if (!uRes.ok) throw new Error('balance fetch failed');
+        const uData = await uRes.json();
+        const balanceBux = (uData?.user?.balance_bux) || 0;
+        const balanceMicro = Math.floor(balanceBux * 1_000_000);
+        const minBet = 50_000_000; // 50 BUX minimum
+        if (balanceMicro < minBet) {
+          setMinesFeedback(`${acc} : balance too low (min 50 BUX)`, '#ff6b6b');
+          return;
+        }
+
+        // 2. Pick 3 distinct random tiles across the 5x5 grid (indices 0..24)
+        const randomTiles = [];
+        while (randomTiles.length < 3) {
+          const r = Math.floor(Math.random() * 25);
+          if (!randomTiles.includes(r)) randomTiles.push(r);
+        }
+
+        // 3. Start round: all-in, 1 mine
+        setMinesFeedback(`${acc} : ${balanceBux.toFixed(2)} BUX`, '#acff46');
+        const startRes = await fetch('/api/mines/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: acc, amount_micro_tokens: balanceMicro, number_of_mines: 1 })
+        });
+        const startData = await startRes.json().catch(() => ({}));
+        if (!startRes.ok || !startData.success) {
+          console.warn('[AutoMines Start Error]', startData);
+          const errDetail = typeof startData?.error === 'string' ? startData.error : (startData?.error?.message || 'Start failed');
+          setMinesFeedback(`${acc} : ${errDetail}`, '#ff6b6b');
+          return;
+        }
+
+        const actualBetBux = parseFloat(startData.bet_bux || (balanceMicro / 1_000_000).toFixed(2));
+
+        // 4. Reveal the 3 randomized tiles
+        for (let i = 0; i < randomTiles.length; i++) {
+          const tileIdx = randomTiles[i];
+          await new Promise(r => setTimeout(r, 900));
+          setMinesFeedback(`${acc} : tile ${i + 1}/3`, '#acff46');
+          const revRes = await fetch('/api/mines/reveal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: acc, tile_index: tileIdx })
+          });
+          const revData = await revRes.json().catch(() => ({}));
+          console.log(`[AutoMines Reveal ${i + 1}/3]`, revData);
+          if (!revRes.ok || !revData.success || revData.exploded) {
+            console.warn('[AutoMines Reveal Exploded/Failed]', revData);
+            setMinesFeedback(`${acc} : Exploded!`, '#ff6b6b');
+            if (typeof window.pushGameHistory === 'function') {
+              window.pushGameHistory({ account: acc, mode: 'Mines', success: false, betBux: actualBetBux, amountBux: actualBetBux });
+            }
+            return;
+          }
+        }
+
+        // 5. Cashout after reveals complete
+        await new Promise(r => setTimeout(r, 1000));
+        setMinesFeedback(`${acc} : cashing out...`, '#acff46');
+        const cashRes = await fetch('/api/mines/cashout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: acc })
+        });
+        const cashData = await cashRes.json().catch(() => ({}));
+        if (!cashRes.ok || !cashData.success) {
+          console.warn('[AutoMines Cashout Error]', cashData);
+          const errDetail = cashData?.error || 'Cashout failed';
+          setMinesFeedback(`${acc} : ${errDetail}`, '#ff6b6b');
+          if (typeof window.pushGameHistory === 'function') {
+            window.pushGameHistory({ account: acc, mode: 'Mines', success: false, betBux: actualBetBux, amountBux: actualBetBux });
+          }
+          return;
+        }
+
+        const rawPayout = parseFloat(cashData.payout_bux);
+        const won = (!isNaN(rawPayout) && rawPayout > 0) ? rawPayout.toFixed(2) : (actualBetBux * 1.1).toFixed(2);
+        setMinesFeedback(`${acc} : ${won} BUX Success.`, '#acff46');
+        if (typeof window.pushGameHistory === 'function') {
+          window.pushGameHistory({ account: acc, mode: 'Mines', success: true, betBux: actualBetBux, amountBux: won });
+        }
+
+      } catch (e) {
+        setMinesFeedback(`${acc} : Failed.`, '#ff6b6b');
+      } finally {
+        isMinesExecuting = false;
+        if (minesManualPlayBtn) { minesManualPlayBtn.disabled = false; minesManualPlayBtn.classList.remove('opacity-50'); }
+        scheduleMinesLoop();
+      }
+    }
+
+    function scheduleMinesLoop() {
+      if (!minesMasterToggle || !minesMasterToggle.checked) return;
+      if (minesLoopTimer) clearTimeout(minesLoopTimer);
+      // Run next round after 4s cooldown
+      minesLoopTimer = setTimeout(async () => {
+        if (!minesMasterToggle || !minesMasterToggle.checked) return;
+        const accounts = await getRegisteredAccountsList().catch(() => []);
+        const selectedAccounts = getSelectedAccountsForMode('mines').map(s => s.toLowerCase().trim());
+        
+        const targetAccounts = (selectedAccounts.includes('all') || selectedAccounts.length === 0)
+          ? accounts 
+          : accounts.filter(a => selectedAccounts.includes((a.name || '').toLowerCase().trim()));
+
+        if (targetAccounts.length === 0) {
+          await executeMinesRound(targetUsername);
+          return;
+        }
+
+        // Loop through candidate accounts to find one with sufficient balance
+        for (const candidate of targetAccounts) {
+          const accName = candidate.name || targetUsername;
+          try {
+            const uRes = await fetch(`/api/user/${encodeURIComponent(accName)}`);
+            if (uRes.ok) {
+              const uData = await uRes.json();
+              const bal = (uData?.user?.balance_bux) || 0;
+              if (bal >= 50) {
+                await executeMinesRound(accName);
+                return;
+              }
+            }
+          } catch (e) {}
+        }
+
+        // If none had >= 50 BUX, wait and re-check next tick
+        setMinesFeedback('Waiting for ≥50 BUX...', '#9aa3a8');
+        scheduleMinesLoop();
+      }, 4000);
+    }
+
+    if (minesManualPlayBtn) {
+      minesManualPlayBtn.addEventListener('click', () => {
+        const selectedList = getSelectedAccountsForMode('mines');
+        const target = (selectedList && selectedList.length > 0 && selectedList[0] !== 'ALL') ? selectedList[0] : targetUsername;
+        executeMinesRound(target);
+      });
+    }
+
+    // ── Auto Tip Logic with 60s Account Cooldown & Inventory Sell ─────────────────
+    const tipStatusBadge = document.getElementById('tipStatusBadge');
+    const tipMasterToggle = document.getElementById('tipMasterToggle');
+    const tipAccountLabel = document.getElementById('tipAccountLabel');
+    const tipFeedback = document.getElementById('tipFeedback');
+    const tipManualBtn = document.getElementById('tipManualBtn');
+
+    let isTipCycleRunning = false;
+    let tipLoopTimer = null;
+
+    function setTipFeedback(text, color = '#9aa3a8') {
+      if (tipFeedback) {
+        tipFeedback.textContent = text;
+        tipFeedback.style.color = color;
+      }
+    }
+
+    function updateTipBadge() {
+      if (!tipStatusBadge || !tipMasterToggle) return;
+      if (tipMasterToggle.checked) {
+        tipStatusBadge.textContent = 'Active';
+        tipStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#acff46]/10 border border-[#acff46]/30 text-[#acff46]';
+      } else {
+        tipStatusBadge.textContent = 'Disabled';
+        tipStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400';
+      }
+    }
+
+    if (tipMasterToggle) {
+      tipMasterToggle.checked = localStorage.getItem('rollbux_tip_enabled') === 'true';
+      updateTipBadge();
+      tipMasterToggle.addEventListener('change', () => {
+        localStorage.setItem('rollbux_tip_enabled', tipMasterToggle.checked ? 'true' : 'false');
+        updateTipBadge();
+        if (tipMasterToggle.checked) {
+          triggerAutoTipCycle();
+        } else if (tipLoopTimer) {
+          clearTimeout(tipLoopTimer);
+          setTipFeedback('Disabled', '#9aa3a8');
+        }
+      });
+    }
+
+    function getTipRecipient() {
+      const selected = getSelectedAccountsForMode('tip');
+      if (selected && selected.length > 0 && selected[0] !== 'ALL') {
+        return selected[0];
+      }
+      return targetUsername || 'sotarium';
+    }
+
+    async function triggerAutoTipCycle() {
+      if (isTipCycleRunning) return;
+      const recipient = getTipRecipient();
+      if (!recipient) {
+        setTipFeedback('Select a Main account', '#ff6b6b');
+        return;
+      }
+
+      isTipCycleRunning = true;
+      if (tipManualBtn) { tipManualBtn.disabled = true; tipManualBtn.classList.add('opacity-50'); }
+
+      try {
+        const allAccounts = await getRegisteredAccountsList().catch(() => []);
+        // Alt accounts are all accounts EXCEPT the chosen recipient main
+        const alts = allAccounts.filter(a => (a.name || '').toLowerCase().trim() !== recipient.toLowerCase().trim());
+
+        if (alts.length === 0) {
+          setTipFeedback('No alt accounts found', '#9aa3a8');
+          return;
+        }
+
+        setTipFeedback(`Starting tip to ${recipient}...`, '#acff46');
+
+        for (let i = 0; i < alts.length; i++) {
+          const alt = alts[i];
+          const altName = alt.name;
+
+          setTipFeedback(`[${i+1}/${alts.length}] Tipping from ${altName}...`, '#acff46');
+
+          try {
+            const res = await fetch('/api/roach/tip', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to_username: recipient,
+                from_account: altName
+              })
+            });
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data.success) {
+              setTipFeedback(`${altName} tipped ${data.tipped_bux} BUX!`, '#acff46');
+            } else {
+              const msg = data.error || 'No bal';
+              setTipFeedback(`${altName}: ${msg}`, '#9aa3a8');
+            }
+          } catch (e) {
+            setTipFeedback(`${altName}: Tip error`, '#ff6b6b');
+          }
+
+          // 1 minute cooldown between alt tips (stealth / anti-ban) if not the last alt
+          if (i < alts.length - 1) {
+            for (let sec = 60; sec > 0; sec--) {
+              if (tipMasterToggle && !tipMasterToggle.checked && !isTipCycleRunning) break;
+              setTipFeedback(`Next alt in ${sec}s cooldown...`, '#9aa3a8');
+              await new Promise(r => setTimeout(r, 1000));
+            }
+          }
+        }
+
+        setTipFeedback(`Cycle complete -> ${recipient}`, '#acff46');
+      } catch (err) {
+        setTipFeedback('Tip cycle error', '#ff6b6b');
+      } finally {
+        isTipCycleRunning = false;
+        if (tipManualBtn) { tipManualBtn.disabled = false; tipManualBtn.classList.remove('opacity-50'); }
+        scheduleNextTipCycle();
+      }
+    }
+
+    function scheduleNextTipCycle() {
+      if (!tipMasterToggle || !tipMasterToggle.checked) return;
+      if (tipLoopTimer) clearTimeout(tipLoopTimer);
+      // Wait 5 minutes between complete cycles if toggle is on
+      tipLoopTimer = setTimeout(() => {
+        if (tipMasterToggle && tipMasterToggle.checked) {
+          triggerAutoTipCycle();
+        }
+      }, 300000);
+    }
+
+    if (tipManualBtn) {
+      tipManualBtn.addEventListener('click', () => {
+        triggerAutoTipCycle();
+      });
+    }
+
+    // Auto-start tip cycle if toggle was previously enabled
+    if (tipMasterToggle && tipMasterToggle.checked) {
+      setTimeout(() => {
+        triggerAutoTipCycle();
+      }, 5000);
+    }
   </script>
+  </div><!-- /dashboardContent -->
+
+  <script>
+    // SPA Auth — runs before dashboard JS
+    (function() {
+      const overlay = document.getElementById('loginOverlay');
+      const dashContent = document.getElementById('dashboardContent');
+      const loginForm = document.getElementById('loginForm');
+      const loginInput = document.getElementById('loginSessionInput');
+      const loginBtn = document.getElementById('loginContinueBtn');
+      const loginErr = document.getElementById('loginError');
+
+      function showDashboard() {
+        if (overlay) overlay.style.display = 'none';
+        if (dashContent) dashContent.style.display = 'block';
+      }
+
+      function showLogin() {
+        if (overlay) { overlay.style.display = 'flex'; }
+        if (dashContent) dashContent.style.display = 'none';
+      }
+
+      async function tryAutoLogin() {
+        try {
+          const token = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
+          if (token && token.length > 10) {
+            const r = await fetch('/api/verify-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token })
+            });
+            if (r.ok) {
+              const d = await r.json();
+              if (d && d.success) {
+                // refresh cookie & profile
+                if (d.user) localStorage.setItem('sotarium_user_profile', JSON.stringify(d.user));
+                showDashboard();
+                return;
+              }
+            }
+          }
+        } catch(e) {}
+        showLogin();
+      }
+
+      tryAutoLogin();
+
+      if (loginInput) {
+        loginInput.addEventListener('input', () => {
+          if (loginErr) loginErr.style.display = 'none';
+          loginBtn.style.color = loginInput.value.trim() ? '#fff' : '#777';
+          loginBtn.style.background = loginInput.value.trim() ? '#262626' : '#1c1c1c';
+        });
+      }
+
+      if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const token = loginInput.value.trim();
+          if (!token) return;
+          loginBtn.disabled = true;
+          loginBtn.textContent = 'Verifying...';
+          if (loginErr) loginErr.style.display = 'none';
+          try {
+            const res = await fetch('/api/verify-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token })
+            });
+            const data = await res.json();
+            if (res.ok && data.success && data.user) {
+              localStorage.setItem('sotarium_session_token', token);
+              localStorage.setItem('sotarium_registered_token', token);
+              localStorage.setItem('sotarium_user_profile', JSON.stringify(data.user));
+              showDashboard();
+            } else {
+              loginBtn.disabled = false;
+              loginBtn.textContent = 'Continue';
+              if (loginErr) { loginErr.textContent = data.error || 'Invalid session cookie.'; loginErr.style.display = 'block'; }
+            }
+          } catch(err) {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Continue';
+            if (loginErr) { loginErr.textContent = 'Network error.'; loginErr.style.display = 'block'; }
+          }
+        });
+      }
+    })();
+  </script>
+
 </body>
 </html>

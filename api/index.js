@@ -1926,51 +1926,12 @@ export default async function handler(req, res) {
   const dashboardMatch = pathname.match(/^\/dashboard\/([^/]+)\/?$/);
   const isUserDashboardPage = matchedPath === '/dashboard/user' || pathname === '/dashboard/user' || Boolean(dashboardMatch) || matchedPath.startsWith('/user/') || pathname.startsWith('/user/');
 
-  // Protect the Individual User Profile Dashboard HTML page (/user/:username)
+  // /dashboard/* → redirect to homepage (SPA handles auth)
   if (isUserDashboardPage) {
-    const dynamicUserPath = dashboardMatch || pathname.match(/^\/user\/([^/]+)\/?$/);
-    if ((pathname === '/dashboard/user' || dynamicUserPath) && !currentSession(req)) {
-      res.statusCode = 401;
-      res.end('Authentication required');
-      return;
-    }
-    if (dynamicUserPath) {
-      const session = currentSession(req);
-      const requestedUser = decodeURIComponent(dynamicUserPath[1]).trim().toLowerCase();
-      const sessionUser = String(session?.username || session?.email || '').trim().toLowerCase();
-      if (!session) {
-        res.statusCode = 401;
-        res.end('Authentication required');
-        return;
-      }
-    }
-    try {
-      const candidates = [
-        path.resolve(process.cwd(), 'server', 'dashboard.html'),
-        path.resolve(process.cwd(), 'dist', 'index.html'),
-        path.resolve(process.cwd(), 'index.html')
-      ];
-      let html = null;
-      for (const p of candidates) {
-        if (fs.existsSync(p)) {
-          html = fs.readFileSync(p, 'utf-8');
-          break;
-        }
-      }
-      if (!html) {
-        res.statusCode = 404;
-        res.end('Dashboard not found');
-        return;
-      }
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.statusCode = 200;
-      res.end(html);
-      return;
-    } catch (err) {
-      res.statusCode = 500;
-      res.end('Internal Server Error');
-      return;
-    }
+    res.setHeader('Location', '/');
+    res.statusCode = 302;
+    res.end();
+    return;
   }
 
   const personalAccountsMatch = pathname.match(/^\/users\/([^/]+)\/accounts\/?$/);
