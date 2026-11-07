@@ -35,13 +35,15 @@ async function getSupabaseAccounts(userId = null) {
 }
 
 async function upsertSupabaseAccount(acc) {
-  try {
-    await supabaseFetch('/rest/v1/rollbux_accounts', {
-      method: 'POST',
-      headers: { 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify(acc)
-    });
-  } catch (e) {}
+  const r = await supabaseFetch('/rest/v1/rollbux_accounts', {
+    method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(acc)
+  });
+  if (!r.ok) {
+    const errText = await r.text().catch(() => '');
+    throw new Error(`Supabase upsert failed ${r.status}: ${errText}`);
+  }
 }
 
 async function deleteSupabaseAccount(id) {
@@ -366,15 +368,15 @@ export default async function handler(req, res) {
 
         if (!name) name = 'Account';
         const accId = `acc_${Date.now()}`;
+        // avatar_url column does NOT exist in Supabase table - omit it
         await upsertSupabaseAccount({
           id: accId,
           user_id: session.sub,
           name,
           token,
-          avatar_url: avatarUrl || null,
           created_at: new Date().toISOString()
         });
-        sendJson(res, 201, { ok: true, account: { id: accId, name } });
+        sendJson(res, 201, { ok: true, account: { id: accId, name, avatar_url: avatarUrl || null } });
         return;
       } else if (req.method === 'DELETE') {
         if (payload.id) {
