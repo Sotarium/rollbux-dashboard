@@ -201,7 +201,7 @@ export default async function handler(req, res) {
 
       // Random delay between 5 to 10 seconds between accounts so their messages and actions are spaced out naturally
       if (i > 0) {
-        const delayMs = Math.floor(5000 + Math.random() * 5000); // 5000ms - 10000ms (5 to 10 seconds)
+        const delayMs = Math.floor(1000 + Math.random() * 1000); // 1000ms - 2000ms (kept short to avoid Vercel timeout)
         log(`Waiting ${(delayMs / 1000).toFixed(1)}s before processing next account (${accName})...`);
         await new Promise(r => setTimeout(r, delayMs));
       }
@@ -264,7 +264,7 @@ export default async function handler(req, res) {
               await redis('set', chatKey, chatCount);
               log(`[${accName}] Catchup message ${chatCount}/3 sent ("${m}")`);
               // Pause 5 to 7 seconds between burst messages
-              const burstDelay = Math.floor(5000 + Math.random() * 2000);
+              const burstDelay = Math.floor(1000 + Math.random() * 1000);
               await new Promise(r => setTimeout(r, burstDelay));
             }
           }

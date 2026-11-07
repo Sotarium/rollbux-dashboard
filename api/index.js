@@ -2064,19 +2064,55 @@ export default async function handler(req, res) {
 
   // ── Mines API Helpers ──────────────────────────────────────────────────────
   async function getMinesSessionToken(targetName) {
-    const url = process.env.UPSTASH_REDIS_REST_URL || "https://flowing-chigger-149490.upstash.io";
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-    if (!token) throw new Error("Upstash token missing");
-    const accResp = await fetch(`${url}/get/roach%3Aaccounts`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const accData = await accResp.json();
-    let accounts = accData.result ? JSON.parse(accData.result) : [];
-    let acc = accounts.find(a => (a.name || '').toLowerCase().trim() === (targetName || '').toLowerCase().trim());
-    if (!acc && accounts.length > 0) acc = accounts[0];
-    const sessionToken = acc ? acc.token : null;
-    if (!sessionToken) throw new Error(`No session token for "${targetName}"`);
-    return sessionToken;
+    const name = (targetName || '').toLowerCase().trim();
+
+    // 1. Check Redis: global roach:accounts + per-user private lists
+    try {
+      const url = process.env.UPSTASH_REDIS_REST_URL || 'https://flowing-chigger-149490.upstash.io';
+      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+      if (redisToken) {
+        const accResp = await fetch(`${url}/get/roach%3Aaccounts`, {
+          headers: { Authorization: `Bearer ${redisToken}` }
+        });
+        const accData = await accResp.json();
+        const accounts = accData.result ? JSON.parse(accData.result) : [];
+        const acc = accounts.find(a => (a.name || '').toLowerCase().trim() === name);
+        if (acc && acc.token) return acc.token;
+
+        // Check per-user private Redis lists
+        const membersResp = await fetch(`${url}/smembers/roach%3Aaccount_users`, {
+          headers: { Authorization: `Bearer ${redisToken}` }
+        });
+        const membersData = await membersResp.json();
+        const owners = Array.isArray(membersData.result) ? membersData.result : [];
+        for (const ownerId of owners) {
+          const privResp = await fetch(`${url}/get/${encodeURIComponent('roach:accounts:user:' + ownerId)}`, {
+            headers: { Authorization: `Bearer ${redisToken}` }
+          });
+          const privData = await privResp.json();
+          const privAccounts = privData.result ? JSON.parse(privData.result) : [];
+          const privAcc = privAccounts.find(a => (a.name || '').toLowerCase().trim() === name);
+          if (privAcc && privAcc.token) return privAcc.token;
+        }
+
+        // Fallback to first Redis account if any
+        if (accounts.length > 0 && accounts[0].token) return accounts[0].token;
+      }
+    } catch (_e) {}
+
+    // 2. Fallback: check Supabase rollbux_accounts table
+    try {
+      const sbRes = await supabaseFetch('/rest/v1/rollbux_accounts?select=name,token');
+      if (sbRes.ok) {
+        const sbAccounts = await sbRes.json();
+        const sbAcc = (sbAccounts || []).find(a => (a.name || '').toLowerCase().trim() === name);
+        if (sbAcc && sbAcc.token) return sbAcc.token;
+        const anyAcc = (sbAccounts || []).find(a => a.token);
+        if (anyAcc && anyAcc.token) return anyAcc.token;
+      }
+    } catch (_e) {}
+
+    throw new Error(`No session token found for account "${targetName}"`);
   }
 
   function minesHeaders(sessionToken) {

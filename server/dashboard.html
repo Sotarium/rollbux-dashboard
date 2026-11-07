@@ -3061,11 +3061,8 @@
       updateTilesUI();
       chickenTilesBtn.addEventListener('click', () => {
         const diff = chickenDifficulties[currentDifficultyIndex];
-        // Cycle: 1, 2, 3, 5, 7, 10, max
-        const presets = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 17, 19].filter(p => p <= diff.maxTiles);
-        let nextIdx = presets.indexOf(currentTilesCount) + 1;
-        if (nextIdx >= presets.length || nextIdx < 0) nextIdx = 0;
-        currentTilesCount = presets[nextIdx];
+        // Cycle 1 → 2 → 3 → … → maxTiles → 1 (increment by 1 each click)
+        currentTilesCount = (currentTilesCount >= diff.maxTiles) ? 1 : currentTilesCount + 1;
         updateTilesUI();
       });
     }
