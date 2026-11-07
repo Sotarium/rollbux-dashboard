@@ -74,10 +74,24 @@
       appearance: textfield;
     }
   </style>
+
+  <script>
+    // Prevent login overlay flash if player already logged in
+    try {
+      var _tok = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
+      if (_tok && _tok.length > 10) {
+        document.documentElement.classList.add('is-logged-in');
+      }
+    } catch(e) {}
+  </script>
+  <style>
+    .is-logged-in #loginOverlay { display: none !important; }
+    .is-logged-in #dashboardContent { display: block !important; }
+  </style>
 </head>
 <body class="selection:bg-[#acff46] selection:text-[#0e131f]">
-  <!-- Login Overlay — shown when no session, hidden after auth -->
-  <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#242424;display:flex;align-items:center;justify-content:center;">
+  <!-- Login Overlay -->
+  <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#242424;align-items:center;justify-content:center;">
     <div style="width:290px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;">
       <p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;">Log in</p>
       <form id="loginForm" style="width:100%;display:flex;flex-direction:column;gap:10px;">
@@ -3108,8 +3122,15 @@
   </div><!-- /dashboardContent -->
 
   <script>
-    // SPA Auth — runs before dashboard JS
+    // SPA Auth: Synchronously check if player already logged in before rendering!
     (function() {
+      const hasToken = (function() {
+        try {
+          const t = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
+          return Boolean(t && t.length > 10);
+        } catch(e) { return false; }
+      })();
+
       const overlay = document.getElementById('loginOverlay');
       const dashContent = document.getElementById('dashboardContent');
       const loginForm = document.getElementById('loginForm');
@@ -3123,34 +3144,27 @@
       }
 
       function showLogin() {
-        if (overlay) { overlay.style.display = 'flex'; }
+        if (overlay) overlay.style.display = 'flex';
         if (dashContent) dashContent.style.display = 'none';
       }
 
-      async function tryAutoLogin() {
-        try {
-          const token = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
-          if (token && token.length > 10) {
-            const r = await fetch('/api/verify-session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ token })
-            });
-            if (r.ok) {
-              const d = await r.json();
-              if (d && d.success) {
-                // refresh cookie & profile
-                if (d.user) localStorage.setItem('sotarium_user_profile', JSON.stringify(d.user));
-                showDashboard();
-                return;
-              }
-            }
+      // If token already exists in localStorage, immediately show dashboard forever!
+      if (hasToken) {
+        showDashboard();
+        // Background verify without blocking or flashing login screen
+        const token = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
+        fetch('/api/verify-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        }).then(r => r.ok ? r.json() : null).then(d => {
+          if (d && d.success && d.user) {
+            localStorage.setItem('sotarium_user_profile', JSON.stringify(d.user));
           }
-        } catch(e) {}
+        }).catch(() => {});
+      } else {
         showLogin();
       }
-
-      tryAutoLogin();
 
       if (loginInput) {
         loginInput.addEventListener('input', () => {
