@@ -471,6 +471,8 @@ export default async function handler(req, res) {
       }
       return;
     }
+  }
+
   // Cart Item Selling Endpoint (Manual Sell / Auto-Sell for Upgrader)
   if (pathname === '/api/roach/accounts/cart/sell' && req.method === 'POST') {
     if (!isAllowedIp(req)) {

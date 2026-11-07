@@ -17,9 +17,7 @@ if (IS_SERVERLESS && !fs.existsSync(DATA_FILE)) {
   } catch (e) {}
 }
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
+try { if (!fs.existsSync(DATA_DIR)) { fs.mkdirSync(DATA_DIR, { recursive: true }); } } catch (e) {}
 
 let SOL_PRICE_USD = 150.00;
 
