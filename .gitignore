@@ -8,3 +8,4 @@ data/users.json
 data/*.json
 *.cookie
 *.session
+.vercel
