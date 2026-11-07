@@ -557,13 +557,10 @@
                       </label>
                     </div>
 
-                    <!-- BrainBetz Style Card with top border highlight & radial glow -->
-                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[16px] bg-gradient-to-b from-[#262831] via-[#23252e] to-[#1e2028] p-[16px] border border-[#2d2e3a] shadow-[0_0_0_1px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.06),0_20px_50px_-20px_rgba(0,0,0,0.7)]">
-                      <!-- Top ambient glow & border line like BrainBetz .card::before & .card::after -->
-                      <div class="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent"></div>
-                      <div class="pointer-events-none absolute inset-0 rounded-[16px] bg-[radial-gradient(120%_80%_at_50%_0%,rgba(249,115,22,0.08)_0%,transparent_55%)]"></div>
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
 
-                      <!-- BrainBetz Under Maintenance Style Warning Pill Badge -->
+                      <!-- Warning Cooldown Badge (shows ONLY during cooldown) -->
                       <div id="tipCooldownBadge" class="hidden relative z-10 w-full items-center justify-between px-3 py-2 rounded-full text-xs font-black uppercase tracking-wider text-[#ffedd5] bg-[#f97316]/15 border border-[#f97316]/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] select-none">
                         <div class="flex items-center gap-2">
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -576,7 +573,7 @@
                       </div>
 
                       <!-- Target Recipient Account Selector -->
-                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#181a22] border border-[#2d2e3a] w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
                         <span class="text-[11px] font-semibold text-[#9aa3a8]">Tip To (Main)</span>
                         <button type="button" id="tipAccountBtn" onclick="openAccountSelectorModal('tip')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
                           <span id="tipAccountLabel" class="truncate">Select Main</span>
@@ -584,7 +581,7 @@
                       </div>
 
                       <div class="relative z-10 flex items-center gap-2 w-full">
-                        <span id="tipFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready (5m Cooldown)</span>
+                        <span id="tipFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready</span>
                         <button id="tipManualBtn" type="button" class="shrink-0 px-4 py-2 bg-[#acff46] hover:brightness-110 text-[#121418] text-xs font-black tracking-tight rounded-lg transition active:scale-95 shadow-sm cursor-pointer">Tip Now</button>
                       </div>
                     </div>
@@ -3395,7 +3392,7 @@
               const mins = Math.floor(sec / 60);
               const remSec = (sec % 60).toString().padStart(2, '0');
               setTipCooldownDisplay(`${mins}:${remSec}`);
-              setTipFeedback(`Next alt in ${mins}:${remSec}...`, '#f97316');
+              setTipFeedback(`Waiting for cooldown...`, '#9aa3a8');
               await new Promise(r => setTimeout(r, 1000));
             }
             hideTipCooldown();
