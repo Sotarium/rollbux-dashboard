@@ -352,6 +352,57 @@
                       </div>
 
                     </div>
+
+                    <!-- Auto Chicken (Under Auto Upgrader) -->
+<div class="flex w-full shrink-0 items-center justify-between mt-4">
+                      <div class="flex items-center gap-2">
+                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Chicken</p>
+                        <span id="chickenStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" id="chickenMasterToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#acff46]"></div>
+                      </label>
+                    </div>
+
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                      
+                      <!-- Target Account Selector Button -->
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
+                        <button type="button" id="chickenAccountBtn" onclick="openAccountSelectorModal('chicken')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
+                          <span id="chickenAccountLabel" class="truncate">Select Acc</span>
+                        </button>
+                      </div>
+
+                      <!-- Difficulty Picker + Tile Picker Buttons Row -->
+                      <div class="relative z-10 grid grid-cols-2 gap-2 w-full">
+                        <!-- Difficulty Picker Button -->
+                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#131a29] border border-white/5">
+                          <span class="text-[10px] uppercase font-bold tracking-wider text-[#9aa3a8]">Difficulty</span>
+                          <button type="button" id="chickenDifficultyBtn" class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-bold transition active:scale-95">
+                            <span id="chickenDifficultyLabel">Easy</span>
+                            <svg class="size-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                          </button>
+                        </div>
+
+                        <!-- Tile Picker Button (How many tiles/steps to click) -->
+                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#131a29] border border-white/5">
+                          <span class="text-[10px] uppercase font-bold tracking-wider text-[#9aa3a8]">Tiles to Click</span>
+                          <button type="button" id="chickenTilesBtn" class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-bold transition active:scale-95">
+                            <span id="chickenTilesLabel">3 Tiles</span>
+                            <svg class="size-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Feedback & Manual Play Button -->
+                      <div class="relative z-10 flex items-center gap-2 w-full pt-1">
+                        <span id="chickenFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready</span>
+                        <button id="chickenManualPlayBtn" type="button" class="shrink-0 px-4 py-2 bg-[#acff46] hover:brightness-110 text-[#121418] text-xs font-bold rounded-lg transition active:scale-95 shadow-sm">Play</button>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- Right: Clean Auto Battle GUI -->
@@ -460,57 +511,6 @@
                       <div class="relative z-10 flex items-center gap-2 w-full">
                         <span id="minesFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready</span>
                         <button id="minesManualPlayBtn" type="button" class="shrink-0 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-black tracking-tight rounded-lg transition active:scale-95 shadow-sm">Play</button>
-                      </div>
-                    </div>
-
-                    <!-- Auto Chicken (Below Auto Mines) -->
-                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
-                      <div class="flex items-center gap-2">
-                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Chicken</p>
-                        <span id="chickenStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
-                      </div>
-                      <label class="relative inline-flex items-center cursor-pointer select-none">
-                        <input type="checkbox" id="chickenMasterToggle" class="sr-only peer">
-                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#acff46]"></div>
-                      </label>
-                    </div>
-
-                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
-                      
-                      <!-- Target Account Selector Button -->
-                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
-                        <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
-                        <button type="button" id="chickenAccountBtn" onclick="openAccountSelectorModal('chicken')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
-                          <span id="chickenAccountLabel" class="truncate">Select Acc</span>
-                        </button>
-                      </div>
-
-                      <!-- Difficulty Picker + Tile Picker Buttons Row -->
-                      <div class="relative z-10 grid grid-cols-2 gap-2 w-full">
-                        <!-- Difficulty Picker Button -->
-                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#131a29] border border-white/5">
-                          <span class="text-[10px] uppercase font-bold tracking-wider text-[#9aa3a8]">Difficulty</span>
-                          <button type="button" id="chickenDifficultyBtn" class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-bold transition active:scale-95">
-                            <span id="chickenDifficultyLabel">Easy</span>
-                            <svg class="size-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                          </button>
-                        </div>
-
-                        <!-- Tile Picker Button (How many tiles/steps to click) -->
-                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#131a29] border border-white/5">
-                          <span class="text-[10px] uppercase font-bold tracking-wider text-[#9aa3a8]">Tiles to Click</span>
-                          <button type="button" id="chickenTilesBtn" class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-bold transition active:scale-95">
-                            <span id="chickenTilesLabel">3 Tiles</span>
-                            <svg class="size-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Feedback & Manual Play Button -->
-                      <div class="relative z-10 flex items-center gap-2 w-full pt-1">
-                        <span id="chickenFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready</span>
-                        <button id="chickenManualPlayBtn" type="button" class="shrink-0 px-4 py-2 bg-[#acff46] hover:brightness-110 text-[#121418] text-xs font-bold rounded-lg transition active:scale-95 shadow-sm">Play</button>
                       </div>
                     </div>
 
@@ -2424,7 +2424,8 @@
         labelEl: document.getElementById('minesAccountLabel'),
         key: 'rollbux_mines_account',
         title: 'Auto Mines'
-      },
+      },
+
       chicken: {
         labelEl: document.getElementById('chickenAccountLabel'),
         key: 'rollbux_chicken_account',
@@ -2997,7 +2998,8 @@
         const target = (selectedList && selectedList.length > 0 && selectedList[0] !== 'ALL') ? selectedList[0] : targetUsername;
         executeMinesRound(target);
       });
-    }
+    }
+
 
     // ==========================================
     // AUTO CHICKEN CONTROLLER

@@ -2215,11 +2215,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  res.statusCode = 404;
-  res.end(JSON.stringify({ error: 'Not found' }));
-}
-
-  // ==========================================
+// ==========================================
   // CHICKEN ENGINE ROUTES
   // ==========================================
   function chickenHeaders(token) {
@@ -2353,3 +2349,8 @@ export default async function handler(req, res) {
     }
     return;
   }
+
+  res.statusCode = 404;
+  res.end(JSON.stringify({ error: 'Not found' }));
+}
+
