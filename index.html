@@ -494,6 +494,57 @@
                       </div>
                     </div>
 
+                    <!-- Auto Chicken (Below Auto Mines) -->
+                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
+                      <div class="flex items-center gap-2">
+                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Chicken</p>
+                        <span id="chickenStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" id="chickenMasterToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#acff46]"></div>
+                      </label>
+                    </div>
+
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                      
+                      <!-- Target Account Selector Button -->
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
+                        <button type="button" id="chickenAccountBtn" onclick="openAccountSelectorModal('chicken')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
+                          <span id="chickenAccountLabel" class="truncate">Select Acc</span>
+                        </button>
+                      </div>
+
+                      <!-- Difficulty Picker + Tile Picker Buttons Row -->
+                      <div class="relative z-10 grid grid-cols-2 gap-2 w-full">
+                        <!-- Difficulty Picker Button -->
+                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#131a29] border border-white/5">
+                          <span class="text-[10px] uppercase font-bold tracking-wider text-[#9aa3a8]">Difficulty</span>
+                          <button type="button" id="chickenDifficultyBtn" class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-bold transition active:scale-95">
+                            <span id="chickenDifficultyLabel">Easy</span>
+                            <svg class="size-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                          </button>
+                        </div>
+
+                        <!-- Tile Picker Button (How many tiles/steps to click) -->
+                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#131a29] border border-white/5">
+                          <span class="text-[10px] uppercase font-bold tracking-wider text-[#9aa3a8]">Tiles to Click</span>
+                          <button type="button" id="chickenTilesBtn" class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-bold transition active:scale-95">
+                            <span id="chickenTilesLabel">3 Tiles</span>
+                            <svg class="size-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Feedback & Manual Play Button -->
+                      <div class="relative z-10 flex items-center gap-2 w-full pt-1">
+                        <span id="chickenFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready</span>
+                        <button id="chickenManualPlayBtn" type="button" class="shrink-0 px-4 py-2 bg-[#acff46] hover:brightness-110 text-[#121418] text-xs font-bold rounded-lg transition active:scale-95 shadow-sm">Play</button>
+                      </div>
+                    </div>
+
                     <!-- Auto Tip (below Auto Mines, same column) -->
                     <div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
@@ -2405,6 +2456,12 @@
         key: 'rollbux_mines_account',
         title: 'Auto Mines'
       },
+
+      chicken: {
+        labelEl: document.getElementById('chickenAccountLabel'),
+        key: 'rollbux_chicken_account',
+        title: 'Auto Chicken'
+      },
       tip: {
         labelEl: document.getElementById('tipAccountLabel'),
         key: 'rollbux_tip_recipient',
@@ -2973,6 +3030,242 @@
         executeMinesRound(target);
       });
     }
+
+
+    // ==========================================
+    // AUTO CHICKEN CONTROLLER
+    // ==========================================
+    const chickenMasterToggle = document.getElementById('chickenMasterToggle');
+    const chickenStatusBadge = document.getElementById('chickenStatusBadge');
+    const chickenFeedback = document.getElementById('chickenFeedback');
+    const chickenManualPlayBtn = document.getElementById('chickenManualPlayBtn');
+    const chickenDifficultyBtn = document.getElementById('chickenDifficultyBtn');
+    const chickenDifficultyLabel = document.getElementById('chickenDifficultyLabel');
+    const chickenTilesBtn = document.getElementById('chickenTilesBtn');
+    const chickenTilesLabel = document.getElementById('chickenTilesLabel');
+
+    let isChickenExecuting = false;
+    let chickenLoopTimer = null;
+
+    // Difficulty options: 1: Easy (19 steps), 2: Medium (17 steps), 3: Hard (14 steps), 4: Expert (8 steps)
+    const chickenDifficulties = [
+      { id: 1, name: 'Easy', maxTiles: 19 },
+      { id: 2, name: 'Medium', maxTiles: 17 },
+      { id: 3, name: 'Hard', maxTiles: 14 },
+      { id: 4, name: 'Expert', maxTiles: 8 }
+    ];
+
+    let currentDifficultyIndex = parseInt(localStorage.getItem('rollbux_chicken_diff_idx') || '0', 10);
+    if (isNaN(currentDifficultyIndex) || currentDifficultyIndex < 0 || currentDifficultyIndex >= chickenDifficulties.length) {
+      currentDifficultyIndex = 0;
+    }
+
+    let currentTilesCount = parseInt(localStorage.getItem('rollbux_chicken_tiles') || '3', 10);
+    if (isNaN(currentTilesCount) || currentTilesCount < 1) currentTilesCount = 3;
+
+    function updateDifficultyUI() {
+      const diff = chickenDifficulties[currentDifficultyIndex];
+      if (chickenDifficultyLabel) chickenDifficultyLabel.textContent = diff.name;
+      // Clamp tiles to max for this difficulty
+      if (currentTilesCount > diff.maxTiles) {
+        currentTilesCount = diff.maxTiles;
+        updateTilesUI();
+      }
+    }
+
+    function updateTilesUI() {
+      if (chickenTilesLabel) chickenTilesLabel.textContent = `${currentTilesCount} Tile${currentTilesCount === 1 ? '' : 's'}`;
+      localStorage.setItem('rollbux_chicken_tiles', String(currentTilesCount));
+    }
+
+    if (chickenDifficultyBtn) {
+      updateDifficultyUI();
+      chickenDifficultyBtn.addEventListener('click', () => {
+        currentDifficultyIndex = (currentDifficultyIndex + 1) % chickenDifficulties.length;
+        localStorage.setItem('rollbux_chicken_diff_idx', String(currentDifficultyIndex));
+        updateDifficultyUI();
+      });
+    }
+
+    if (chickenTilesBtn) {
+      updateTilesUI();
+      chickenTilesBtn.addEventListener('click', () => {
+        const diff = chickenDifficulties[currentDifficultyIndex];
+        // Cycle: 1, 2, 3, 5, 7, 10, max
+        const presets = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 17, 19].filter(p => p <= diff.maxTiles);
+        let nextIdx = presets.indexOf(currentTilesCount) + 1;
+        if (nextIdx >= presets.length || nextIdx < 0) nextIdx = 0;
+        currentTilesCount = presets[nextIdx];
+        updateTilesUI();
+      });
+    }
+
+    function syncChickenStatusBadge() {
+      if (!chickenStatusBadge || !chickenMasterToggle) return;
+      if (chickenMasterToggle.checked) {
+        chickenStatusBadge.textContent = 'Active';
+        chickenStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#acff46]/10 border border-[#acff46]/30 text-[#acff46]';
+        scheduleChickenLoop();
+      } else {
+        chickenStatusBadge.textContent = 'Disabled';
+        chickenStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400';
+        if (chickenLoopTimer) { clearTimeout(chickenLoopTimer); chickenLoopTimer = null; }
+      }
+    }
+
+    if (chickenMasterToggle) {
+      chickenMasterToggle.checked = localStorage.getItem('rollbux_chicken_active') === 'true';
+      syncChickenStatusBadge();
+      chickenMasterToggle.addEventListener('change', () => {
+        localStorage.setItem('rollbux_chicken_active', chickenMasterToggle.checked ? 'true' : 'false');
+        syncChickenStatusBadge();
+      });
+    }
+
+    function setChickenFeedback(msg, color = '#9aa3a8') {
+      if (chickenFeedback) {
+        chickenFeedback.textContent = msg;
+        chickenFeedback.style.color = color;
+      }
+    }
+
+    async function executeChickenRound(accountName) {
+      if (isChickenExecuting) return;
+      isChickenExecuting = true;
+      if (chickenManualPlayBtn) { chickenManualPlayBtn.disabled = true; chickenManualPlayBtn.classList.add('opacity-50'); }
+
+      const acc = accountName || targetUsername;
+      setChickenFeedback(`${acc}: checking bal...`, '#acff46');
+
+      try {
+        const uRes = await fetch(`/api/user/${encodeURIComponent(acc)}`);
+        if (!uRes.ok) throw new Error('balance check failed');
+        const uData = await uRes.json();
+        const balanceBux = (uData?.user?.balance_bux) || 0;
+        const balanceMicro = Math.floor(balanceBux * 1_000_000);
+        const minBet = 50_000_000;
+        if (balanceMicro < minBet) {
+          setChickenFeedback(`${acc}: low balance (<50)`, '#ff6b6b');
+          return;
+        }
+
+        const diffObj = chickenDifficulties[currentDifficultyIndex];
+        setChickenFeedback(`${acc}: starting (${diffObj.name})...`, '#acff46');
+
+        // 1. Start game
+        const startRes = await fetch('/api/chicken/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: acc,
+            amount_micro_tokens: balanceMicro,
+            difficulty: diffObj.id
+          })
+        });
+        const startData = await startRes.json().catch(() => ({}));
+        if (!startRes.ok || !startData.success) {
+          const errDetail = startData?.error || 'Start failed';
+          setChickenFeedback(`${acc}: ${errDetail}`, '#ff6b6b');
+          return;
+        }
+
+        const actualBetBux = parseFloat(startData.bet_bux || (balanceMicro / 1_000_000).toFixed(2));
+        const tilesToStep = Math.min(currentTilesCount, diffObj.maxTiles);
+
+        // 2. Click tiles sequentially
+        let roundSurvived = true;
+        for (let step = 1; step <= tilesToStep; step++) {
+          await new Promise(r => setTimeout(r, 900));
+          setChickenFeedback(`${acc}: step ${step}/${tilesToStep}...`, '#acff46');
+
+          const nextRes = await fetch('/api/chicken/next', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: acc })
+          });
+          const nextData = await nextRes.json().catch(() => ({}));
+          if (!nextRes.ok || !nextData.success || nextData.hit) {
+            roundSurvived = false;
+            setChickenFeedback(`${acc}: Hit car at step ${step}!`, '#ff6b6b');
+            if (typeof window.pushGameHistory === 'function') {
+              window.pushGameHistory({ account: acc, mode: 'Chicken', success: false, betBux: actualBetBux, amountBux: actualBetBux });
+            }
+            return;
+          }
+        }
+
+        // 3. Cashout after clicking tiles
+        if (roundSurvived) {
+          await new Promise(r => setTimeout(r, 900));
+          setChickenFeedback(`${acc}: cashing out...`, '#acff46');
+          const cashRes = await fetch('/api/chicken/cashout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: acc })
+          });
+          const cashData = await cashRes.json().catch(() => ({}));
+          if (!cashRes.ok || !cashData.success) {
+            setChickenFeedback(`${acc}: Cashout error`, '#ff6b6b');
+            return;
+          }
+          const payout = cashData.payout_bux || (actualBetBux * 1.1).toFixed(2);
+          setChickenFeedback(`${acc}: Won ${payout} BUX!`, '#acff46');
+          if (typeof window.pushGameHistory === 'function') {
+            window.pushGameHistory({ account: acc, mode: 'Chicken', success: true, betBux: actualBetBux, amountBux: parseFloat(payout) });
+          }
+        }
+      } catch (err) {
+        setChickenFeedback(`${acc}: Error`, '#ff6b6b');
+      } finally {
+        isChickenExecuting = false;
+        if (chickenManualPlayBtn) { chickenManualPlayBtn.disabled = false; chickenManualPlayBtn.classList.remove('opacity-50'); }
+        scheduleChickenLoop();
+      }
+    }
+
+    function scheduleChickenLoop() {
+      if (!chickenMasterToggle || !chickenMasterToggle.checked) return;
+      if (chickenLoopTimer) clearTimeout(chickenLoopTimer);
+      chickenLoopTimer = setTimeout(async () => {
+        if (!chickenMasterToggle || !chickenMasterToggle.checked) return;
+        const accounts = await getRegisteredAccountsList().catch(() => []);
+        const selectedAccounts = getSelectedAccountsForMode('chicken').map(s => s.toLowerCase().trim());
+        const targetAccounts = (selectedAccounts.includes('all') || selectedAccounts.length === 0)
+          ? accounts
+          : accounts.filter(a => selectedAccounts.includes((a.name || '').toLowerCase().trim()));
+
+        if (targetAccounts.length === 0) {
+          await executeChickenRound(targetUsername);
+          return;
+        }
+
+        for (const candidate of targetAccounts) {
+          const accName = candidate.name || targetUsername;
+          try {
+            const uRes = await fetch(`/api/user/${encodeURIComponent(accName)}`);
+            if (uRes.ok) {
+              const uData = await uRes.json();
+              const bal = (uData?.user?.balance_bux) || 0;
+              if (bal >= 50) {
+                await executeChickenRound(accName);
+                return;
+              }
+            }
+          } catch(e) {}
+        }
+        setChickenFeedback('Waiting for >=50 BUX...', '#9aa3a8');
+        scheduleChickenLoop();
+      }, 4000);
+    }
+
+    if (chickenManualPlayBtn) {
+      chickenManualPlayBtn.addEventListener('click', () => {
+        const selectedList = getSelectedAccountsForMode('chicken');
+        const target = (selectedList && selectedList.length > 0 && selectedList[0] !== 'ALL') ? selectedList[0] : targetUsername;
+        executeChickenRound(target);
+      });
+    }
+
 
     // ── Auto Tip Logic with 60s Account Cooldown & Inventory Sell ─────────────────
     const tipStatusBadge = document.getElementById('tipStatusBadge');

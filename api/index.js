@@ -2218,3 +2218,138 @@ export default async function handler(req, res) {
   res.statusCode = 404;
   res.end(JSON.stringify({ error: 'Not found' }));
 }
+
+  // ==========================================
+  // CHICKEN ENGINE ROUTES
+  // ==========================================
+  function chickenHeaders(token) {
+    return {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "Cookie": `authjs.session-token=${token}`,
+      "Referer": "https://rollbux.com/games/chicken"
+    };
+  }
+
+  // POST /api/chicken/start
+  if (pathname === '/api/chicken/start' && req.method === 'POST') {
+    if (!isAllowedIp(req)) { res.statusCode = 403; res.end('Forbidden'); return; }
+    try {
+      const payload = req.body || await parseBody(req);
+      const targetName = (payload.username || '').toLowerCase().trim();
+      const sessionToken = await getMinesSessionToken(targetName);
+      if (!sessionToken) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ success: false, error: 'No token found for account ' + targetName }));
+        return;
+      }
+
+      let betMicro = payload.amount_micro_tokens;
+      try {
+        const balRes = await fetch("https://rollbux.com/_api/users/me/balance", { headers: chickenHeaders(sessionToken) });
+        if (balRes.ok) {
+          const balData = await balRes.json();
+          const liveTokens = balData?.data?.token_balance;
+          if (typeof liveTokens === 'number') {
+            betMicro = liveTokens;
+          }
+        }
+      } catch (e) {}
+
+      if (!betMicro || betMicro < 50_000_000) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ success: false, error: 'Insufficient balance (min 50 BUX)' }));
+        return;
+      }
+
+      const idKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+      const rbRes = await fetch('https://rollbux.com/_api/games/chicken/start', {
+        method: 'POST',
+        headers: { ...chickenHeaders(sessionToken), 'Idempotency-Key': idKey },
+        body: JSON.stringify({
+          amount_micro_tokens: betMicro,
+          difficulty: Number(payload.difficulty) || 1
+        })
+      });
+      const rbData = await rbRes.json().catch(() => ({}));
+      if (!rbRes.ok) {
+        res.statusCode = rbRes.status || 400;
+        const errMessage = rbData?.message || rbData?.error || 'Start failed';
+        res.end(JSON.stringify({ success: false, error: errMessage, details: rbData }));
+        return;
+      }
+      res.setHeader('Content-Type', 'application/json');
+      res.statusCode = 200;
+      res.end(JSON.stringify({ success: true, bet_bux: (betMicro / 1000000).toFixed(2), data: rbData }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ success: false, error: e.message }));
+    }
+    return;
+  }
+
+  // POST /api/chicken/next
+  if (pathname === '/api/chicken/next' && req.method === 'POST') {
+    if (!isAllowedIp(req)) { res.statusCode = 403; res.end('Forbidden'); return; }
+    try {
+      const payload = req.body || await parseBody(req);
+      const targetName = (payload.username || '').toLowerCase().trim();
+      const sessionToken = await getMinesSessionToken(targetName);
+      const idKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+
+      const rbRes = await fetch('https://rollbux.com/_api/games/chicken/next', {
+        method: 'POST',
+        headers: { ...chickenHeaders(sessionToken), 'Idempotency-Key': idKey }
+      });
+      const rbData = await rbRes.json().catch(() => ({}));
+      // Check if dead / car hit
+      const hit = rbData?.status === 'completed' && rbData?.current_payout?.multiplier === 0;
+      if (!rbRes.ok) {
+        res.statusCode = rbRes.status || 400;
+        res.end(JSON.stringify({ success: false, hit: true, error: rbData?.message || rbData?.error || 'Step failed', details: rbData }));
+        return;
+      }
+      res.setHeader('Content-Type', 'application/json');
+      res.statusCode = 200;
+      res.end(JSON.stringify({ success: !hit, hit, data: rbData }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ success: false, error: e.message }));
+    }
+    return;
+  }
+
+  // POST /api/chicken/cashout
+  if (pathname === '/api/chicken/cashout' && req.method === 'POST') {
+    if (!isAllowedIp(req)) { res.statusCode = 403; res.end('Forbidden'); return; }
+    try {
+      const payload = req.body || await parseBody(req);
+      const targetName = (payload.username || '').toLowerCase().trim();
+      const sessionToken = await getMinesSessionToken(targetName);
+      const idKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+      const hdrs = chickenHeaders(sessionToken);
+      delete hdrs['Content-Type'];
+
+      const rbRes = await fetch('https://rollbux.com/_api/games/chicken/cashout', {
+        method: 'POST',
+        headers: { ...hdrs, 'Idempotency-Key': idKey }
+      });
+      const rbData = await rbRes.json().catch(() => ({}));
+      if (!rbRes.ok) {
+        res.statusCode = rbRes.status || 400;
+        res.end(JSON.stringify({ success: false, error: rbData?.message || rbData?.error || 'Cashout failed', details: rbData }));
+        return;
+      }
+      const payoutMicro = rbData?.data?.payout ?? rbData?.current_payout?.value ?? rbData?.payout ?? 0;
+      const payoutBux = (payoutMicro / 1_000_000).toFixed(2);
+      res.setHeader('Content-Type', 'application/json');
+      res.statusCode = 200;
+      res.end(JSON.stringify({ success: true, payout_bux: payoutBux, data: rbData }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ success: false, error: e.message }));
+    }
+    return;
+  }
