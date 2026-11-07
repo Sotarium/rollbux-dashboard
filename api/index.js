@@ -684,21 +684,23 @@ export default async function handler(req, res) {
       // 3. Check live tippable token balance
       const balRes = await fetch('https://rollbux.com/_api/users/me/balance', { headers: rollHeaders }).then(r => r.ok ? r.json() : null).catch(() => null);
       const rawBal = balRes?.data?.token_balance || 0;
-      const buxBal = rawBal >= 100000 ? Math.floor(rawBal / 1000000) : rawBal;
+      // rawBal is in micro-tokens (e.g. 57770000 = 57.77 BUX)
+      const microTokens = Math.floor(rawBal);
+      const buxBal = parseFloat((microTokens / 1000000).toFixed(4));
 
-      if (buxBal <= 0) {
+      if (microTokens <= 0) {
         sendJson(res, 200, { success: false, error: 'No available balance to tip after inventory check', balance: 0 });
         return;
       }
 
       // 4. Tip entire balance to recipient
-      const microTokens = buxBal * 1000000;
       const tipRes = await fetch('https://rollbux.com/_api/users/me/tip', {
         method: 'POST',
         headers: rollHeaders,
         body: JSON.stringify({
           username: recipientUsername,
-          amount: microTokens
+          amount: microTokens,
+          amount_micro_tokens: microTokens
         })
       });
 
@@ -706,9 +708,11 @@ export default async function handler(req, res) {
       let tipData = null;
       try { tipData = JSON.parse(tipText); } catch {}
 
-      if (!tipRes.ok || tipData?.type !== 'success') {
+      console.log('[AutoTip]', sender.name, '->', recipientUsername, 'HTTP', tipRes.status, tipText.slice(0, 300));
+
+      if (!tipRes.ok) {
         const errMsg = tipData?.message || tipData?.error?.message || tipData?.error || tipText.slice(0, 200) || 'Tip rejected by Rollbux';
-        sendJson(res, 400, { success: false, error: errMsg, details: tipData });
+        sendJson(res, 400, { success: false, error: errMsg, status: tipRes.status, details: tipData });
         return;
       }
 
@@ -2301,16 +2305,41 @@ export default async function handler(req, res) {
         return;
       }
 
-      const idKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
-      const rbRes = await fetch('https://rollbux.com/_api/games/chicken/start', {
-        method: 'POST',
-        headers: { ...chickenHeaders(sessionToken), 'Idempotency-Key': idKey },
-        body: JSON.stringify({
-          amount_micro_tokens: betMicro,
-          difficulty: Number(payload.difficulty) || 1
-        })
-      });
-      const rbData = await rbRes.json().catch(() => ({}));
+      // Auto-cashout helper for any stuck active game
+      const chickenAutocashout = async (tok) => {
+        try {
+          const ck = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+          const hd = { ...chickenHeaders(tok), 'Idempotency-Key': ck };
+          delete hd['Content-Type'];
+          const r = await fetch('https://rollbux.com/_api/games/chicken/cashout', { method: 'POST', headers: hd });
+          return r.ok;
+        } catch { return false; }
+      };
+
+      let rbData, rbRes;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const idKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+        rbRes = await fetch('https://rollbux.com/_api/games/chicken/start', {
+          method: 'POST',
+          headers: { ...chickenHeaders(sessionToken), 'Idempotency-Key': idKey },
+          body: JSON.stringify({
+            amount_micro_tokens: betMicro,
+            difficulty: Number(payload.difficulty) || 1
+          })
+        });
+        rbData = await rbRes.json().catch(() => ({}));
+        if (rbRes.ok) break;
+        // If game already active, try to cashout then retry once
+        const errMsg = String(rbData?.message || rbData?.error || '').toLowerCase();
+        const isConflict = rbRes.status === 409 || errMsg.includes('active') || errMsg.includes('conflict') || errMsg.includes('round') || errMsg.includes('already');
+        if (isConflict && attempt === 0) {
+          await chickenAutocashout(sessionToken);
+          await new Promise(r => setTimeout(r, 1200));
+          continue;
+        }
+        break;
+      }
+
       if (!rbRes.ok) {
         res.statusCode = rbRes.status || 400;
         const errMessage = rbData?.message || rbData?.error || 'Start failed';

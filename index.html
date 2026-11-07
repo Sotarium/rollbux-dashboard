@@ -3046,6 +3046,7 @@
     const chickenTilesLabel = document.getElementById('chickenTilesLabel');
 
     let isChickenExecuting = false;
+    let chickenLastFailed = false; // tracks if last round had an error (for backoff)
     let chickenLoopTimer = null;
 
     // Difficulty options: 1: Easy (19 steps), 2: Medium (17 steps), 3: Hard (14 steps), 4: Expert (8 steps)
@@ -3092,11 +3093,8 @@
       updateTilesUI();
       chickenTilesBtn.addEventListener('click', () => {
         const diff = chickenDifficulties[currentDifficultyIndex];
-        // Cycle: 1, 2, 3, 5, 7, 10, max
-        const presets = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 17, 19].filter(p => p <= diff.maxTiles);
-        let nextIdx = presets.indexOf(currentTilesCount) + 1;
-        if (nextIdx >= presets.length || nextIdx < 0) nextIdx = 0;
-        currentTilesCount = presets[nextIdx];
+        // +1 per click, wraps back to 1 after maxTiles
+        currentTilesCount = (currentTilesCount >= diff.maxTiles) ? 1 : currentTilesCount + 1;
         updateTilesUI();
       });
     }
@@ -3166,8 +3164,10 @@
         const startData = await startRes.json().catch(() => ({}));
         if (!startRes.ok || !startData.success) {
           const errDetail = startData?.error || 'Start failed';
-          setChickenFeedback(`${acc}: ${errDetail}`, '#ff6b6b');
+          setChickenFeedback(${acc}: , '#ff6b6b');
+          chickenLastFailed = true;
           return;
+        }rn;
         }
 
         const actualBetBux = parseFloat(startData.bet_bux || (balanceMicro / 1_000_000).toFixed(2));
@@ -3220,11 +3220,12 @@
       } finally {
         isChickenExecuting = false;
         if (chickenManualPlayBtn) { chickenManualPlayBtn.disabled = false; chickenManualPlayBtn.classList.remove('opacity-50'); }
-        scheduleChickenLoop();
+        scheduleChickenLoop(chickenLastFailed ? 20000 : 4000);
+        chickenLastFailed = false;
       }
     }
 
-    function scheduleChickenLoop() {
+    function scheduleChickenLoop(delay) {
       if (!chickenMasterToggle || !chickenMasterToggle.checked) return;
       if (chickenLoopTimer) clearTimeout(chickenLoopTimer);
       chickenLoopTimer = setTimeout(async () => {
@@ -3256,7 +3257,7 @@
         }
         setChickenFeedback('Waiting for >=50 BUX...', '#9aa3a8');
         scheduleChickenLoop();
-      }, 4000);
+      }, delay || 4000);
     }
 
     if (chickenManualPlayBtn) {
