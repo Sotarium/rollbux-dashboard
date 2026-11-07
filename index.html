@@ -550,6 +550,10 @@
                       <div class="flex items-center gap-2">
                         <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Tip</p>
                         <span id="tipStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
+                        <div id="tipCooldownBadge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f97316]/15 border border-[#f97316]/40 text-[#f97316] shadow-sm select-none">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-[#f97316]"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                          <span id="tipCooldownText" class="font-extrabold tracking-tight">5:00</span>
+                        </div>
                       </div>
                       <label class="relative inline-flex items-center cursor-pointer select-none">
                         <input type="checkbox" id="tipMasterToggle" class="sr-only peer">
@@ -566,7 +570,7 @@
                         </button>
                       </div>
                       <div class="relative z-10 flex items-center gap-2 w-full">
-                        <span id="tipFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready (1m Cooldown)</span>
+                        <span id="tipFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready (5m Cooldown)</span>
                         <button id="tipManualBtn" type="button" class="shrink-0 px-4 py-2 bg-[#acff46] hover:brightness-110 text-[#121418] text-xs font-black tracking-tight rounded-lg transition active:scale-95 shadow-sm cursor-pointer">Tip Now</button>
                       </div>
                     </div>
@@ -3306,7 +3310,7 @@
           triggerAutoTipCycle();
         } else if (tipLoopTimer) {
           clearTimeout(tipLoopTimer);
-          setTipFeedback('Disabled', '#9aa3a8');
+          setTipFeedback('Disabled', '#9aa3a8'); if (typeof hideTipCooldown === 'function') hideTipCooldown();
         }
       });
     }
@@ -3369,13 +3373,18 @@
             setTipFeedback(`${altName}: Tip error`, '#ff6b6b');
           }
 
-          // 1 minute cooldown between alt tips (stealth / anti-ban) if not the last alt
+          // 5 minutes cooldown between alt tips (stealth / anti-ban) if not the last alt
           if (i < alts.length - 1) {
-            for (let sec = 60; sec > 0; sec--) {
+            showTipCooldown(300);
+            for (let sec = 300; sec > 0; sec--) {
               if (tipMasterToggle && !tipMasterToggle.checked && !isTipCycleRunning) break;
-              setTipFeedback(`Next alt in ${sec}s cooldown...`, '#9aa3a8');
+              const mins = Math.floor(sec / 60);
+              const remSec = (sec % 60).toString().padStart(2, '0');
+              setTipCooldownDisplay(`${mins}:${remSec}`);
+              setTipFeedback(`Next alt in ${mins}:${remSec}...`, '#f97316');
               await new Promise(r => setTimeout(r, 1000));
             }
+            hideTipCooldown();
           }
         }
 
@@ -3389,11 +3398,58 @@
       }
     }
 
+    const tipCooldownBadge = document.getElementById('tipCooldownBadge');
+    const tipCooldownText = document.getElementById('tipCooldownText');
+    let tipCountdownInterval = null;
+
+    function showTipCooldown(seconds) {
+      if (!tipCooldownBadge) return;
+      tipCooldownBadge.classList.remove('hidden');
+      tipCooldownBadge.classList.add('inline-flex');
+      setTipCooldownDisplay(seconds);
+    }
+
+    function setTipCooldownDisplay(val) {
+      if (!tipCooldownText) return;
+      if (typeof val === 'number') {
+        const mins = Math.floor(val / 60);
+        const secs = (val % 60).toString().padStart(2, '0');
+        tipCooldownText.textContent = `${mins}:${secs}`;
+      } else {
+        tipCooldownText.textContent = val;
+      }
+    }
+
+    function hideTipCooldown() {
+      if (tipCountdownInterval) { clearInterval(tipCountdownInterval); tipCountdownInterval = null; }
+      if (tipCooldownBadge) {
+        tipCooldownBadge.classList.remove('inline-flex');
+        tipCooldownBadge.classList.add('hidden');
+      }
+    }
+
     function scheduleNextTipCycle() {
-      if (!tipMasterToggle || !tipMasterToggle.checked) return;
+      if (!tipMasterToggle || !tipMasterToggle.checked) {
+        hideTipCooldown();
+        return;
+      }
       if (tipLoopTimer) clearTimeout(tipLoopTimer);
-      // Wait 5 minutes between complete cycles if toggle is on
+      hideTipCooldown();
+
+      // Start 5 minute countdown badge
+      let remaining = 300;
+      showTipCooldown(remaining);
+      tipCountdownInterval = setInterval(() => {
+        remaining--;
+        if (remaining <= 0 || !tipMasterToggle || !tipMasterToggle.checked) {
+          hideTipCooldown();
+        } else {
+          setTipCooldownDisplay(remaining);
+        }
+      }, 1000);
+
       tipLoopTimer = setTimeout(() => {
+        hideTipCooldown();
         if (tipMasterToggle && tipMasterToggle.checked) {
           triggerAutoTipCycle();
         }
