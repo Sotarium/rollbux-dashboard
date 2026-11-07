@@ -47,11 +47,13 @@ async function upsertSupabaseAccount(acc) {
 }
 
 async function deleteSupabaseAccount(id) {
-  try {
-    await supabaseFetch(`/rest/v1/rollbux_accounts?id=eq.${encodeURIComponent(id)}`, {
-      method: 'DELETE'
-    });
-  } catch (e) {}
+  const r = await supabaseFetch(`/rest/v1/rollbux_accounts?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE'
+  });
+  if (!r.ok) {
+    const t = await r.text().catch(() => '');
+    throw new Error(`Supabase delete failed ${r.status}: ${t}`);
+  }
 }
 
 function getClientIp(req) {
@@ -294,22 +296,6 @@ export default async function handler(req, res) {
     try {
       if (req.method === 'GET') {
         let accounts = await getSupabaseAccounts(session.sub);
-        if (!accounts || accounts.length === 0) {
-          // Fallback to legacy Redis if migrating
-          if (UPSTASH_URL && UPSTASH_TOKEN) {
-            try {
-              const accountKey = `roach:accounts:user:${session.sub}`;
-              const resp = await fetch(`${UPSTASH_URL}/get/${encodeURIComponent(accountKey)}`, { headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` } });
-              const d = await resp.json();
-              if (d.result) {
-                accounts = JSON.parse(d.result);
-                for (const a of accounts) {
-                  await upsertSupabaseAccount({ ...a, user_id: session.sub });
-                }
-              }
-            } catch (e) {}
-          }
-        }
         // Fetch live avatar for accounts
         const enrichedAccounts = await Promise.all((accounts || []).map(async ({ token, ...account }) => {
           let avatar = account.avatar_url;
