@@ -3164,10 +3164,9 @@
         const startData = await startRes.json().catch(() => ({}));
         if (!startRes.ok || !startData.success) {
           const errDetail = startData?.error || 'Start failed';
-          setChickenFeedback(${acc}: , '#ff6b6b');
+          setChickenFeedback(`${acc}: ${errDetail}`, '#ff6b6b');
           chickenLastFailed = true;
           return;
-        }rn;
         }
 
         const actualBetBux = parseFloat(startData.bet_bux || (balanceMicro / 1_000_000).toFixed(2));
