@@ -3399,6 +3399,7 @@
 
       isTipCycleRunning = true;
       if (tipManualBtn) { tipManualBtn.disabled = true; tipManualBtn.classList.add('opacity-50'); }
+      let hasAnySuccessfulTip = false;
 
       try {
         const allAccounts = await getRegisteredAccountsList().catch(() => []);
@@ -3411,8 +3412,6 @@
         }
 
         setTipFeedback(`Starting tip to ${recipient}...`, '#acff46');
-
-        let hasAnySuccessfulTip = false;
         for (let i = 0; i < alts.length; i++) {
           const alt = alts[i];
           const altName = alt.name;
@@ -3546,7 +3545,7 @@
     }
   </script>
   <!-- Discord Login Modal -->
-  <div id="discordLoginModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn select-none">
+  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn select-none">
     <div class="relative w-full max-w-sm rounded-[20px] bg-[#0e131f] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
       <!-- Red X Close Button (top-right corner) -->
       <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-4 right-4 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
@@ -3575,5 +3574,162 @@
       </div>
     </div>
   </div>
+
+  <script>
+    // ── Auto Claim Giveaway (Cue Integration) ───────────────────────────────────
+    const gwMasterToggle = document.getElementById('gwMasterToggle');
+    const gwStatusBadge = document.getElementById('gwStatusBadge');
+    const gwLockOverlay = document.getElementById('gwLockOverlay');
+    const gwUnlockedView = document.getElementById('gwUnlockedView');
+    const discordLoginModal = document.getElementById('discordLoginModal');
+    const discordTokenInput = document.getElementById('discordTokenInput');
+    const discordLoginBtn = document.getElementById('discordLoginBtn');
+    const discordLoginError = document.getElementById('discordLoginError');
+
+    window.openDiscordLoginModal = function() {
+      if (discordLoginError) discordLoginError.classList.add('hidden');
+      if (discordTokenInput) discordTokenInput.value = '';
+      if (discordLoginModal) {
+        discordLoginModal.classList.remove('hidden');
+        discordLoginModal.style.display = 'flex';
+      }
+    };
+
+    window.closeDiscordLoginModal = function() {
+      if (discordLoginModal) {
+        discordLoginModal.classList.add('hidden');
+        discordLoginModal.style.display = 'none';
+      }
+    };
+
+    function syncDiscordGwUI() {
+      const savedToken = localStorage.getItem('sotarium_discord_token');
+      const savedUser = localStorage.getItem('sotarium_discord_user');
+      if (savedToken && savedUser) {
+        try {
+          const u = JSON.parse(savedUser);
+          if (gwLockOverlay) gwLockOverlay.classList.add('hidden');
+          if (gwUnlockedView) {
+            gwUnlockedView.classList.remove('hidden');
+            gwUnlockedView.classList.add('flex');
+          }
+          const nameEl = document.getElementById('gwDiscordName');
+          if (nameEl) nameEl.textContent = u.username || 'Connected';
+          const avatarEl = document.getElementById('gwDiscordAvatar');
+          if (avatarEl && u.avatar) avatarEl.src = u.avatar;
+          if (gwMasterToggle) {
+            gwMasterToggle.disabled = false;
+            gwMasterToggle.parentElement.querySelector('div').classList.remove('opacity-50', 'cursor-not-allowed');
+            gwMasterToggle.checked = localStorage.getItem('sotarium_discord_gw_active') === 'true';
+          }
+          if (gwStatusBadge) {
+            gwStatusBadge.classList.remove('hidden');
+            if (gwMasterToggle && gwMasterToggle.checked) {
+              gwStatusBadge.textContent = 'Active';
+              gwStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#5865F2]/15 border border-[#5865F2]/40 text-[#5865F2]';
+            } else {
+              gwStatusBadge.textContent = 'Standby';
+              gwStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 border border-white/20 text-gray-300';
+            }
+          }
+          return;
+        } catch(e) {}
+      }
+
+      // Default locked state
+      if (gwLockOverlay) gwLockOverlay.classList.remove('hidden');
+      if (gwUnlockedView) {
+        gwUnlockedView.classList.add('hidden');
+        gwUnlockedView.classList.remove('flex');
+      }
+      if (gwMasterToggle) {
+        gwMasterToggle.disabled = true;
+        gwMasterToggle.checked = false;
+        gwMasterToggle.parentElement.querySelector('div').classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      if (gwStatusBadge) {
+        gwStatusBadge.textContent = '';
+        gwStatusBadge.className = 'hidden';
+      }
+    }
+
+    window.submitDiscordLogin = async function() {
+      const token = (discordTokenInput?.value || '').trim();
+      if (!token) {
+        if (discordLoginError) {
+          discordLoginError.textContent = 'Please enter your Discord token';
+          discordLoginError.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (discordLoginBtn) {
+        discordLoginBtn.disabled = true;
+        discordLoginBtn.textContent = 'Connecting...';
+      }
+
+      try {
+        const resp = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: { Authorization: token }
+        });
+
+        if (resp.ok) {
+          const d = await resp.json();
+          const u = {
+            id: d.id,
+            username: d.username,
+            avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '/discord-3d.png'
+          };
+          localStorage.setItem('sotarium_discord_token', token);
+          localStorage.setItem('sotarium_discord_user', JSON.stringify(u));
+          closeDiscordLoginModal();
+          syncDiscordGwUI();
+        } else {
+          throw new Error('Invalid Discord Token (check authorization)');
+        }
+      } catch (err) {
+        if (discordLoginError) {
+          discordLoginError.textContent = err.message || 'Authentication failed';
+          discordLoginError.classList.remove('hidden');
+        }
+      } finally {
+        if (discordLoginBtn) {
+          discordLoginBtn.disabled = false;
+          discordLoginBtn.textContent = 'Connect';
+        }
+      }
+    };
+
+    window.disconnectDiscordGw = function() {
+      localStorage.removeItem('sotarium_discord_token');
+      localStorage.removeItem('sotarium_discord_user');
+      localStorage.removeItem('sotarium_discord_gw_active');
+      syncDiscordGwUI();
+    };
+
+    window.testDiscordGw = function() {
+      const fb = document.getElementById('gwFeedback');
+      if (fb) {
+        fb.textContent = 'Scanning channel #1540411748073472070...';
+        fb.style.color = '#5865F2';
+        setTimeout(() => {
+          fb.textContent = 'Ready & listening for next giveaway message';
+          fb.style.color = '#acff46';
+        }, 1200);
+      }
+    };
+
+    if (gwMasterToggle) {
+      gwMasterToggle.addEventListener('change', () => {
+        localStorage.setItem('sotarium_discord_gw_active', gwMasterToggle.checked ? 'true' : 'false');
+        syncDiscordGwUI();
+      });
+    }
+
+    // Init Discord GW UI on load
+    syncDiscordGwUI();
+
+
+  </script>
 </body>
 </html>

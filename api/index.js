@@ -711,8 +711,13 @@ export default async function handler(req, res) {
       console.log('[AutoTip]', sender.name, '->', recipientUsername, 'HTTP', tipRes.status, tipText.slice(0, 300));
 
       if (!tipRes.ok) {
-        const errMsg = tipData?.message || tipData?.error?.message || tipData?.error || tipText.slice(0, 200) || 'Tip rejected by Rollbux';
-        sendJson(res, 400, { success: false, error: errMsg, status: tipRes.status, details: tipData });
+        let errMsg = tipData?.message || tipData?.error?.message || tipData?.error || tipText.slice(0, 200) || 'Tip rejected by Rollbux';
+        if (tipData?.error?.type === 'wager_requirement_not_met') {
+          const outstandingMicro = Number(tipData?.error?.details?.outstanding_micro_tokens || 0);
+          const neededBux = outstandingMicro ? (outstandingMicro / 1000000).toFixed(2) : '';
+          errMsg = neededBux ? `Wager req not met (${neededBux} BUX left)` : `Wager req not met`;
+        }
+        sendJson(res, 200, { success: false, error: errMsg, status: tipRes.status, details: tipData });
         return;
       }
 
@@ -2070,18 +2075,37 @@ export default async function handler(req, res) {
   async function getMinesSessionToken(targetName) {
     const name = (targetName || '').toLowerCase().trim();
 
-    // 1. Check Redis: global roach:accounts + per-user private lists
+    // 1. Primary: Check Supabase rollbux_accounts table first (canonical store)
+    try {
+      const sbRes = await supabaseFetch('/rest/v1/rollbux_accounts?select=name,token');
+      if (sbRes.ok) {
+        const sbAccounts = await sbRes.json();
+        if (name) {
+          const sbAcc = (sbAccounts || []).find(a => (a.name || '').toLowerCase().trim() === name);
+          if (sbAcc && sbAcc.token) return sbAcc.token;
+        }
+        // If specific name requested, don't fallback to another account unless name is empty
+        if (!name) {
+          const anyAcc = (sbAccounts || []).find(a => a.token);
+          if (anyAcc && anyAcc.token) return anyAcc.token;
+        }
+      }
+    } catch (_e) {}
+
+    // 2. Secondary: Check Redis
     try {
       const url = process.env.UPSTASH_REDIS_REST_URL || 'https://flowing-chigger-149490.upstash.io';
-      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAkfyAAIgcDEyNjE1YWY1MGQ4YTQ0YmIwYjI3MzkyNDk1NWJkOTU2Mg';
       if (redisToken) {
         const accResp = await fetch(`${url}/get/roach%3Aaccounts`, {
           headers: { Authorization: `Bearer ${redisToken}` }
         });
         const accData = await accResp.json();
         const accounts = accData.result ? JSON.parse(accData.result) : [];
-        const acc = accounts.find(a => (a.name || '').toLowerCase().trim() === name);
-        if (acc && acc.token) return acc.token;
+        if (name) {
+          const acc = accounts.find(a => (a.name || '').toLowerCase().trim() === name);
+          if (acc && acc.token) return acc.token;
+        }
 
         // Check per-user private Redis lists
         const membersResp = await fetch(`${url}/smembers/roach%3Aaccount_users`, {
@@ -2095,24 +2119,13 @@ export default async function handler(req, res) {
           });
           const privData = await privResp.json();
           const privAccounts = privData.result ? JSON.parse(privData.result) : [];
-          const privAcc = privAccounts.find(a => (a.name || '').toLowerCase().trim() === name);
-          if (privAcc && privAcc.token) return privAcc.token;
+          if (name) {
+            const privAcc = privAccounts.find(a => (a.name || '').toLowerCase().trim() === name);
+            if (privAcc && privAcc.token) return privAcc.token;
+          }
         }
 
-        // Fallback to first Redis account if any
-        if (accounts.length > 0 && accounts[0].token) return accounts[0].token;
-      }
-    } catch (_e) {}
-
-    // 2. Fallback: check Supabase rollbux_accounts table
-    try {
-      const sbRes = await supabaseFetch('/rest/v1/rollbux_accounts?select=name,token');
-      if (sbRes.ok) {
-        const sbAccounts = await sbRes.json();
-        const sbAcc = (sbAccounts || []).find(a => (a.name || '').toLowerCase().trim() === name);
-        if (sbAcc && sbAcc.token) return sbAcc.token;
-        const anyAcc = (sbAccounts || []).find(a => a.token);
-        if (anyAcc && anyAcc.token) return anyAcc.token;
+        if (!name && accounts.length > 0 && accounts[0].token) return accounts[0].token;
       }
     } catch (_e) {}
 
@@ -2270,6 +2283,7 @@ export default async function handler(req, res) {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`,
       "Cookie": `authjs.session-token=${token}`,
+      "Origin": "https://rollbux.com",
       "Referer": "https://rollbux.com/games/chicken"
     };
   }
@@ -2365,9 +2379,11 @@ export default async function handler(req, res) {
       const sessionToken = await getMinesSessionToken(targetName);
       const idKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
 
+      const hdrs = chickenHeaders(sessionToken);
+      delete hdrs['Content-Type'];
       const rbRes = await fetch('https://rollbux.com/_api/games/chicken/next', {
         method: 'POST',
-        headers: { ...chickenHeaders(sessionToken), 'Idempotency-Key': idKey }
+        headers: { ...hdrs, 'Idempotency-Key': idKey }
       });
       const rbData = await rbRes.json().catch(() => ({}));
       // Check if dead / car hit

@@ -3433,6 +3433,7 @@
 
       isTipCycleRunning = true;
       if (tipManualBtn) { tipManualBtn.disabled = true; tipManualBtn.classList.add('opacity-50'); }
+      let hasAnySuccessfulTip = false;
 
       try {
         const allAccounts = await getRegisteredAccountsList().catch(() => []);
@@ -3445,8 +3446,6 @@
         }
 
         setTipFeedback(`Starting tip to ${recipient}...`, '#acff46');
-
-        let hasAnySuccessfulTip = false;
         for (let i = 0; i < alts.length; i++) {
           const alt = alts[i];
           const altName = alt.name;
@@ -3596,11 +3595,17 @@
     window.openDiscordLoginModal = function() {
       if (discordLoginError) discordLoginError.classList.add('hidden');
       if (discordTokenInput) discordTokenInput.value = '';
-      if (discordLoginModal) discordLoginModal.classList.remove('hidden');
+      if (discordLoginModal) {
+        discordLoginModal.classList.remove('hidden');
+        discordLoginModal.style.display = 'flex';
+      }
     };
 
     window.closeDiscordLoginModal = function() {
-      if (discordLoginModal) discordLoginModal.classList.add('hidden');
+      if (discordLoginModal) {
+        discordLoginModal.classList.add('hidden');
+        discordLoginModal.style.display = 'none';
+      }
     };
 
     function syncDiscordGwUI() {
@@ -3819,7 +3824,7 @@
   </script>
 
   <!-- Discord Login Modal -->
-  <div id="discordLoginModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn select-none">
+  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn select-none">
     <div class="relative w-full max-w-sm rounded-[20px] bg-[#0e131f] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
       <!-- Red X Close Button (top-right corner) -->
       <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-4 right-4 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
