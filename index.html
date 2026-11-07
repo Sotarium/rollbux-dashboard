@@ -532,9 +532,8 @@
                         <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
                         
                         <!-- Table Column Headers: Account | Time Left | Amount | Time | Action -->
-                        <div class="relative z-10 grid grid-cols-[1fr_1fr_1fr_1fr_40px] items-center gap-[12px] px-[16px] py-[14px] text-[13px] font-semibold tracking-[0.28px] text-[#9aa3a8] border-b border-white/[0.04]">
+                        <div class="relative z-10 grid grid-cols-[1fr_1fr_1fr_40px] items-center gap-[12px] px-[16px] py-[14px] text-[13px] font-semibold tracking-[0.28px] text-[#9aa3a8] border-b border-white/[0.04]">
                           <div>Account</div>
-                          <div class="text-center">Time Left</div>
                           <div class="text-center">Amount</div>
                           <div class="text-right pr-2">Time</div>
                           <div class="text-center"></div>
@@ -1035,14 +1034,11 @@
         const endTimeStr = getRainEndTime(activeTimerLeft);
 
         rowsHtml += `
-          <div class="grid grid-cols-[1fr_1fr_1fr_1fr_40px] items-center gap-[12px] relative min-h-[64px] px-[16px] py-[10px] transition-colors bg-[rgba(172,255,70,0.03)]" role="row">
+          <div class="grid grid-cols-[1fr_1fr_1fr_40px] items-center gap-[12px] relative min-h-[64px] px-[16px] py-[10px] transition-colors bg-[rgba(172,255,70,0.03)]" role="row">
             <span class="flex min-w-0 items-center gap-[12px]">
               <span class="flex min-w-0 flex-col">
                 <span class="truncate text-[15px] font-bold italic tracking-[0.3px] text-[#acff46]">${targetUsername}</span>
               </span>
-            </span>
-            <span class="flex items-center justify-center gap-[6px]">
-              <span id="activeRainTimer" class="whitespace-nowrap text-[14px] font-bold leading-[20px] tracking-[0.5px] text-[#acff46] font-mono">${timerFormatted}</span>
             </span>
             <span class="flex items-center justify-center gap-[6px]">
               <span class="whitespace-nowrap text-[14px] font-semibold text-[#c2c6db] italic">In Progress</span>
@@ -1064,14 +1060,11 @@
           const accountName = tx.account || targetUsername;
 
           return `
-            <div class="grid grid-cols-[1fr_1fr_1fr_1fr_40px] items-center gap-[12px] relative min-h-[64px] px-[16px] py-[10px] transition-colors hover:bg-[rgba(255,255,255,0.02)] group" role="row">
+            <div class="grid grid-cols-[1fr_1fr_1fr_40px] items-center gap-[12px] relative min-h-[64px] px-[16px] py-[10px] transition-colors hover:bg-[rgba(255,255,255,0.02)] group" role="row">
               <span class="flex min-w-0 items-center gap-[12px]">
                 <span class="flex min-w-0 flex-col">
                   <span class="truncate text-[15px] font-bold italic tracking-[0.3px] text-white">${accountName}</span>
                 </span>
-              </span>
-              <span class="flex items-center justify-center gap-[6px]">
-                <span class="whitespace-nowrap text-[14px] font-semibold leading-[20px] tracking-[0.28px]" style="color: rgb(255, 107, 107);">Completed</span>
               </span>
               <span class="flex items-center justify-center gap-[6px]">
                 <span class="whitespace-nowrap text-[15px] font-bold italic tracking-[0.3px] text-[#c2c6db]">${formattedAmt}</span>
