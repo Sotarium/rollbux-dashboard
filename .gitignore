@@ -2,6 +2,9 @@ node_modules
 .DS_Store
 dist
 *.log
- 
- 
- 
+.env
+.env*.local
+data/users.json
+data/*.json
+*.cookie
+*.session

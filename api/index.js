@@ -5,8 +5,52 @@ import roachTickHandler from './roach/tick.js';
 import { signUp, signIn, sessionCookie, clearSessionCookie, currentSession } from '../server/auth.js';
 
 const ALLOWED_IP = '24.49.252.230';
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL || "https://flowing-chigger-149490.upstash.io";
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || "gQAAAAAAAkfyAAIgcDEyNjE1YWY1MGQ4YTQ0YmIwYjI3MzkyNDk1NWJkOTU2Mg";
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://fnofxbkyxdhssmgmgobe.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZub2Z4Ymt5eGRoc3NtZ21nb2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMTU2MDgsImV4cCI6MjEwOTU5MTYwOH0.m2NtGR_gb8qVTuuvsPOxzHC_SBtwtiCBBrt7QH1a_Cc';
+
+async function supabaseFetch(endpoint, options = {}) {
+  const headers = {
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+  return fetch(`${SUPABASE_URL}${endpoint}`, { ...options, headers });
+}
+
+async function getSupabaseAccounts(userId = null) {
+  try {
+    let endpoint = '/rest/v1/rollbux_accounts?select=*';
+    if (userId) {
+      endpoint += `&user_id=eq.${encodeURIComponent(userId)}`;
+    }
+    const res = await supabaseFetch(endpoint);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    return [];
+  }
+}
+
+async function upsertSupabaseAccount(acc) {
+  try {
+    await supabaseFetch('/rest/v1/rollbux_accounts', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(acc)
+    });
+  } catch (e) {}
+}
+
+async function deleteSupabaseAccount(id) {
+  try {
+    await supabaseFetch(`/rest/v1/rollbux_accounts?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+  } catch (e) {}
+}
 
 function getClientIp(req) {
   return (
@@ -128,13 +172,26 @@ export default async function handler(req, res) {
       sendJson(res, 401, { error: 'Authentication required' });
       return;
     }
-    const accountKey = `roach:accounts:user:${session.sub}`;
     try {
-      const response = await fetch(`${UPSTASH_URL}/get/${encodeURIComponent(accountKey)}`, { headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` } });
-      const data = await response.json();
-      let accounts = data.result ? JSON.parse(data.result) : [];
       if (req.method === 'GET') {
-        sendJson(res, 200, { accounts: accounts.map(({ token, ...account }) => ({ ...account, token_preview: token ? `${token.slice(0, 8)}...${token.slice(-6)}` : '' })) });
+        let accounts = await getSupabaseAccounts(session.sub);
+        if (!accounts || accounts.length === 0) {
+          // Fallback to legacy Redis if migrating
+          if (UPSTASH_URL && UPSTASH_TOKEN) {
+            try {
+              const accountKey = `roach:accounts:user:${session.sub}`;
+              const resp = await fetch(`${UPSTASH_URL}/get/${encodeURIComponent(accountKey)}`, { headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` } });
+              const d = await resp.json();
+              if (d.result) {
+                accounts = JSON.parse(d.result);
+                for (const a of accounts) {
+                  await upsertSupabaseAccount({ ...a, user_id: session.sub });
+                }
+              }
+            } catch (e) {}
+          }
+        }
+        sendJson(res, 200, { accounts: (accounts || []).map(({ token, ...account }) => ({ ...account, token_preview: token ? `${token.slice(0, 8)}...${token.slice(-6)}` : '' })) });
         return;
       }
       const payload = req.body || await parseBody(req);
@@ -145,24 +202,30 @@ export default async function handler(req, res) {
           sendJson(res, 400, { error: 'Account name and session token are required' });
           return;
         }
-        accounts = accounts.filter(account => account.name.toLowerCase() !== name.toLowerCase());
-        accounts.push({ id: `acc_${Date.now()}`, name, token, created_at: new Date().toISOString() });
+        const accId = `acc_${Date.now()}`;
+        await upsertSupabaseAccount({
+          id: accId,
+          user_id: session.sub,
+          name,
+          token,
+          created_at: new Date().toISOString()
+        });
+        sendJson(res, 201, { ok: true, account: { id: accId, name } });
+        return;
       } else if (req.method === 'DELETE') {
-        accounts = accounts.filter(account => account.id !== payload.id);
+        if (payload.id) {
+          await deleteSupabaseAccount(payload.id);
+        }
+        sendJson(res, 200, { ok: true });
+        return;
       } else {
         sendJson(res, 405, { error: 'Method not allowed' });
         return;
       }
-      await fetch(`${UPSTASH_URL}/pipeline`, { method: 'POST', headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify([['SET', accountKey, JSON.stringify(accounts)]]) });
-      await fetch(`${UPSTASH_URL}/sadd/${encodeURIComponent('roach:account_users')}/${encodeURIComponent(session.sub)}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
-      });
-      sendJson(res, req.method === 'POST' ? 201 : 200, { ok: true });
     } catch (error) {
       sendJson(res, 500, { error: error.message });
+      return;
     }
-    return;
   }
   if ((pathname === '/login' || pathname === '/login.html') && req.method === 'GET') {
     if (!sendPage(res, 'login.html')) res.status(404).send('Login page not found');
@@ -267,11 +330,16 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
       try {
-        const resp = await fetch(`${url}/get/roach%3Aaccounts`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await resp.json();
-        const accounts = data.result ? JSON.parse(data.result) : [];
+        let accounts = await getSupabaseAccounts();
+        if (!accounts || accounts.length === 0) {
+          try {
+            const resp = await fetch(`${url}/get/roach%3Aaccounts`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await resp.json();
+            accounts = data.result ? JSON.parse(data.result) : [];
+          } catch (e) {}
+        }
 
         // In parallel, fetch live cart (inventory) and balance for each account from RollBux
         const safeAccounts = await Promise.all(accounts.map(async (a) => {
@@ -337,32 +405,28 @@ export default async function handler(req, res) {
           return;
         }
 
-        const getResp = await fetch(`${url}/get/roach%3Aaccounts`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const getData = await getResp.json();
-        let accounts = getData.result ? JSON.parse(getData.result) : [];
-
-        // Remove existing entry with same name to avoid duplicates
-        accounts = accounts.filter(a => (a.name||'').toLowerCase() !== payload.name.trim().toLowerCase());
-
         const newAccount = {
           id: `acc_${Date.now()}`,
           name: payload.name.trim(),
           token: payload.token.trim(),
           created_at: new Date().toISOString()
         };
-        accounts.push(newAccount);
 
-        // Use Upstash pipeline POST format — supports long values (JWT tokens)
-        const setResp = await fetch(`${url}/pipeline`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify([["SET", "roach:accounts", JSON.stringify(accounts)]])
-        });
-        const setData = await setResp.json();
-        if (!Array.isArray(setData) || setData[0]?.result !== 'OK') {
-          throw new Error(`Upstash SET failed: ${JSON.stringify(setData)}`);
+        await upsertSupabaseAccount(newAccount);
+
+        if (url && token) {
+          try {
+            const getResp = await fetch(`${url}/get/roach%3Aaccounts`, { headers: { Authorization: `Bearer ${token}` } });
+            const getData = await getResp.json();
+            let accounts = getData.result ? JSON.parse(getData.result) : [];
+            accounts = accounts.filter(a => (a.name||'').toLowerCase() !== payload.name.trim().toLowerCase());
+            accounts.push(newAccount);
+            await fetch(`${url}/pipeline`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify([["SET", "roach:accounts", JSON.stringify(accounts)]])
+            });
+          } catch (e) {}
         }
 
         res.status(200).json({ success: true, account: { id: newAccount.id, name: newAccount.name } });
@@ -375,19 +439,23 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE') {
       try {
         const payload = req.body || await parseBody(req);
-        const getResp2 = await fetch(`${url}/get/roach%3Aaccounts`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const getData2 = await getResp2.json();
-        let accounts = getData2.result ? JSON.parse(getData2.result) : [];
-        accounts = accounts.filter(a => a.id !== payload.id);
+        if (payload.id) {
+          await deleteSupabaseAccount(payload.id);
+        }
 
-        // Use Upstash pipeline POST format — supports long values
-        await fetch(`${url}/pipeline`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify([["SET", "roach:accounts", JSON.stringify(accounts)]])
-        });
+        if (url && token) {
+          try {
+            const getResp2 = await fetch(`${url}/get/roach%3Aaccounts`, { headers: { Authorization: `Bearer ${token}` } });
+            const getData2 = await getResp2.json();
+            let accounts = getData2.result ? JSON.parse(getData2.result) : [];
+            accounts = accounts.filter(a => a.id !== payload.id);
+            await fetch(`${url}/pipeline`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify([["SET", "roach:accounts", JSON.stringify(accounts)]])
+            });
+          } catch (e) {}
+        }
 
         res.status(200).json({ success: true });
       } catch (err) {
@@ -395,8 +463,6 @@ export default async function handler(req, res) {
       }
       return;
     }
-  }
-
   // Cart Item Selling Endpoint (Manual Sell / Auto-Sell for Upgrader)
   if (pathname === '/api/roach/accounts/cart/sell' && req.method === 'POST') {
     if (!isAllowedIp(req)) {
@@ -1420,11 +1486,16 @@ export default async function handler(req, res) {
           }
         } catch (e) {}
 
-        const accResp = await fetch(`${upstashUrl}/get/roach%3Aaccounts`, {
-          headers: { Authorization: `Bearer ${upstashToken}` }
-        });
-        const accData = await accResp.json();
-        allAccountsToSync = accData.result ? JSON.parse(accData.result) : [];
+        allAccountsToSync = await getSupabaseAccounts();
+        if (!allAccountsToSync || allAccountsToSync.length === 0) {
+          try {
+            const accResp = await fetch(`${upstashUrl}/get/roach%3Aaccounts`, {
+              headers: { Authorization: `Bearer ${upstashToken}` }
+            });
+            const accData = await accResp.json();
+            allAccountsToSync = accData.result ? JSON.parse(accData.result) : [];
+          } catch (e) {}
+        }
         hasRegisteredAccounts = allAccountsToSync.length > 0;
         // A user's dashboard must only sync rains belonging to that account.
         // The Redis list is shared for the farmer, so never merge every account
