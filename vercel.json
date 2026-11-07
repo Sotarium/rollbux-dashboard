@@ -1,26 +1,22 @@
 {
-  "functions": {
-    "api/**/*.js": {
-      "includeFiles": "server/**"
-    }
-  },
   "rewrites": [
-    { "source": "/dashboard/user", "destination": "/api" },
-    { "source": "/dashboard/(.*)", "destination": "/api" },
-    { "source": "/login", "destination": "/api" },
-    { "source": "/signup", "destination": "/api" },
-    { "source": "/login.html", "destination": "/api" },
-    { "source": "/signup.html", "destination": "/api" },
-    { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/roach", "destination": "/api" },
-    { "source": "/roach/sandbox", "destination": "/api" },
-    { "source": "/accounts", "destination": "/api" },
-    { "source": "/accounts.html", "destination": "/api" },
-    { "source": "/history", "destination": "/api" },
-    { "source": "/history.html", "destination": "/api" },
-    { "source": "/users/(.*)/accounts", "destination": "/api" },
-    { "source": "/users", "destination": "/api" },
-    { "source": "/users.html", "destination": "/api" },
-    { "source": "/user/(.*)", "destination": "/api" }
+    { "source": "/dashboard/user", "destination": "/api/index.js" },
+    { "source": "/dashboard/(.*)", "destination": "/api/index.js" },
+    { "source": "/login", "destination": "/api/index.js" },
+    { "source": "/signup", "destination": "/api/index.js" },
+    { "source": "/login.html", "destination": "/api/index.js" },
+    { "source": "/signup.html", "destination": "/api/index.js" },
+    { "source": "/api/roach/tick", "destination": "/api/roach/tick.js" },
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/roach", "destination": "/api/index.js" },
+    { "source": "/roach/sandbox", "destination": "/api/index.js" },
+    { "source": "/accounts", "destination": "/api/index.js" },
+    { "source": "/accounts.html", "destination": "/api/index.js" },
+    { "source": "/history", "destination": "/api/index.js" },
+    { "source": "/history.html", "destination": "/api/index.js" },
+    { "source": "/users/(.*)/accounts", "destination": "/api/index.js" },
+    { "source": "/users", "destination": "/api/index.js" },
+    { "source": "/users.html", "destination": "/api/index.js" },
+    { "source": "/user/(.*)", "destination": "/api/index.js" }
   ]
 }
