@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/**/*.js": {
+      "includeFiles": "server/**"
+    }
+  },
   "rewrites": [
     { "source": "/dashboard/user", "destination": "/api" },
     { "source": "/dashboard/(.*)", "destination": "/api" },

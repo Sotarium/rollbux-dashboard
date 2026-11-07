@@ -97,8 +97,16 @@ function sendJson(res, status, body, headers = {}) {
 }
 
 function sendPage(res, filename) {
-  const candidates = [path.resolve(process.cwd(), 'server', filename), path.resolve(process.cwd(), filename), path.resolve(process.cwd(), 'dist', filename)];
-  const file = candidates.find((candidate) => fs.existsSync(candidate));
+  const candidates = [
+    path.resolve(process.cwd(), 'server', filename),
+    path.resolve(process.cwd(), filename),
+    path.resolve(process.cwd(), 'dist', filename),
+    path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'server', filename),
+    path.join(path.dirname(new URL(import.meta.url).pathname), '..', filename)
+  ];
+  const file = candidates.find((candidate) => {
+    try { return fs.existsSync(candidate); } catch (e) { return false; }
+  });
   if (!file) return false;
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.status(200).send(fs.readFileSync(file, 'utf8'));
