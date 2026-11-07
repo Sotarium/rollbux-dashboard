@@ -564,7 +564,14 @@
                 <!-- Rains Section -->
                 <div data-node-id="671:33156" class="flex w-full shrink-0 flex-col items-start gap-[16px]" bis_skin_checked="1">
                   <div data-node-id="671:33157" class="flex w-full shrink-0 items-center justify-between" bis_skin_checked="1">
-                    <p data-node-id="671:33158" class="whitespace-nowrap text-[20px] leading-[30px] text-white font-bold italic">Rains</p>
+                    <div class="flex items-center gap-3">
+                      <p data-node-id="671:33158" class="whitespace-nowrap text-[20px] leading-[30px] text-white font-bold italic">Rains</p>
+                      <!-- Account Selector Button for Rains Stats -->
+                      <button type="button" id="rainsAccountBtn" onclick="openAccountSelectorModal('rains')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
+                        <svg class="size-3 text-white/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        <span id="rainsAccountLabel" class="truncate">Select Account</span>
+                      </button>
+                    </div>
                     <div class="flex items-center gap-3">
                       <!-- Green Clear Button for Rains List -->
                       <button id="clearRainsBtn" type="button" class="relative flex h-[30px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[12px] py-[5px] bg-[#acff46] text-[#121418] font-bold text-[12px] hover:brightness-110 active:scale-95 transition shadow-sm">
@@ -2450,12 +2457,17 @@
         labelEl: document.getElementById('tipAccountLabel'),
         key: 'rollbux_tip_recipient',
         title: 'Tip Recipient (Main Account)'
+      },
+      rains: {
+        labelEl: document.getElementById('rainsAccountLabel'),
+        key: 'rollbux_rains_account',
+        title: 'Watch Rains Account'
       }
     };
 
     function getSelectedAccountsForMode(mode) {
       const raw = localStorage.getItem(accountSettings[mode]?.key);
-      if (mode === 'tip') {
+      if (mode === 'tip' || mode === 'rains') {
         if (raw) {
           try {
             const parsed = JSON.parse(raw);
@@ -2465,7 +2477,7 @@
             if (raw !== 'ALL') return [raw];
           }
         }
-        return ['sotarium'];
+        return [targetUsername || 'sotarium'];
       }
       if (!raw) return ['ALL'];
       try {
@@ -2487,8 +2499,9 @@
     function updateAccountButtonLabel(mode, accList) {
       const cfg = accountSettings[mode];
       if (!cfg?.labelEl) return;
-      if (mode === 'tip') {
-        const target = (accList && accList.length > 0 && accList[0] !== 'ALL') ? accList[0] : 'Select Main';
+      if (mode === 'tip' || mode === 'rains') {
+        const fallback = mode === 'tip' ? 'Select Main' : (targetUsername || 'Account');
+        const target = (accList && accList.length > 0 && accList[0] !== 'ALL') ? accList[0] : fallback;
         cfg.labelEl.textContent = target;
         return;
       }
@@ -2502,7 +2515,7 @@
     }
 
     function initAccountButtons() {
-      ['upgrader', 'battle', 'mines', 'tip'].forEach(mode => {
+      ['upgrader', 'chicken', 'battle', 'mines', 'tip', 'rains'].forEach(mode => {
         const current = getSelectedAccountsForMode(mode);
         updateAccountButtonLabel(mode, current);
 
@@ -2544,7 +2557,7 @@
       if (!accountSelectorList) return;
       const isAllSelected = tempSelectedAccounts.includes('ALL') || tempSelectedAccounts.length === 0;
 
-      const items = currentAccountSelectorMode === 'tip'
+      const items = (currentAccountSelectorMode === 'tip' || currentAccountSelectorMode === 'rains')
         ? accounts.map(a => ({ name: a.name, displayName: a.name, isAll: false, balance: a.balance_bux || a.balance }))
         : [
             { name: 'ALL', displayName: 'All Accounts', isAll: true },
@@ -2571,7 +2584,7 @@
     }
 
     window.toggleAccountInOverlay = async function(accName) {
-      if (currentAccountSelectorMode === 'tip') {
+      if ((currentAccountSelectorMode === 'tip' || currentAccountSelectorMode === 'rains')) {
         tempSelectedAccounts = [accName];
       } else if (accName === 'ALL') {
         tempSelectedAccounts = ['ALL'];
@@ -2592,6 +2605,13 @@
     window.saveAccountsFromOverlay = function() {
       setSelectedAccountsForMode(currentAccountSelectorMode, tempSelectedAccounts);
       closeAccountSelectorModal();
+      if (currentAccountSelectorMode === 'rains' && tempSelectedAccounts.length > 0 && tempSelectedAccounts[0] !== 'ALL') {
+        const chosen = tempSelectedAccounts[0];
+        targetUsername = chosen;
+        if (typeof fetchUserData === 'function') {
+          fetchUserData();
+        }
+      }
     };
 
     initAccountButtons();
@@ -3322,12 +3342,14 @@
 
         setTipFeedback(`Starting tip to ${recipient}...`, '#acff46');
 
+        let hasAnySuccessfulTip = false;
         for (let i = 0; i < alts.length; i++) {
           const alt = alts[i];
           const altName = alt.name;
 
           setTipFeedback(`[${i+1}/${alts.length}] Tipping from ${altName}...`, '#acff46');
 
+          let isCurrentAltSuccess = false;
           try {
             const res = await fetch('/api/roach/tip', {
               method: 'POST',
@@ -3340,6 +3362,8 @@
             const data = await res.json().catch(() => ({}));
 
             if (res.ok && data.success) {
+              isCurrentAltSuccess = true;
+              hasAnySuccessfulTip = true;
               setTipFeedback(`${altName} tipped ${data.tipped_bux} BUX!`, '#acff46');
             } else {
               const msg = data.error || 'No bal';
@@ -3349,8 +3373,8 @@
             setTipFeedback(`${altName}: Tip error`, '#ff6b6b');
           }
 
-          // 5 minutes cooldown between alt tips (stealth / anti-ban) if not the last alt
-          if (i < alts.length - 1) {
+          // ONLY trigger cooldown if this alt tip was successful!
+          if (isCurrentAltSuccess && i < alts.length - 1) {
             showTipCooldown(300);
             for (let sec = 300; sec > 0; sec--) {
               if (tipMasterToggle && !tipMasterToggle.checked && !isTipCycleRunning) break;
@@ -3364,13 +3388,16 @@
           }
         }
 
-        setTipFeedback(`Tipped : ${recipient}`, '#acff46');
+        if (hasAnySuccessfulTip) {
+          setTipFeedback(`Tipped : ${recipient}`, '#acff46');
+        }
       } catch (err) {
         setTipFeedback('Tip cycle error', '#ff6b6b');
       } finally {
         isTipCycleRunning = false;
         if (tipManualBtn) { tipManualBtn.disabled = false; tipManualBtn.classList.remove('opacity-50'); }
-        scheduleNextTipCycle();
+        // Schedule next cycle, but only show cooldown if a tip actually succeeded
+        scheduleNextTipCycle(hasAnySuccessfulTip);
       }
     }
 
@@ -3404,7 +3431,7 @@
       }
     }
 
-    function scheduleNextTipCycle() {
+    function scheduleNextTipCycle(wasSuccessful = false) {
       if (!tipMasterToggle || !tipMasterToggle.checked) {
         hideTipCooldown();
         return;
@@ -3412,24 +3439,27 @@
       if (tipLoopTimer) clearTimeout(tipLoopTimer);
       hideTipCooldown();
 
-      // Start 5 minute countdown badge
-      let remaining = 300;
-      showTipCooldown(remaining);
-      tipCountdownInterval = setInterval(() => {
-        remaining--;
-        if (remaining <= 0 || !tipMasterToggle || !tipMasterToggle.checked) {
-          hideTipCooldown();
-        } else {
-          setTipCooldownDisplay(remaining);
-        }
-      }, 1000);
+      // Only show warning badge countdown if tip was successful!
+      if (wasSuccessful) {
+        let remaining = 300;
+        showTipCooldown(remaining);
+        tipCountdownInterval = setInterval(() => {
+          remaining--;
+          if (remaining <= 0 || !tipMasterToggle || !tipMasterToggle.checked) {
+            hideTipCooldown();
+          } else {
+            setTipCooldownDisplay(remaining);
+          }
+        }, 1000);
+      }
 
+      const waitTime = wasSuccessful ? 300000 : 30000;
       tipLoopTimer = setTimeout(() => {
         hideTipCooldown();
         if (tipMasterToggle && tipMasterToggle.checked) {
           triggerAutoTipCycle();
         }
-      }, 300000);
+      }, waitTime);
     }
 
     if (tipManualBtn) {
