@@ -75,6 +75,56 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    /* Bets Element Gray Style */
+    .bets-element {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 8px 14px;
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .bets-element:hover {
+      background: #232323;
+      border-color: #333333;
+    }
+    .element-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .user-avatar {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #2a2a2a;
+    }
+    .avatar-image {
+      width: 100%;
+      height: 100%;
+    }
+    .avatar-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e0e0e0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 </head>
 <body class="flex flex-col items-center justify-start py-10 px-4">
@@ -99,12 +149,12 @@
 
     <!-- Connected Accounts Card -->
     <section class="card p-5">
-      <div class="flex items-center justify-between border-b border-white/5 pb-3">
+      <div class="flex items-center justify-between border-b border-white/5 pb-3 mb-4">
         <h2 class="text-sm font-semibold text-gray-200">Connected Accounts</h2>
         <span id="accountCountBadge" class="text-xs text-gray-500 font-mono">0 accounts</span>
       </div>
 
-      <div id="connectedAccounts" class="mt-4 space-y-2">
+      <div id="connectedAccounts" class="flex flex-col gap-2">
         <div class="py-8 text-center text-xs text-gray-500">Loading accounts...</div>
       </div>
     </section>
@@ -116,17 +166,8 @@
       <!-- Title -->
       <h3 class="text-[16px] font-bold text-white mb-5">Add Account</h3>
 
-      <!-- Form matching cue style -->
+      <!-- Form with ONLY Session Cookie input (name and avatar are auto-fetched) -->
       <form id="addAccountForm" class="w-full flex flex-col gap-3">
-        <input 
-          type="text" 
-          id="modalAccountName" 
-          placeholder="Account Name" 
-          required 
-          autocomplete="off"
-          class="cue-input"
-        />
-
         <input 
           type="password" 
           id="modalAccountToken" 
@@ -156,18 +197,16 @@
     const openAddBtn = document.getElementById('openAddAccountBtn');
     const cancelAddBtn = document.getElementById('cancelModalBtn');
     const addForm = document.getElementById('addAccountForm');
-    const nameInput = document.getElementById('modalAccountName');
     const tokenInput = document.getElementById('modalAccountToken');
     const errorMsg = document.getElementById('modalErrorMsg');
     const submitBtn = document.getElementById('submitModalBtn');
 
     function openModal() {
-      nameInput.value = '';
       tokenInput.value = '';
       errorMsg.classList.add('hidden');
       errorMsg.textContent = '';
       modalOverlay.classList.remove('hidden');
-      nameInput.focus();
+      tokenInput.focus();
     }
 
     function closeModal() {
@@ -201,17 +240,27 @@
           return;
         }
 
-        connectedAccounts.innerHTML = accounts.map(account => `
-          <div class="flex items-center justify-between rounded-xl bg-[#1e1e1e] border border-white/[0.04] px-4 py-3 text-xs">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span class="font-bold text-white truncate">${account.name}</span>
-              <span class="font-mono text-[11px] text-gray-500 truncate">(${account.token_preview || 'Connected'})</span>
+        connectedAccounts.innerHTML = accounts.map(account => {
+          const avatarSrc = account.avatar_url || 'https://rollbux.com/icons/avatar.png';
+          return `
+            <div data-v-322fcb82="" class="bets-element bet-negative" bis_skin_checked="1">
+              <div data-v-322fcb82="" class="element-user user-null" bis_skin_checked="1">
+                <div data-v-322fcb82="" class="user-avatar avatar-clickable" bis_skin_checked="1">
+                  <div data-v-7359c309="" data-v-322fcb82="" class="avatar-image" bis_skin_checked="1">
+                    <img data-v-7359c309="" src="${avatarSrc}" alt="avatar" onerror="this.src='https://rollbux.com/icons/avatar.png'">
+                  </div>
+                </div>
+                <span data-v-322fcb82="" class="user-name">${account.name || 'Account'}</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-mono text-[11px] text-gray-500 hidden sm:inline">${account.token_preview || 'Connected'}</span>
+                <button type="button" data-account-id="${account.id}" class="remove-account text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer transition">
+                  Remove
+                </button>
+              </div>
             </div>
-            <button type="button" data-account-id="${account.id}" class="remove-account text-red-400 hover:text-red-300 font-semibold cursor-pointer transition">
-              Remove
-            </button>
-          </div>
-        `).join('');
+          `;
+        }).join('');
 
         document.querySelectorAll('.remove-account').forEach(button => {
           button.addEventListener('click', async () => {
@@ -235,12 +284,11 @@
 
     addForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = nameInput.value.trim();
       const token = tokenInput.value.trim();
-      if (!name || !token) return;
+      if (!token) return;
 
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Verifying...';
+      submitBtn.textContent = 'Fetching user...';
       errorMsg.classList.add('hidden');
 
       try {
@@ -248,7 +296,7 @@
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, token })
+          body: JSON.stringify({ token })
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {

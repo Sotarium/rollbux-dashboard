@@ -284,23 +284,53 @@ export default async function handler(req, res) {
             } catch (e) {}
           }
         }
-        sendJson(res, 200, { accounts: (accounts || []).map(({ token, ...account }) => ({ ...account, token_preview: token ? `${token.slice(0, 8)}...${token.slice(-6)}` : '' })) });
+        sendJson(res, 200, {
+          accounts: (accounts || []).map(({ token, ...account }) => {
+            const avatar = account.avatar_url || (account.name ? `https://rollbux.com/icons/avatar.png` : '');
+            return {
+              ...account,
+              avatar_url: avatar,
+              token_preview: token ? `${token.slice(0, 8)}...${token.slice(-6)}` : ''
+            };
+          })
+        });
         return;
       }
       const payload = req.body || await parseBody(req);
       if (req.method === 'POST') {
-        const name = String(payload.name || '').trim();
         const token = String(payload.token || '').trim();
-        if (!name || !token) {
-          sendJson(res, 400, { error: 'Account name and session token are required' });
+        let name = String(payload.name || '').trim();
+        if (!token) {
+          sendJson(res, 400, { error: 'Session token is required' });
           return;
         }
+
+        // Auto-fetch profile from Rollbux using the token
+        let avatarUrl = '';
+        try {
+          const rollReq = await fetch('https://rollbux.com/_api/users/me', {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Authorization': `Bearer ${token}`,
+              'Cookie': `authjs.session-token=${token}`
+            }
+          });
+          if (rollReq.ok) {
+            const rollData = await rollReq.json();
+            const u = rollData?.data?.user || rollData?.user || {};
+            if (u.username) name = u.username;
+            if (u.avatar_url) avatarUrl = u.avatar_url;
+          }
+        } catch (e) {}
+
+        if (!name) name = 'Account';
         const accId = `acc_${Date.now()}`;
         await upsertSupabaseAccount({
           id: accId,
           user_id: session.sub,
           name,
           token,
+          avatar_url: avatarUrl || null,
           created_at: new Date().toISOString()
         });
         sendJson(res, 201, { ok: true, account: { id: accId, name } });
