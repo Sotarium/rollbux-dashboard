@@ -177,18 +177,21 @@ export default async function handler(req, res) {
       const actualBux = rawBalance >= 100000 ? Math.floor(rawBalance / 1000000) : rawBalance;
       const totalWorth = actualBux + cartBux;
 
-      // Save/sync into Supabase rollbux_accounts table
-      const accId = `acc_${username.toLowerCase()}`;
-      await upsertSupabaseAccount({
-        id: accId,
-        user_id: username.toLowerCase(),
-        name: username,
-        token: token,
-        balance: actualBux,
-        cart_value: cartBux,
-        total_worth: totalWorth,
-        updated_at: new Date().toISOString()
-      });
+      // Only update balance/cart if account already exists in Supabase (do NOT re-create deleted accounts)
+      const existingAccs = await getSupabaseAccounts(username.toLowerCase());
+      const matchedAcc = (existingAccs || []).find(a => (a.name || '').toLowerCase() === username.toLowerCase());
+      if (matchedAcc) {
+        await upsertSupabaseAccount({
+          id: matchedAcc.id,
+          user_id: username.toLowerCase(),
+          name: username,
+          token: token,
+          balance: actualBux,
+          cart_value: cartBux,
+          total_worth: totalWorth,
+          updated_at: new Date().toISOString()
+        });
+      }
 
       // Issue dashboard session cookie so /dashboard/:user is accessible
       const authUser = {
