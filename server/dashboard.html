@@ -2334,7 +2334,9 @@
         return cachedRegisteredAccounts;
       }
       try {
-        let res = await fetch('/api/account/accounts');
+        const _tok = (() => { try { return localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token') || ''; } catch(e) { return ''; } })();
+        const _hdr = _tok ? { 'x-rollbux-token': _tok } : {};
+        let res = await fetch('/api/account/accounts', { headers: _hdr });
         if (!res.ok) res = await fetch('/api/roach/accounts');
         if (res.ok) {
           const data = await res.json();

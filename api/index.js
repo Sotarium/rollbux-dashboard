@@ -480,15 +480,6 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       try {
         let accounts = await getSupabaseAccounts();
-        if (!accounts || accounts.length === 0) {
-          try {
-            const resp = await fetch(`${url}/get/roach%3Aaccounts`, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
-            const data = await resp.json();
-            accounts = data.result ? JSON.parse(data.result) : [];
-          } catch (e) {}
-        }
 
         // In parallel, fetch live cart (inventory) and balance for each account from RollBux
         const safeAccounts = await Promise.all(accounts.map(async (a) => {
