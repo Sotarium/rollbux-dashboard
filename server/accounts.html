@@ -139,7 +139,7 @@
       </div>
       <div class="flex items-center gap-2">
         <button id="openAddAccountBtn" type="button" class="px-4 py-2 rounded-full bg-[#1e1e1e] hover:bg-[#282828] border border-white/10 text-xs font-semibold text-white transition active:scale-95 cursor-pointer">
-          + Add Account
+          Add Account
         </button>
         <a href="/dashboard/user" class="px-3 py-2 rounded-full border border-white/5 bg-transparent hover:bg-white/5 text-xs text-gray-400 hover:text-white transition">
           Dashboard
@@ -234,7 +234,7 @@
         if (!accounts.length) {
           connectedAccounts.innerHTML = `
             <div class="py-8 text-center text-xs text-gray-500">
-              No accounts connected yet. Click "+ Add Account" to connect one.
+              No accounts connected yet. Click "Add Account" to connect one.
             </div>
           `;
           return;
@@ -247,13 +247,13 @@
               <div data-v-322fcb82="" class="element-user user-null" bis_skin_checked="1">
                 <div data-v-322fcb82="" class="user-avatar avatar-clickable" bis_skin_checked="1">
                   <div data-v-7359c309="" data-v-322fcb82="" class="avatar-image" bis_skin_checked="1">
-                    <img data-v-7359c309="" src="${avatarSrc}" alt="avatar" onerror="this.src='https://rollbux.com/icons/avatar.png'">
+                    <img data-v-7359c309="" src="${avatarSrc}" alt="avatar" onerror="this.src='https://cdn.rollbux.com/avatars/default-v1.png'">
                   </div>
                 </div>
                 <span data-v-322fcb82="" class="user-name">${account.name || 'Account'}</span>
               </div>
               <div class="flex items-center gap-3">
-                <span class="font-mono text-[11px] text-gray-500 hidden sm:inline">${account.token_preview || 'Connected'}</span>
+                
                 <button type="button" data-account-id="${account.id}" class="remove-account text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer transition">
                   Remove
                 </button>

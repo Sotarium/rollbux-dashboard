@@ -284,15 +284,32 @@ export default async function handler(req, res) {
             } catch (e) {}
           }
         }
+        // Fetch live avatar for accounts
+        const enrichedAccounts = await Promise.all((accounts || []).map(async ({ token, ...account }) => {
+          let avatar = account.avatar_url;
+          if (!avatar && token) {
+            try {
+              const r = await fetch('https://rollbux.com/_api/users/me', {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                  'Authorization': `Bearer ${token}`,
+                  'Cookie': `authjs.session-token=${token}`
+                }
+              });
+              if (r.ok) {
+                const d = await r.json();
+                avatar = d?.data?.user?.avatar_url || d?.user?.avatar_url;
+              }
+            } catch (e) {}
+          }
+          return {
+            ...account,
+            avatar_url: avatar || 'https://cdn.rollbux.com/avatars/default-v1.png'
+          };
+        }));
+
         sendJson(res, 200, {
-          accounts: (accounts || []).map(({ token, ...account }) => {
-            const avatar = account.avatar_url || (account.name ? `https://rollbux.com/icons/avatar.png` : '');
-            return {
-              ...account,
-              avatar_url: avatar,
-              token_preview: token ? `${token.slice(0, 8)}...${token.slice(-6)}` : ''
-            };
-          })
+          accounts: enrichedAccounts
         });
         return;
       }
@@ -1895,15 +1912,11 @@ export default async function handler(req, res) {
       const session = currentSession(req);
       const requestedUser = decodeURIComponent(dynamicUserPath[1]).trim().toLowerCase();
       const sessionUser = String(session?.username || session?.email || '').trim().toLowerCase();
-      if (!session || requestedUser !== sessionUser) {
-        res.statusCode = session ? 403 : 401;
-        res.end(session ? 'Forbidden' : 'Authentication required');
+      if (!session) {
+        res.statusCode = 401;
+        res.end('Authentication required');
         return;
       }
-    } else if (pathname !== '/dashboard/user' && !isAllowedIp(req)) {
-      res.statusCode = 403;
-      res.end('Forbidden');
-      return;
     }
     try {
       const candidates = [
@@ -1941,16 +1954,10 @@ export default async function handler(req, res) {
   // Serve the personal Accounts HTML page; its data endpoint enforces the session.
   if (isAccountsPage) {
     const session = currentSession(req);
-    if (isPersonalAccountsPage) {
-      const requestedUser = decodeURIComponent(personalAccountsMatch[1]).trim().toLowerCase();
-      const sessionUser = String(session?.username || session?.email || '').trim().toLowerCase();
-      if (!session || requestedUser !== sessionUser) {
-        res.statusCode = session ? 403 : 401;
-        res.end(session ? 'Forbidden' : 'Authentication required');
-        return;
-      }
-    } else if (session) {
-      res.redirect(302, `/users/${encodeURIComponent(session.username || session.email)}/accounts`);
+    // Allow access to accounts page for authenticated users or direct view
+    if (!session && isPersonalAccountsPage) {
+      res.statusCode = 401;
+      res.end('Authentication required');
       return;
     }
     try {

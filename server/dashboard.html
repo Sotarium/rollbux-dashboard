@@ -2332,7 +2332,8 @@
         return cachedRegisteredAccounts;
       }
       try {
-        const res = await fetch('/api/roach/accounts');
+        let res = await fetch('/api/account/accounts');
+        if (!res.ok) res = await fetch('/api/roach/accounts');
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data.accounts) && data.accounts.length > 0) {
@@ -2378,6 +2379,18 @@
 
     function getSelectedAccountsForMode(mode) {
       const raw = localStorage.getItem(accountSettings[mode]?.key);
+      if (mode === 'tip') {
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0] !== 'ALL') return [parsed[0]];
+            if (typeof parsed === 'string' && parsed !== 'ALL') return [parsed];
+          } catch (e) {
+            if (raw !== 'ALL') return [raw];
+          }
+        }
+        return ['sotarium'];
+      }
       if (!raw) return ['ALL'];
       try {
         const parsed = JSON.parse(raw);
@@ -2398,6 +2411,11 @@
     function updateAccountButtonLabel(mode, accList) {
       const cfg = accountSettings[mode];
       if (!cfg?.labelEl) return;
+      if (mode === 'tip') {
+        const target = (accList && accList.length > 0 && accList[0] !== 'ALL') ? accList[0] : 'Select Main';
+        cfg.labelEl.textContent = target;
+        return;
+      }
       if (!accList || accList.length === 0 || accList.includes('ALL')) {
         cfg.labelEl.textContent = 'All Accounts';
       } else if (accList.length === 1) {
@@ -2450,10 +2468,12 @@
       if (!accountSelectorList) return;
       const isAllSelected = tempSelectedAccounts.includes('ALL') || tempSelectedAccounts.length === 0;
 
-      const items = [
-        { name: 'ALL', displayName: 'All Accounts', isAll: true },
-        ...accounts.map(a => ({ name: a.name, displayName: a.name, isAll: false, balance: a.balance_bux || a.balance }))
-      ];
+      const items = currentAccountSelectorMode === 'tip'
+        ? accounts.map(a => ({ name: a.name, displayName: a.name, isAll: false, balance: a.balance_bux || a.balance }))
+        : [
+            { name: 'ALL', displayName: 'All Accounts', isAll: true },
+            ...accounts.map(a => ({ name: a.name, displayName: a.name, isAll: false, balance: a.balance_bux || a.balance }))
+          ];
 
       accountSelectorList.innerHTML = items.map(item => {
         const isChecked = item.isAll 
@@ -2475,7 +2495,9 @@
     }
 
     window.toggleAccountInOverlay = async function(accName) {
-      if (accName === 'ALL') {
+      if (currentAccountSelectorMode === 'tip') {
+        tempSelectedAccounts = [accName];
+      } else if (accName === 'ALL') {
         tempSelectedAccounts = ['ALL'];
       } else {
         tempSelectedAccounts = tempSelectedAccounts.filter(x => x !== 'ALL');
