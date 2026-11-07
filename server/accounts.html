@@ -264,7 +264,9 @@
                 <span data-v-322fcb82="" class="user-name">${account.name || 'Account'}</span>
               </div>
               <div class="flex items-center gap-3">
-                
+                <span class="text-xs font-mono font-bold text-[#acff46] bg-[#acff46]/10 border border-[#acff46]/20 px-2 py-0.5 rounded-md">
+                  ${Number(account.balance ?? 0).toFixed(2)} BUX
+                </span>
                 <button type="button" data-account-id="${account.id}" class="remove-account text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer transition">
                   Remove
                 </button>

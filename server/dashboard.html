@@ -1302,7 +1302,8 @@
           });
         });
       } else if (user.history && user.history.length >= 2) {
-        history = [...user.history];
+        // Only use history if rain transactions are absent, but map to base
+        history = user.history.map(h => ({ ...h, balance_bux: h.balance_bux || 0, earnings_bux: 0 }));
       }
 
       if (history.length < 2) {

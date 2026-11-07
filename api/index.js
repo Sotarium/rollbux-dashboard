@@ -299,26 +299,33 @@ export default async function handler(req, res) {
     try {
       if (req.method === 'GET') {
         let accounts = await getSupabaseAccounts(session.sub);
-        // Fetch live avatar for accounts
+        // Fetch live avatar AND live balance directly from Rollbux API for each account
         const enrichedAccounts = await Promise.all((accounts || []).map(async ({ token, ...account }) => {
           let avatar = account.avatar_url;
-          if (!avatar && token) {
+          let liveBal = account.balance !== undefined ? account.balance : 0;
+          if (token) {
+            const rollHeaders = {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Authorization': `Bearer ${token}`,
+              'Cookie': `authjs.session-token=${token}`
+            };
             try {
-              const r = await fetch('https://rollbux.com/_api/users/me', {
-                headers: {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                  'Authorization': `Bearer ${token}`,
-                  'Cookie': `authjs.session-token=${token}`
-                }
-              });
-              if (r.ok) {
-                const d = await r.json();
-                avatar = d?.data?.user?.avatar_url || d?.user?.avatar_url;
+              const [uRes, bRes] = await Promise.all([
+                avatar ? Promise.resolve(null) : fetch('https://rollbux.com/_api/users/me', { headers: rollHeaders }).then(r => r.ok ? r.json() : null).catch(() => null),
+                fetch('https://rollbux.com/_api/users/me/balance', { headers: rollHeaders }).then(r => r.ok ? r.json() : null).catch(() => null)
+              ]);
+              if (uRes) {
+                avatar = uRes?.data?.user?.avatar_url || uRes?.user?.avatar_url || avatar;
+              }
+              if (bRes?.data?.token_balance !== undefined) {
+                liveBal = parseFloat((bRes.data.token_balance / 1000000).toFixed(2));
               }
             } catch (e) {}
           }
           return {
             ...account,
+            balance: liveBal,
+            balance_bux: liveBal,
             avatar_url: avatar || 'https://cdn.rollbux.com/avatars/default-v1.png'
           };
         }));
@@ -806,11 +813,9 @@ export default async function handler(req, res) {
 
         if (balRes?.data?.token_balance !== undefined) {
           updatedBalance = parseFloat((balRes.data.token_balance / 1000000).toFixed(2));
-          handleAction({
-            action: 'balance_update',
-            username: targetAccount.name,
-            balance: updatedBalance
-          });
+          // Do not push cart sell proceeds to rain earnings history graph!
+          const u = getUser(targetAccount.name);
+          if (u) { u.balance_bux = updatedBalance; }
         }
 
         if (invRes?.data) {
