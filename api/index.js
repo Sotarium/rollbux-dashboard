@@ -556,6 +556,115 @@ export default async function handler(req, res) {
   }
 
   // Cart Item Selling Endpoint (Manual Sell / Auto-Sell for Upgrader)
+  // Auto Tip: sells wagered cart balance and tips recipient via Rollbux API with 60s safety cooldown
+  if (pathname === '/api/roach/tip' && req.method === 'POST') {
+    try {
+      const payload = req.body || await parseBody(req);
+      const recipientUsername = String(payload.to_username || payload.recipient || '').trim();
+      const senderAccountName = String(payload.from_account || '').trim();
+
+      if (!recipientUsername) {
+        sendJson(res, 400, { success: false, error: 'Recipient username is required' });
+        return;
+      }
+
+      // 1. Fetch sender accounts from Supabase (or legacy Redis)
+      let allAccounts = await getSupabaseAccounts();
+      if (!allAccounts || allAccounts.length === 0) {
+        const url = process.env.UPSTASH_REDIS_REST_URL;
+        const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+        if (url && token) {
+          try {
+            const resp = await fetch(`${url}/get/roach%3Aaccounts`, { headers: { Authorization: `Bearer ${token}` } });
+            const d = await resp.json();
+            allAccounts = d.result ? JSON.parse(d.result) : [];
+          } catch (e) {}
+        }
+      }
+
+      // Filter sender account
+      let sender = null;
+      if (senderAccountName) {
+        sender = allAccounts.find(a => (a.name || '').toLowerCase() === senderAccountName.toLowerCase() || (a.user_id || '').toLowerCase() === senderAccountName.toLowerCase());
+      }
+      if (!sender && allAccounts.length > 0) {
+        sender = allAccounts[0];
+      }
+
+      if (!sender || !sender.token) {
+        sendJson(res, 404, { success: false, error: 'Sender account or session token not found' });
+        return;
+      }
+
+      // Don't tip oneself
+      if (sender.name.toLowerCase() === recipientUsername.toLowerCase()) {
+        sendJson(res, 400, { success: false, error: 'Sender and recipient cannot be the same account' });
+        return;
+      }
+
+      const rollHeaders = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sender.token}`,
+        'Cookie': `authjs.session-token=${sender.token}`,
+        'Origin': 'https://rollbux.com',
+        'Referer': 'https://rollbux.com/'
+      };
+
+      // 2. Sell wagered cart items first to convert into tippable balance
+      try {
+        await fetch('https://rollbux.com/_api/users/me/inventory/sell', {
+          method: 'POST',
+          headers: rollHeaders,
+          body: JSON.stringify({ sell_all: true })
+        });
+      } catch (e) {}
+
+      // 3. Check live tippable token balance
+      const balRes = await fetch('https://rollbux.com/_api/users/me/balance', { headers: rollHeaders }).then(r => r.ok ? r.json() : null).catch(() => null);
+      const rawBal = balRes?.data?.token_balance || 0;
+      const buxBal = rawBal >= 100000 ? Math.floor(rawBal / 1000000) : rawBal;
+
+      if (buxBal <= 0) {
+        sendJson(res, 200, { success: false, error: 'No available balance to tip after inventory check', balance: 0 });
+        return;
+      }
+
+      // 4. Tip entire balance to recipient
+      const microTokens = buxBal * 1000000;
+      const tipRes = await fetch('https://rollbux.com/_api/users/me/tip', {
+        method: 'POST',
+        headers: rollHeaders,
+        body: JSON.stringify({
+          username: recipientUsername,
+          amount: microTokens
+        })
+      });
+
+      const tipText = await tipRes.text();
+      let tipData = null;
+      try { tipData = JSON.parse(tipText); } catch {}
+
+      if (!tipRes.ok || tipData?.type !== 'success') {
+        const errMsg = tipData?.message || tipData?.error?.message || tipData?.error || tipText.slice(0, 200) || 'Tip rejected by Rollbux';
+        sendJson(res, 400, { success: false, error: errMsg, details: tipData });
+        return;
+      }
+
+      sendJson(res, 200, {
+        success: true,
+        tipped_bux: buxBal,
+        from_account: sender.name,
+        to_username: recipientUsername,
+        details: tipData
+      });
+    } catch (err) {
+      sendJson(res, 500, { success: false, error: err.message });
+    }
+    return;
+  }
+
   if (pathname === '/api/roach/accounts/cart/sell' && req.method === 'POST') {
     if (!isAllowedIp(req)) {
       res.statusCode = 403;
