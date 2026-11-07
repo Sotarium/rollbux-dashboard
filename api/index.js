@@ -260,7 +260,31 @@ export default async function handler(req, res) {
     return;
   }
   if (pathname === '/api/account/accounts') {
-    const session = currentSession(req);
+    // Auth: accept rb_session cookie OR x-rollbux-token header (verified live against Rollbux)
+    let session = currentSession(req);
+    let tokenUserId = null;
+    if (!session) {
+      const hdrToken = String(req.headers['x-rollbux-token'] || '').trim();
+      if (hdrToken) {
+        try {
+          const vr = await fetch('https://rollbux.com/_api/users/me', {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Authorization': `Bearer ${hdrToken}`,
+              'Cookie': `authjs.session-token=${hdrToken}`
+            }
+          });
+          if (vr.ok) {
+            const vd = await vr.json();
+            const vu = vd?.data?.user || vd?.user || {};
+            if (vu.username) {
+              tokenUserId = vu.username.toLowerCase();
+              session = { sub: tokenUserId, username: vu.username };
+            }
+          }
+        } catch(e) {}
+      }
+    }
     if (!session) {
       sendJson(res, 401, { error: 'Authentication required' });
       return;

@@ -219,9 +219,20 @@
       if (e.target === modalOverlay) closeModal();
     });
 
+    function getStoredToken() {
+      try { return localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token') || ''; }
+      catch(e) { return ''; }
+    }
+    function authHeaders() {
+      const t = getStoredToken();
+      const h = { 'Content-Type': 'application/json' };
+      if (t) h['x-rollbux-token'] = t;
+      return h;
+    }
+
     async function loadConnectedAccounts() {
       try {
-        const response = await fetch('/api/account/accounts', { credentials: 'include' });
+        const response = await fetch('/api/account/accounts', { credentials: 'include', headers: authHeaders() });
         if (response.status === 401) {
           window.location.href = '/?next=' + encodeURIComponent(window.location.pathname);
           return;
@@ -270,7 +281,7 @@
               await fetch('/api/account/accounts', {
                 method: 'DELETE',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authHeaders(),
                 body: JSON.stringify({ id: button.dataset.accountId })
               });
             } catch (e) {}
@@ -295,7 +306,7 @@
         const response = await fetch('/api/account/accounts', {
           method: 'POST',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders(),
           body: JSON.stringify({ token })
         });
         const data = await response.json().catch(() => ({}));
