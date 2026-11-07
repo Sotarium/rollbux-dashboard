@@ -81,22 +81,7 @@
     <div data-node-id="671:32993" class="flex w-full max-w-[1536px] flex-col items-start gap-[28px] px-4 md:px-8" bis_skin_checked="1">
       <div data-node-id="671:32994" class="flex w-full flex-col items-start gap-[28px]" bis_skin_checked="1">
         
-        <!-- Header -->
-        <div data-node-id="671:32995" class="flex w-full flex-col items-center justify-center" bis_skin_checked="1">
-          <div data-node-id="671:32996" class="flex w-full items-center justify-between" bis_skin_checked="1">
-            <div data-node-id="671:32997" class="flex w-full shrink-0 flex-col items-start gap-[20px]" bis_skin_checked="1">
-              <div data-node-id="671:32998" class="flex w-full shrink-0 flex-wrap items-center gap-[12px]" bis_skin_checked="1">
-                <div data-node-id="671:32999" class="flex shrink-0 flex-col items-start gap-[6px]" bis_skin_checked="1">
-                  <a href="/users" id="logoutBtn" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 rounded-lg text-xs font-semibold transition active:scale-95 shadow-sm">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    Log Out
-                  </a>
-                  <h1 id="headerUsername" data-node-id="671:33002" class="whitespace-nowrap text-[25px] tracking-[0.5px] text-white font-bold italic">Sotarium</h1>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+
 
         <!-- Layout Body -->
         <div data-node-id="671:33011" class="flex w-full flex-col items-start" bis_skin_checked="1">
@@ -996,7 +981,7 @@
       const user = data.user;
       liveSolPrice = data.solPrice || 150.00;
 
-      headerUsername.textContent = user.username;
+      if (typeof headerUsername !== 'undefined' && headerUsername) headerUsername.textContent = user.username;
       const customCode = getCustomRefCode ? getCustomRefCode() : null;
       const codeToDisplay = customCode || user.username;
       if (refCodeDisplay) refCodeDisplay.textContent = codeToDisplay;
