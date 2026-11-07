@@ -629,9 +629,14 @@
       return 'Sotarium';
     }
 
-    let targetUsername = getUsernameFromUrl();
-    const isRootDashboard = window.location.pathname === '/' || window.location.pathname === '' || window.location.pathname === '/dashboard/user';
-    let sessionIdentityResolved = !isRootDashboard;
+    let savedUser = null;
+    try {
+      savedUser = JSON.parse(localStorage.getItem('sotarium_user_profile') || 'null');
+    } catch (e) {}
+
+    let targetUsername = (savedUser && savedUser.username) ? savedUser.username : getUsernameFromUrl();
+    const isRootDashboard = true;
+    let sessionIdentityResolved = false;
 
     // DOM Elements
     const headerUsername = document.getElementById('headerUsername');
@@ -1411,16 +1416,20 @@
       try {
         if (!sessionIdentityResolved) {
           const sessionRes = await fetch('/api/auth/me', { credentials: 'include' });
+          let signedInName = null;
           if (sessionRes.ok) {
             const sessionData = await sessionRes.json();
-            const signedInName = sessionData?.user?.username || sessionData?.user?.email;
-            if (signedInName) {
-              targetUsername = signedInName;
-              const accountName = document.getElementById('dashboardAccountName');
-              if (accountName) accountName.textContent = `Signed in as ${signedInName}`;
-              const accountLink = document.getElementById('dashboardAccountLink');
-              if (accountLink) accountLink.href = `/users/${encodeURIComponent(signedInName)}/accounts`;
-            }
+            signedInName = sessionData?.user?.username || sessionData?.user?.email;
+          }
+          if (!signedInName && savedUser?.username) {
+            signedInName = savedUser.username;
+          }
+          if (signedInName) {
+            targetUsername = signedInName;
+            const accountName = document.getElementById('dashboardAccountName');
+            if (accountName) accountName.textContent = `Signed in as ${signedInName}`;
+            const accountLink = document.getElementById('dashboardAccountLink');
+            if (accountLink) accountLink.href = '/accounts';
           }
           sessionIdentityResolved = true;
           renderGameHistory();
@@ -2326,9 +2335,9 @@
     let cachedRegisteredAccounts = [];
     let lastAccountsFetchTime = 0;
 
-    async function getRegisteredAccountsList() {
+    async function getRegisteredAccountsList(force = false) {
       const now = Date.now();
-      if (cachedRegisteredAccounts.length > 0 && now - lastAccountsFetchTime < 30000) {
+      if (!force && cachedRegisteredAccounts.length > 0 && now - lastAccountsFetchTime < 15000) {
         return cachedRegisteredAccounts;
       }
       try {
@@ -2343,7 +2352,7 @@
           }
         }
       } catch (e) {}
-      return [{ name: targetUsername }];
+      return cachedRegisteredAccounts.length > 0 ? cachedRegisteredAccounts : [{ name: targetUsername }];
     }
 
     // ── Global Account Selector Overlay System ───────────────────────────
@@ -2453,7 +2462,7 @@
       }
       if (accountSelectorModal) accountSelectorModal.classList.remove('hidden');
 
-      const accounts = await getRegisteredAccountsList();
+      const accounts = await getRegisteredAccountsList(true);
       renderAccountSelectorList(accounts);
     };
 
@@ -2509,7 +2518,7 @@
           tempSelectedAccounts.push(accName);
         }
       }
-      const accounts = await getRegisteredAccountsList();
+      const accounts = await getRegisteredAccountsList(true);
       renderAccountSelectorList(accounts);
     };
 

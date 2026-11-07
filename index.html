@@ -159,6 +159,24 @@
   </div>
 
   <script>
+    // Browser auto-recognition: if session already exists, redirect straight to dashboard
+    (function checkExistingSession() {
+      try {
+        const savedToken = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
+        if (savedToken && savedToken.length > 10) {
+          fetch('/api/verify-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: savedToken })
+          }).then(r => r.ok ? r.json() : null).then(data => {
+            if (data && data.success) {
+              window.location.replace('/dashboard/user');
+            }
+          }).catch(() => {});
+        }
+      } catch (e) {}
+    })();
+
     const form = document.getElementById('authForm');
     const input = document.getElementById('sessionInput');
     const btn = document.getElementById('continueBtn');
@@ -213,7 +231,7 @@
 
           // Redirect to user dashboard
           setTimeout(() => {
-            window.location.href = '/dashboard/' + encodeURIComponent(data.user.username);
+            window.location.href = '/dashboard/user';
           }, 400);
         } else {
           btn.disabled = false;
