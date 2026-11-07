@@ -550,25 +550,39 @@
                       <div class="flex items-center gap-2">
                         <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Tip</p>
                         <span id="tipStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
-                        <div id="tipCooldownBadge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f97316]/15 border border-[#f97316]/40 text-[#f97316] shadow-sm select-none">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-[#f97316]"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                          <span id="tipCooldownText" class="font-extrabold tracking-tight">5:00</span>
-                        </div>
                       </div>
                       <label class="relative inline-flex items-center cursor-pointer select-none">
                         <input type="checkbox" id="tipMasterToggle" class="sr-only peer">
                         <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#acff46]"></div>
                       </label>
                     </div>
-                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+
+                    <!-- BrainBetz Style Card with top border highlight & radial glow -->
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[16px] bg-gradient-to-b from-[#262831] via-[#23252e] to-[#1e2028] p-[16px] border border-[#2d2e3a] shadow-[0_0_0_1px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.06),0_20px_50px_-20px_rgba(0,0,0,0.7)]">
+                      <!-- Top ambient glow & border line like BrainBetz .card::before & .card::after -->
+                      <div class="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent"></div>
+                      <div class="pointer-events-none absolute inset-0 rounded-[16px] bg-[radial-gradient(120%_80%_at_50%_0%,rgba(249,115,22,0.08)_0%,transparent_55%)]"></div>
+
+                      <!-- BrainBetz Under Maintenance Style Warning Pill Badge -->
+                      <div id="tipCooldownBadge" class="hidden relative z-10 w-full items-center justify-between px-3 py-2 rounded-full text-xs font-black uppercase tracking-wider text-[#ffedd5] bg-[#f97316]/15 border border-[#f97316]/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] select-none">
+                        <div class="flex items-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                          <span class="text-[11px] font-extrabold text-[#fdba74] tracking-wide">Cooldown Active</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                          <span class="w-2 h-2 rounded-full bg-[#f97316] animate-pulse shadow-[0_0_8px_#f97316]"></span>
+                          <span id="tipCooldownText" class="text-xs font-black text-[#ffedd5] tracking-tight">5:00</span>
+                        </div>
+                      </div>
+
                       <!-- Target Recipient Account Selector -->
-                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#181a22] border border-[#2d2e3a] w-full">
                         <span class="text-[11px] font-semibold text-[#9aa3a8]">Tip To (Main)</span>
                         <button type="button" id="tipAccountBtn" onclick="openAccountSelectorModal('tip')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
                           <span id="tipAccountLabel" class="truncate">Select Main</span>
                         </button>
                       </div>
+
                       <div class="relative z-10 flex items-center gap-2 w-full">
                         <span id="tipFeedback" class="text-xs font-black tracking-tight text-[#9aa3a8] truncate flex-1">Ready (5m Cooldown)</span>
                         <button id="tipManualBtn" type="button" class="shrink-0 px-4 py-2 bg-[#acff46] hover:brightness-110 text-[#121418] text-xs font-black tracking-tight rounded-lg transition active:scale-95 shadow-sm cursor-pointer">Tip Now</button>
@@ -3405,7 +3419,7 @@
     function showTipCooldown(seconds) {
       if (!tipCooldownBadge) return;
       tipCooldownBadge.classList.remove('hidden');
-      tipCooldownBadge.classList.add('inline-flex');
+      tipCooldownBadge.classList.add('flex');
       setTipCooldownDisplay(seconds);
     }
 
@@ -3423,7 +3437,7 @@
     function hideTipCooldown() {
       if (tipCountdownInterval) { clearInterval(tipCountdownInterval); tipCountdownInterval = null; }
       if (tipCooldownBadge) {
-        tipCooldownBadge.classList.remove('inline-flex');
+        tipCooldownBadge.classList.remove('flex');
         tipCooldownBadge.classList.add('hidden');
       }
     }
