@@ -124,6 +124,91 @@ export default async function handler(req, res) {
   const rawPath = url.pathname.startsWith('/api') ? url.pathname : (req.headers['x-matched-path'] || req.headers['x-vercel-matched-path'] || url.pathname);
   const pathname = rawPath.split('?')[0];
 
+  // Direct Rollbux session token verification & login endpoint
+  if (pathname === '/api/verify-session' && req.method === 'POST') {
+    try {
+      const payload = req.body || await parseBody(req);
+      const token = String(payload.token || '').trim();
+      if (!token || token.length < 5) {
+        sendJson(res, 400, { success: false, error: 'Please enter a valid session cookie.' });
+        return;
+      }
+
+      const rollHeaders = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Authorization': `Bearer ${token}`,
+        'Cookie': `authjs.session-token=${token}`
+      };
+
+      const userRes = await fetch('https://rollbux.com/_api/users/me', { headers: rollHeaders }).then(r => r.ok ? r.json() : null).catch(() => null);
+
+      if (!userRes || (!userRes.data && !userRes.user)) {
+        sendJson(res, 401, { success: false, error: 'Invalid session cookie or session expired on Rollbux.' });
+        return;
+      }
+
+      const userData = userRes.data?.user || userRes.data || userRes.user || userRes;
+      const username = String(userData.username || userData.name || 'Player').trim();
+      let rawBalance = userData.token_balance || 0;
+
+      let cartBux = 0;
+      let cartCount = 0;
+      try {
+        const [balRes, invRes] = await Promise.all([
+          fetch('https://rollbux.com/_api/users/me/balance', { headers: rollHeaders }).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('https://rollbux.com/_api/users/me/inventory', { headers: rollHeaders }).then(r => r.ok ? r.json() : null).catch(() => null)
+        ]);
+
+        if (balRes?.data?.token_balance !== undefined) {
+          rawBalance = balRes.data.token_balance;
+        }
+        if (invRes?.data) {
+          const rawCartVal = invRes.data.total_value || 0;
+          cartBux = rawCartVal >= 100000 ? Math.floor(rawCartVal / 1000000) : rawCartVal;
+          cartCount = invRes.data.total_count !== undefined ? invRes.data.total_count : (Array.isArray(invRes.data.items) ? invRes.data.items.length : 0);
+        }
+      } catch (e) {}
+
+      const actualBux = rawBalance >= 100000 ? Math.floor(rawBalance / 1000000) : rawBalance;
+      const totalWorth = actualBux + cartBux;
+
+      // Save/sync into Supabase rollbux_accounts table
+      const accId = `acc_${username.toLowerCase()}`;
+      await upsertSupabaseAccount({
+        id: accId,
+        user_id: username.toLowerCase(),
+        name: username,
+        token: token,
+        balance: actualBux,
+        cart_value: cartBux,
+        total_worth: totalWorth,
+        updated_at: new Date().toISOString()
+      });
+
+      // Issue dashboard session cookie so /dashboard/:user is accessible
+      const authUser = {
+        id: username.toLowerCase(),
+        username: username,
+        email: `${username.toLowerCase()}@rollbux.local`,
+        identifier_type: 'token'
+      };
+
+      sendJson(res, 200, {
+        success: true,
+        user: {
+          username,
+          token_balance: actualBux,
+          cart_value: cartBux,
+          total_worth: totalWorth
+        }
+      }, { 'Set-Cookie': sessionCookie(authUser) });
+    } catch (err) {
+      sendJson(res, 500, { success: false, error: err.message });
+    }
+    return;
+  }
+
   if (pathname === '/api/auth/signup' && req.method === 'POST') {
     try {
       const user = await signUp(req.body || await parseBody(req));
@@ -235,12 +320,9 @@ export default async function handler(req, res) {
       return;
     }
   }
-  if ((pathname === '/login' || pathname === '/login.html') && req.method === 'GET') {
-    if (!sendPage(res, 'login.html')) res.status(404).send('Login page not found');
-    return;
-  }
-  if ((pathname === '/signup' || pathname === '/signup.html') && req.method === 'GET') {
-    if (!sendPage(res, 'signup.html')) res.status(404).send('Signup page not found');
+  if ((pathname === '/login' || pathname === '/signup' || pathname === '/login.html' || pathname === '/signup.html') && req.method === 'GET') {
+    res.writeHead(302, { Location: '/' });
+    res.end();
     return;
   }
 

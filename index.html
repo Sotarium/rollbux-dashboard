@@ -1,117 +1,232 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rollbux</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
-  <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    body{background:#05070b;color:#fff;font-family:Inter,sans-serif}
-    .page-panel{background:#080b11;min-height:100vh}
-    html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:#293548 #080b11}
-    ::-webkit-scrollbar{width:9px}
-    ::-webkit-scrollbar-track{background:#080b11}
-    ::-webkit-scrollbar-thumb{background:#293548;border:2px solid #080b11;border-radius:999px}
-    ::-webkit-scrollbar-thumb:hover{background:#3a4b63}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      background-color: #242424;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .cue-auth-screen {
+      min-height: 100vh;
+      width: 100vw;
+      background-color: #242424;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .cue-auth-box {
+      width: 290px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .cue-auth-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 18px;
+    }
+
+    .cue-auth-form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cue-session-input {
+      width: 100%;
+      height: 40px;
+      background-color: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 9999px;
+      padding: 0 18px;
+      font-size: 12px;
+      color: #ffffff;
+      text-align: center;
+      outline: none !important;
+      box-shadow: none !important;
+      font-family: inherit;
+      transition: border-color 0.15s ease;
+    }
+
+    .cue-session-input:focus,
+    .cue-session-input:focus-visible,
+    .cue-session-input:active {
+      outline: none !important;
+      box-shadow: none !important;
+      border-color: #383838 !important;
+    }
+
+    .cue-session-input::placeholder {
+      color: #555555;
+    }
+
+    .cue-continue-btn {
+      width: 100%;
+      height: 40px;
+      background-color: #1c1c1c;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 9999px;
+      color: #777777;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .cue-continue-btn:hover:not(:disabled) {
+      background-color: #262626;
+      color: #ffffff;
+    }
+
+    .cue-continue-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .cue-error-msg {
+      color: #ef4444;
+      font-size: 11px;
+      text-align: center;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .cue-status-msg {
+      color: #10b981;
+      font-size: 11px;
+      text-align: center;
+      margin-top: 8px;
+    }
   </style>
 </head>
-<body class="min-h-screen">
-  <main class="page-panel">
-    <div class="mx-auto flex min-h-screen w-full max-w-[720px] flex-col items-center px-5 pb-14 pt-8 sm:px-7">
-      <section class="flex min-h-[62svh] w-full flex-col items-center justify-center py-12 text-center sm:min-h-[58svh]">
-        <a href="/" class="text-[48px] font-bold italic tracking-[.5px]">Roll<span class="text-[#acff46]">bux</span></a>
-        <div class="mt-7 flex w-full flex-col items-center justify-center gap-3 sm:flex-row">
-          <a href="/signup" class="w-full max-w-[230px] rounded-lg bg-[#acff46] px-5 py-3.5 text-sm font-bold text-[#121418] transition hover:bg-[#96e036]">Create your account</a>
-          <a href="/login" class="w-full max-w-[230px] rounded-lg border border-white/[0.08] bg-[#0b1018] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#111925]">Log in</a>
-        </div>
+<body>
+  <div class="cue-auth-screen">
+    <div class="cue-auth-box">
+      <h1 class="cue-auth-title">Log in</h1>
 
-        <div class="mt-12 grid w-full gap-4 sm:grid-cols-3">
-          <div class="rounded-xl border border-white/[0.05] bg-[#0a0f17] px-5 py-7 text-center"><p class="text-base font-bold text-white">Auto rain</p></div>
-          <div class="rounded-xl border border-white/[0.05] bg-[#0a0f17] px-5 py-7 text-center"><p class="text-base font-bold text-white">Auto wager</p></div>
-          <div class="rounded-xl border border-white/[0.05] bg-[#0a0f17] px-5 py-7 text-center"><p class="text-base font-bold text-white">Safe to use</p></div>
-        </div>
+      <form id="authForm" class="cue-auth-form">
+        <input
+          id="sessionInput"
+          type="password"
+          class="cue-session-input"
+          placeholder="Enter Session Cookie"
+          autocomplete="off"
+          autofocus
+          required
+        />
 
-      </section>
+        <button id="continueBtn" type="submit" class="cue-continue-btn">
+          Continue
+        </button>
+      </form>
 
-      <section class="mx-auto w-full max-w-[660px] pb-10 text-center">
-          <h2 class="text-center text-xl font-bold italic text-white">Preview</h2>
-          <div id="previewFrame" class="group relative mx-auto mt-5 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#070a0f] p-2 shadow-[0_18px_60px_rgba(0,0,0,.35)] sm:p-3">
-            <img id="previewImage" src="https://i.imgur.com/uPJSEXd.png" alt="Rollbux preview" class="block w-full cursor-zoom-in rounded-xl object-contain" />
-            <button id="zoomPreviewBtn" type="button" aria-label="Zoom preview" class="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full border border-white/[0.12] bg-[#080b11]/85 text-white opacity-0 shadow-lg backdrop-blur transition group-hover:opacity-100 hover:bg-[#131a29]">
-              <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path><path d="M11 8v6M8 11h6"></path></svg>
-            </button>
-          </div>
-      </section>
-    </div>
-  </main>
-  <div id="previewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#020307]/90 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Rollbux preview zoom">
-    <button id="closePreviewBtn" type="button" aria-label="Close preview" class="absolute right-5 top-5 flex size-11 items-center justify-center rounded-full border border-white/[0.12] bg-[#0b1018] text-2xl leading-none text-white shadow-xl transition hover:bg-[#172132]">&times;</button>
-    <div id="previewStage" class="flex h-full w-full items-center justify-center overflow-hidden">
-      <img id="modalPreviewImage" src="https://i.imgur.com/uPJSEXd.png" alt="Rollbux preview enlarged" draggable="false" class="w-[min(1100px,92vw)] max-w-none select-none rounded-xl object-contain shadow-2xl" style="transform:translate3d(0px,0px,0) scale(1.35);cursor:url('https://i.imgur.com/4BYM1oQ.png') 16 16, grab;" />
+      <p id="errorMsg" class="cue-error-msg" style="display: none;"></p>
+      <p id="statusMsg" class="cue-status-msg" style="display: none;"></p>
     </div>
   </div>
-  <script>
-    const previewImage = document.getElementById('previewImage');
-    const zoomPreviewBtn = document.getElementById('zoomPreviewBtn');
-    const previewModal = document.getElementById('previewModal');
-    const previewStage = document.getElementById('previewStage');
-    const modalPreviewImage = document.getElementById('modalPreviewImage');
-    const closePreviewBtn = document.getElementById('closePreviewBtn');
-    let panX = 0;
-    let panY = 0;
-    let dragStartX = 0;
-    let dragStartY = 0;
-    let dragging = false;
 
-    function openPreview() {
-      modalPreviewImage.src = previewImage.src;
-      panX = 0;
-      panY = 0;
-      updatePan();
-      previewModal.classList.remove('hidden');
-      previewModal.classList.add('flex');
-      document.body.classList.add('overflow-hidden');
-    }
-    function closePreview() {
-      previewModal.classList.add('hidden');
-      previewModal.classList.remove('flex');
-      document.body.classList.remove('overflow-hidden');
-    }
-    function updatePan() {
-      modalPreviewImage.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(1.35)`;
-    }
-    previewStage.addEventListener('pointerdown', (event) => {
-      if (event.target !== modalPreviewImage) return;
-      dragging = true;
-      dragStartX = event.clientX - panX;
-      dragStartY = event.clientY - panY;
-      modalPreviewImage.setPointerCapture(event.pointerId);
-      modalPreviewImage.style.cursor = 'url("https://i.imgur.com/4BYM1oQ.png") 16 16, grabbing';
+  <script>
+    const form = document.getElementById('authForm');
+    const input = document.getElementById('sessionInput');
+    const btn = document.getElementById('continueBtn');
+    const errorMsg = document.getElementById('errorMsg');
+    const statusMsg = document.getElementById('statusMsg');
+
+    input.addEventListener('input', () => {
+      errorMsg.style.display = 'none';
+      if (input.value.trim().length > 0) {
+        btn.style.color = '#ffffff';
+        btn.style.backgroundColor = '#262626';
+      } else {
+        btn.style.color = '#777777';
+        btn.style.backgroundColor = '#1c1c1c';
+      }
     });
-    previewStage.addEventListener('pointermove', (event) => {
-      if (!dragging) return;
-      panX = event.clientX - dragStartX;
-      panY = event.clientY - dragStartY;
-      updatePan();
-    });
-    previewStage.addEventListener('pointerup', (event) => {
-      dragging = false;
-      if (modalPreviewImage.hasPointerCapture(event.pointerId)) modalPreviewImage.releasePointerCapture(event.pointerId);
-      modalPreviewImage.style.cursor = 'url("https://i.imgur.com/4BYM1oQ.png") 16 16, grab';
-    });
-    previewStage.addEventListener('pointercancel', () => { dragging = false; });
-    previewImage.addEventListener('click', openPreview);
-    zoomPreviewBtn.addEventListener('click', openPreview);
-    closePreviewBtn.addEventListener('click', closePreview);
-    previewModal.addEventListener('click', (event) => {
-      if (event.target === previewModal) closePreview();
-    });
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closePreview();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsg.style.display = 'none';
+      statusMsg.style.display = 'none';
+
+      const token = input.value.trim();
+      if (!token) {
+        errorMsg.textContent = 'Please enter your session cookie.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+
+      try {
+        const res = await fetch('/api/verify-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success && data.user) {
+          statusMsg.textContent = 'Success! Opening dashboard...';
+          statusMsg.style.display = 'block';
+
+          // Store session data locally
+          try {
+            localStorage.setItem('sotarium_registered_token', token);
+            localStorage.setItem('sotarium_session_token', token);
+            localStorage.setItem('sotarium_user_profile', JSON.stringify(data.user));
+          } catch (e) {}
+
+          // Redirect to user dashboard
+          setTimeout(() => {
+            window.location.href = '/dashboard/' + encodeURIComponent(data.user.username);
+          }, 400);
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Continue';
+          errorMsg.textContent = data.error || 'Invalid session cookie. Verification failed.';
+          errorMsg.style.display = 'block';
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Continue';
+        errorMsg.textContent = 'Unable to reach authentication service.';
+        errorMsg.style.display = 'block';
+      }
     });
   </script>
 </body>
