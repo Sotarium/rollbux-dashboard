@@ -79,7 +79,32 @@
       -moz-appearance: textfield;
       appearance: textfield;
     }
-  </style>
+  
+    /* Vibe coded 4-column dashboard layout (guaranteed 4 columns across on desktop) */
+    .rollbux-4col-grid {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) 270px 270px 270px !important;
+      gap: 16px !important;
+      align-items: start !important;
+      width: 100% !important;
+    }
+    @media (max-width: 1300px) {
+      .rollbux-4col-grid {
+        grid-template-columns: minmax(0, 1fr) 250px 250px 250px !important;
+        gap: 12px !important;
+      }
+    }
+    @media (max-width: 1080px) {
+      .rollbux-4col-grid {
+        grid-template-columns: minmax(0, 1fr) 260px 260px !important;
+      }
+    }
+    @media (max-width: 768px) {
+      .rollbux-4col-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+    </style>
 </head>
 <body class="selection:bg-[#acff46] selection:text-[#0e131f]">
   <!-- Main Container -->
@@ -153,7 +178,7 @@
                 </div>
 
                 <!-- Statistics + Auto Upgrader + Auto Battle Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-[1fr_260px_260px_260px] xl:grid-cols-[1fr_270px_270px_270px] gap-4 w-full items-start">
+                <div class="rollbux-4col-grid w-full items-start">
                   
                   <!-- Left: Statistics Section -->
                   <div data-node-id="671:33117" class="flex w-full min-w-0 flex-col items-start gap-[16px]" bis_skin_checked="1">
@@ -241,7 +266,17 @@
                     </div>
                   
 
-                    <!-- Rains Section (Placed under the graph) -->
+                    <!-- Your Accounts Card (On top of Rains Section) -->
+                    <div class="relative flex w-full flex-col items-start gap-3 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[20px] shadow-sm border border-white/[0.03]">
+                      <div class="flex w-full items-center justify-between gap-3">
+                        <div>
+                          <p class="text-[14px] font-bold text-white">Your Accounts</p>
+                          <p id="dashboardAccountName" class="mt-1 text-[11px] text-[#9aa3a8]">Your accounts list</p>
+                        </div>
+                      </div>
+                      <a id="dashboardAccountLink" href="/accounts" class="w-full rounded-lg bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] py-2 text-center text-xs font-bold text-white transition hover:brightness-110 active:scale-95">Open Your Accounts</a>
+
+                    <!-- Rains Section (Under Your Accounts) -->
                     <div class="flex w-full flex-col items-start gap-4 mt-2">
 <div data-node-id="671:33156" class="flex w-full shrink-0 flex-col items-start gap-[16px]" bis_skin_checked="1">
                   <div data-node-id="671:33157" class="flex w-full shrink-0 items-center justify-between" bis_skin_checked="1">
@@ -290,17 +325,6 @@
                     <div id="rainPagination" class="hidden flex items-center justify-center gap-[6px] pt-[10px] pb-[2px] select-none"></div>
                   </div>
                 </div>
-                    </div>
-
-                    <!-- Your Accounts Card (Placed directly under graph card) -->
-                    <div class="relative flex w-full flex-col items-start gap-3 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[20px] shadow-sm border border-white/[0.03]">
-                      <div class="flex w-full items-center justify-between gap-3">
-                        <div>
-                          <p class="text-[14px] font-bold text-white">Your Accounts</p>
-                          <p id="dashboardAccountName" class="mt-1 text-[11px] text-[#9aa3a8]">Your accounts list</p>
-                        </div>
-                      </div>
-                      <a id="dashboardAccountLink" href="/accounts" class="w-full rounded-lg bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] py-2 text-center text-xs font-bold text-white transition hover:brightness-110 active:scale-95">Open Your Accounts</a>
                     </div>
                   </div>
 
@@ -619,7 +643,7 @@
                     <!-- Auto Claim Giveaway Card (Extracted from Cue) -->
                     <div class="flex w-full shrink-0 items-center justify-between">
                       <div class="flex items-center gap-2">
-                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-bold italic">Discord Token</p>
+                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-bold italic">Auto Claim Giveaway</p>
                         <span id="gwStatusBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"></span>
                       </div>
                       <label class="relative inline-flex items-center cursor-pointer select-none">
@@ -757,44 +781,30 @@
     </div>
   </div>
 
-  <!-- Discord Token Modal (Ultra-Clean Vibe Coded Redesign) -->
-  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-fadeIn select-none">
-    <div class="relative w-full max-w-[400px] rounded-[24px] bg-[#0c0d12] border border-white/[0.08] p-7 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95),0_0_50px_-10px_rgba(88,101,242,0.22)] flex flex-col items-center gap-5 text-center transition-all overflow-hidden">
-      <!-- Glow ambient background highlight -->
-      <div class="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-28 bg-[#5865F2]/25 blur-3xl pointer-events-none rounded-full"></div>
-
+  <!-- Discord Token Modal (Clean Minimal Vibe) -->
+  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn select-none">
+    <div class="relative w-full max-w-sm rounded-[18px] bg-[#0d0d0e] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
       <!-- Close Button (Top-Right) -->
-      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
-        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
+        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
 
-      <!-- Discord 3D Icon & Glowing Badge -->
-      <div class="relative mt-2">
-        <div class="absolute inset-0 bg-[#5865F2] blur-xl opacity-40 rounded-full scale-110"></div>
-        <img src="/discord-3d.png" class="relative size-16 object-contain drop-shadow-[0_10px_25px_rgba(88,101,242,0.55)] transition hover:scale-105 duration-300" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
-      </div>
+      <!-- Discord 3D Icon -->
+      <img src="/discord-3d.png" class="size-14 object-contain mt-1" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
       
-      <!-- Modal Title & Subtitle -->
-      <div class="flex flex-col items-center gap-1.5">
-        <h3 class="text-[18px] font-black text-white tracking-tight">Discord Token</h3>
-        <p class="text-[12px] text-gray-400 font-medium max-w-[300px] leading-relaxed">Paste your user token to authenticate and enable automatic giveaway joining & claiming</p>
-      </div>
+      <!-- Modal Title -->
+      <h3 class="text-base font-black text-white tracking-tight">Discord Token</h3>
 
-      <!-- Input Box Container -->
-      <div class="w-full flex flex-col gap-2 text-left">
-        <div class="relative w-full">
-          <input type="password" id="discordTokenInput" placeholder="Paste Discord user token..." autocomplete="off" spellcheck="false" class="w-full rounded-xl bg-[#14151c] border border-white/[0.08] px-4 py-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#5865F2] focus:ring-2 focus:ring-[#5865F2]/25 font-mono transition shadow-inner" />
-          <button type="button" onclick="const inp=document.getElementById('discordTokenInput'); inp.type = inp.type==='password'?'text':'password'; this.classList.toggle('text-[#5865F2]')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-1 transition" title="Toggle visibility">
-            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-          </button>
-        </div>
-        <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 px-1"></div>
+      <!-- Clean Input Box -->
+      <div class="w-full flex flex-col gap-1.5 text-left">
+        <input type="password" id="discordTokenInput" placeholder="Enter your Discord token" autocomplete="off" spellcheck="false" class="w-full rounded-xl bg-[#16171a] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#5865F2] font-mono transition" />
+        <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 px-1 pt-0.5"></div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex items-center gap-3 w-full pt-1">
-        <button type="button" onclick="closeDiscordLoginModal()" class="flex-1 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
-        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#5865F2] to-[#4752c4] hover:brightness-110 border border-[#5865F2]/40 text-xs font-black text-white transition active:scale-95 shadow-lg shadow-[#5865F2]/30 cursor-pointer">Connect</button>
+      <div class="flex items-center gap-2.5 w-full pt-1">
+        <button type="button" onclick="closeDiscordLoginModal()" class="flex-1 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
+        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="flex-1 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-xs font-black text-white transition active:scale-95 shadow-md shadow-[#5865F2]/20 cursor-pointer">Save</button>
       </div>
     </div>
   </div>
