@@ -97,7 +97,7 @@
     .is-logged-in #loginOverlay { display: none !important; }
     .is-logged-in #dashboardContent { display: block !important; }
   </style>
-  <link rel="stylesheet" href="/theme-screens.css">
+  <!-- theme-screens.css removed -->
 
   <style>
     /* DiscordViewer-Dashboard-11 Exact Theme Tokens (Theme.swift) */
@@ -1040,6 +1040,51 @@
 
   <!-- Interactive Script for Live User Stats & Dynamic Countdown -->
   <script>
+    
+    window.openFarmerModal = function(title) {
+      const m = document.getElementById('farmerModal');
+      if (m) {
+        m.classList.remove('hidden');
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) modalTitle.textContent = title || 'Add Account Token';
+        const nameInput = document.getElementById('farmerNameInput');
+        if (nameInput) {
+          nameInput.value = '';
+          nameInput.focus();
+        }
+        const tokInput = document.getElementById('farmerTokenInput');
+        if (tokInput) tokInput.value = '';
+      }
+    };
+    window.closeFarmerModal = function() {
+      document.getElementById('farmerModal')?.classList.add('hidden');
+    };
+
+    
+    // Safe DOM shim for legacy element access
+    (function() {
+      const _origGetById = document.getElementById.bind(document);
+      const dummyElements = new Map();
+
+      function createDummy(id) {
+        if (dummyElements.has(id)) return dummyElements.get(id);
+        const d = document.createElement('div');
+        d.id = id;
+        d.dataset.dummy = 'true';
+        // Add minimal SVG attributes support
+        d.setAttribute = function(name, val) { this[name] = val; };
+        dummyElements.set(id, d);
+        return d;
+      }
+
+      document.getElementById = function(id) {
+        if (!id) return null;
+        const real = _origGetById(id);
+        if (real) return real;
+        return createDummy(id);
+      };
+    })();
+
     let currentUnit = 'BUX';
     let liveUserData = null;
     let liveSolPrice = 150.00;
@@ -1407,8 +1452,8 @@
       const balanceBux = user.balance_bux || 0;
       const earningsBux = user.total_earnings_bux || 0;
 
-      statTotalEarnings.textContent = formatValue(earningsBux);
-      statCurrentBalance.textContent = formatValue(balanceBux);
+      if (typeof statTotalEarnings !== "undefined" && statTotalEarnings) { statTotalEarnings.textContent = formatValue(earningsBux); }
+      if (typeof statCurrentBalance !== "undefined" && statCurrentBalance) { statCurrentBalance.textContent = formatValue(balanceBux); }
 
       // Render Rains Table
       let txs = user.transactions || [];
@@ -1434,7 +1479,7 @@
       }
 
       const totalCount = txs.length + (hasActiveRain ? 1 : 0);
-      rainCountBadge.textContent = `${totalCount} rain${totalCount !== 1 ? 's' : ''}`;
+      if (typeof rainCountBadge !== "undefined" && rainCountBadge) { rainCountBadge.textContent = `${totalCount} rain${totalCount !== 1 ? 's' : ''}`; }
 
       // --- Pagination helpers ---
       const totalPages = Math.max(1, Math.ceil(txs.length / RAINS_PER_PAGE));
@@ -1505,12 +1550,12 @@
       }
 
       if (!rowsHtml) {
-        transactionsList.innerHTML = `
+        if (typeof transactionsList !== "undefined" && transactionsList) transactionsList.innerHTML = `
           <div id="emptyState" class="flex h-[120px] items-center justify-center px-[32px] text-center">
             <p class="text-[13px] leading-[20px] text-[#9aa3a8]">Nobody is using your code yet. Share the link above — a referee appears here as soon as they attach it.</p>
           </div>`;
       } else {
-        transactionsList.innerHTML = rowsHtml;
+        if (typeof transactionsList !== "undefined" && transactionsList) transactionsList.innerHTML = rowsHtml;
       }
 
       // --- Render Pagination Bar ---
@@ -1693,9 +1738,9 @@
       }
 
       if (history.length < 2) {
-        chartAreaPath.setAttribute('d', 'M0 330 L744 330 L744 330 L0 330 Z');
-        chartLinePath.setAttribute('d', 'M0 330 L744 330');
-        yAxisTop.textContent = formatValue(100);
+        if (typeof chartAreaPath !== 'undefined' && chartAreaPath) chartAreaPath.setAttribute('d', 'M0 330 L744 330 L744 330 L0 330 Z');
+        if (typeof chartLinePath !== 'undefined' && chartLinePath) chartLinePath.setAttribute('d', 'M0 330 L744 330');
+        if (typeof yAxisTop !== 'undefined' && yAxisTop) yAxisTop.textContent = formatValue(100);
         currentChartPoints = [];
         return;
       }
@@ -1704,7 +1749,7 @@
       const rawMaxVal = Math.max(...values, 10);
       // Add ~18% headroom so peak point doesn't get squeezed against the top edge
       const maxVal = Math.ceil(rawMaxVal * 1.18);
-      yAxisTop.textContent = formatValue(maxVal);
+      if (typeof yAxisTop !== 'undefined' && yAxisTop) yAxisTop.textContent = formatValue(maxVal);
 
       const width = 744;
       const height = 330;
