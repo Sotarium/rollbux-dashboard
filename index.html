@@ -48,19 +48,25 @@
   </script>
   <style>
     body {
-      background-color: #121418;
-      background-image: linear-gradient(180deg, #15171d 0%, #101115 100%);
+      background-color: #070708;
+      background-image: radial-gradient(circle at 50% 0%, #111114 0%, #070708 70%);
       background-attachment: fixed;
-      color: #ffffff;
+      color: #f3f4f6;
       min-height: 100vh;
-      font-family: 'Inter', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+      letter-spacing: -0.01em;
+    }
+    /* Vibe coded sleek styling */
+    .glass-card, [class*="bg-[#0d0d0e]"], [class*="bg-[#0d0d0e]"] {
+      border: 1px solid rgba(255, 255, 255, 0.07) !important;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
     }
     .custom-scroll::-webkit-scrollbar {
       height: 6px;
       width: 6px;
     }
     .custom-scroll::-webkit-scrollbar-thumb {
-      background: #1c2538;
+      background: #232429;
       border-radius: 9999px;
     }
     /* Hide input number spinner arrows */
@@ -129,9 +135,9 @@
                     </div>
                     <div class="flex items-center gap-3">
                       <!-- Currency Switcher Pill -->
-                      <div class="flex items-center gap-2 bg-[#0e131f] px-3 py-1.5 rounded-[10px] border border-white/[0.03] text-[12px]">
+                      <div class="flex items-center gap-2 bg-[#0d0d0e] px-3 py-1.5 rounded-[10px] border border-white/[0.03] text-[12px]">
                         <span class="text-[#9aa3a8] font-medium text-xs">Display Unit:</span>
-                        <div class="flex gap-1 bg-[#131a29] p-0.5 rounded-md">
+                        <div class="flex gap-1 bg-[#16171a] p-0.5 rounded-md">
                           <button id="unitBuxBtn" type="button" class="px-2.5 py-1 rounded text-[11px] font-bold bg-[#acff46] text-[#121418] transition">BUX</button>
                           <button id="unitUsdBtn" type="button" class="px-2.5 py-1 rounded text-[11px] font-bold text-[#9aa3a8] hover:text-white transition">USD</button>
                           <button id="unitSolBtn" type="button" class="px-2.5 py-1 rounded text-[11px] font-bold text-[#9aa3a8] hover:text-white transition">SOL</button>
@@ -148,7 +154,7 @@
                     
                     <!-- 3. Total Earnings -->
                     <div data-node-id="671:33086" class="relative flex w-full flex-col items-start gap-[6px] overflow-clip rounded-[12px] px-[20px] py-[16px] border border-white/[0.03]" bis_skin_checked="1">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0d0d0e]"></span>
                       <p class="relative w-full text-[14px] font-medium leading-[20px] text-[#9aa3a8]">Total Earnings</p>
                       <div class="relative flex shrink-0 items-center gap-[8px]" bis_skin_checked="1">
                         <span id="earningsCoinIcon" data-name="cryptocurrency-color:eth" class="relative size-[24px] shrink-0 overflow-clip">
@@ -178,7 +184,7 @@
                 </div>
 
                 <!-- Statistics + Auto Upgrader + Auto Battle Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-[1fr_270px_270px] gap-5 w-full items-start">
+                <div class="grid grid-cols-1 lg:grid-cols-[1fr_260px_260px_260px] xl:grid-cols-[1fr_270px_270px_270px] gap-4 w-full items-start">
                   
                   <!-- Left: Statistics Section -->
                   <div data-node-id="671:33117" class="flex w-full min-w-0 flex-col items-start gap-[16px]" bis_skin_checked="1">
@@ -190,17 +196,17 @@
                           <span>Clear</span>
                         </button>
                         <!-- Timeframe Pills -->
-                        <div class="relative flex shrink-0 items-center gap-[2px] rounded-[8px] p-[2px] bg-[#0e131f] border border-white/[0.04]" bis_skin_checked="1">
+                        <div class="relative flex shrink-0 items-center gap-[2px] rounded-[8px] p-[2px] bg-[#0d0d0e] border border-white/[0.04]" bis_skin_checked="1">
                           <button type="button" class="tab-btn active relative flex h-[32px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[12px] py-[8px] transition" data-tab="24h">
-                            <span aria-hidden="true" class="tab-bg pointer-events-none absolute inset-0 rounded-[7px] bg-[#131a29]"></span>
+                            <span aria-hidden="true" class="tab-bg pointer-events-none absolute inset-0 rounded-[7px] bg-[#16171a]"></span>
                             <span class="tab-text relative whitespace-nowrap text-[14px] font-semibold leading-[20px] text-white">24H</span>
                           </button>
                           <button type="button" class="tab-btn relative flex h-[32px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[12px] py-[8px] transition" data-tab="week">
-                            <span aria-hidden="true" class="tab-bg pointer-events-none absolute inset-0 rounded-[7px] hidden bg-[#131a29]"></span>
+                            <span aria-hidden="true" class="tab-bg pointer-events-none absolute inset-0 rounded-[7px] hidden bg-[#16171a]"></span>
                             <span class="tab-text relative whitespace-nowrap text-[14px] font-semibold leading-[20px] text-[#9aa3a8] hover:text-white">Week</span>
                           </button>
                           <button type="button" class="tab-btn relative flex h-[32px] shrink-0 items-center justify-center overflow-clip rounded-[7px] px-[12px] py-[8px] transition" data-tab="month">
-                            <span aria-hidden="true" class="tab-bg pointer-events-none absolute inset-0 rounded-[7px] hidden bg-[#131a29]"></span>
+                            <span aria-hidden="true" class="tab-bg pointer-events-none absolute inset-0 rounded-[7px] hidden bg-[#16171a]"></span>
                             <span class="tab-text relative whitespace-nowrap text-[14px] font-semibold leading-[20px] text-[#9aa3a8] hover:text-white">Month</span>
                           </button>
                         </div>
@@ -209,7 +215,7 @@
 
                     <!-- Chart Container Card -->
                     <div data-node-id="671:33119" class="relative flex w-full shrink-0 flex-col items-start justify-center overflow-clip rounded-[12px] p-[24px] border border-white/[0.03]" bis_skin_checked="1">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0d0d0e]"></span>
                       
                       <div data-node-id="671:33120" class="custom-scroll relative h-[348px] w-full shrink-0 overflow-x-auto overflow-y-clip" bis_skin_checked="1">
                         <div class="relative h-full w-full min-w-[500px]" bis_skin_checked="1">
@@ -252,7 +258,7 @@
                             </svg>
 
                             <!-- Floating Tooltip Box -->
-                            <div id="chartTooltip" class="pointer-events-none absolute z-20 flex flex-col items-start gap-1 rounded-lg bg-[#121622] border border-white/10 px-2.5 py-1.5 shadow-2xl transition-all duration-75 opacity-0 transform -translate-x-1/2">
+                            <div id="chartTooltip" class="pointer-events-none absolute z-20 flex flex-col items-start gap-1 rounded-lg bg-[#111215] border border-white/10 px-2.5 py-1.5 shadow-2xl transition-all duration-75 opacity-0 transform -translate-x-1/2">
                               <span id="chartTooltipTime" class="text-[11px] font-semibold text-[#9aa3a8] leading-none">--</span>
                               <div class="flex items-center gap-1.5 mt-0.5">
                                 <img id="chartTooltipCoinIcon" src="https://rollbux.com/icons/token.png" alt="Coin" class="size-3.5 object-contain">
@@ -267,7 +273,7 @@
                   
 
                     <!-- Your Accounts Card (Placed directly under graph card) -->
-                    <div class="relative flex w-full flex-col items-start gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[20px] shadow-sm border border-white/[0.03]">
+                    <div class="relative flex w-full flex-col items-start gap-3 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[20px] shadow-sm border border-white/[0.03]">
                       <div class="flex w-full items-center justify-between gap-3">
                         <div>
                           <p class="text-[14px] font-bold text-white">Your Accounts</p>
@@ -293,8 +299,8 @@
                     </div>
 
                     <!-- Clean Card Box -->
-                    <div class="relative flex w-full flex-col items-center justify-center gap-4 overflow-clip rounded-[12px] bg-[#0e131f] p-[20px] border border-white/[0.03]">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                    <div class="relative flex w-full flex-col items-center justify-center gap-4 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[20px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0d0d0e]"></span>
 
                       <!-- Authentic Unbox.gg / RollBux Style Wheel (No top indicator, no second middle layer, clean arc) -->
                       <div class="relative flex flex-col items-center justify-center w-full select-none py-2">
@@ -338,14 +344,14 @@
                           <span id="upgraderMultiplierLabel" class="text-white font-black tracking-tight">2.00x</span>
                         </div>
                         <div class="relative flex items-center">
-                          <input type="number" id="upgraderMultiplierInput" min="1.1" max="100" step="0.05" value="2.00" class="w-full bg-[#131a29] border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-black tracking-tight focus:border-[#8b5cf6] outline-none">
+                          <input type="number" id="upgraderMultiplierInput" min="1.1" max="100" step="0.05" value="2.00" class="w-full bg-[#16171a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-black tracking-tight focus:border-[#8b5cf6] outline-none">
                           <span class="absolute right-3 text-xs text-gray-400 font-black">x</span>
                         </div>
                       </div>
 
 
                       <!-- Auto Random with Turn On/Off Switch -->
-                      <div class="relative z-10 flex items-center justify-between p-2.5 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2.5 rounded-lg bg-[#16171a] border border-white/5 w-full">
                         <div class="flex items-center gap-2">
                           <span class="text-xs font-black tracking-tight text-white">Auto Random</span>
                         </div>
@@ -356,7 +362,7 @@
                       </div>
 
                       <!-- Auto Sell with Turn On/Off Switch -->
-                      <div class="relative z-10 flex items-center justify-between p-2.5 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2.5 rounded-lg bg-[#16171a] border border-white/5 w-full">
                         <div class="flex items-center gap-2">
                           <span class="text-xs font-black tracking-tight text-white">Auto Sell</span>
                         </div>
@@ -367,7 +373,7 @@
                       </div>
 
                       <!-- Target Account Selector Button -->
-                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#16171a] border border-white/5 w-full">
                         <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
                         <button type="button" id="upgraderAccountBtn" onclick="openAccountSelectorModal('upgrader')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
                           <span id="upgraderAccountLabel" class="truncate">Select Acc</span>
@@ -396,11 +402,11 @@
                       </label>
                     </div>
 
-                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0d0d0e]"></span>
                       
                       <!-- Target Account Selector Button -->
-                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#16171a] border border-white/5 w-full">
                         <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
                         <button type="button" id="chickenAccountBtn" onclick="openAccountSelectorModal('chicken')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
                           <span id="chickenAccountLabel" class="truncate">Select Acc</span>
@@ -410,7 +416,7 @@
                       <!-- Difficulty Picker + Tile Picker Buttons Row -->
                       <div class="relative z-10 grid grid-cols-2 gap-2 w-full">
                         <!-- Difficulty Picker Button -->
-                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#131a29] border border-white/5">
+                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#16171a] border border-white/5">
                           <span class="text-[10px] uppercase font-bold tracking-wider text-[#9aa3a8]">Difficulty</span>
                           <button type="button" id="chickenDifficultyBtn" class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-bold transition active:scale-95">
                             <span id="chickenDifficultyLabel">Easy</span>
@@ -419,7 +425,7 @@
                         </div>
 
                         <!-- Tile Picker Button (How many tiles/steps to click) -->
-                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#131a29] border border-white/5">
+                        <div class="flex flex-col gap-1 p-2 rounded-lg bg-[#16171a] border border-white/5">
                           <span class="text-[10px] uppercase font-bold tracking-wider text-[#9aa3a8]">Tiles to Click</span>
                           <button type="button" id="chickenTilesBtn" class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-bold transition active:scale-95">
                             <span id="chickenTilesLabel">3 Tiles</span>
@@ -451,12 +457,12 @@
                     </div>
 
                     <!-- Clean Battle Card Box -->
-                    <div class="relative flex w-full flex-col items-center justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                    <div class="relative flex w-full flex-col items-center justify-center gap-3 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0d0d0e]"></span>
 
                       <!-- RollBux Borrow Mode Toggle Component -->
                       <div class="relative z-10 w-full">
-                        <label for="battleBorrowToggle" class="transition-all hover:bg-neutral-800/60 px-3 py-2.5 rounded-lg flex items-center justify-between gap-2 bg-[#131a29] border border-white/[0.06] shadow-sm cursor-pointer select-none">
+                        <label for="battleBorrowToggle" class="transition-all hover:bg-neutral-800/60 px-3 py-2.5 rounded-lg flex items-center justify-between gap-2 bg-[#16171a] border border-white/[0.06] shadow-sm cursor-pointer select-none">
                           <span class="flex items-center space-x-2">
                             <!-- Borrow SVG Pie Icon -->
                             <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-5 text-red-500 shrink-0">
@@ -475,7 +481,7 @@
 
                       <!-- Crazy Mode 50/50 Chance Toggle -->
                       <div class="relative z-10 w-full">
-                        <label for="battleCrazyModeToggle" class="transition-all hover:bg-neutral-800/60 px-3 py-2.5 rounded-lg flex items-center justify-between gap-2 bg-[#131a29] border border-white/[0.06] shadow-sm cursor-pointer select-none">
+                        <label for="battleCrazyModeToggle" class="transition-all hover:bg-neutral-800/60 px-3 py-2.5 rounded-lg flex items-center justify-between gap-2 bg-[#16171a] border border-white/[0.06] shadow-sm cursor-pointer select-none">
                           <span class="flex items-center space-x-2">
                             <!-- Crazy Mode Vortex SVG Icon -->
                             <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-5 text-[#8b5cf6] shrink-0">
@@ -493,7 +499,7 @@
                       </div>
 
                       <!-- Mode Badges: 3v3 & Jackpot -->
-                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#16171a] border border-white/5 w-full">
                         <span class="text-[11px] font-semibold text-[#9aa3a8]">Modifiers</span>
                         <div class="flex items-center gap-1.5">
                           <span class="px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/30 text-[11px] font-extrabold text-yellow-400 tracking-wider">JACKPOT</span>
@@ -502,7 +508,7 @@
                       </div>
 
                       <!-- Target Account Selector Button -->
-                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#16171a] border border-white/5 w-full">
                         <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
                         <button type="button" id="battleAccountBtn" onclick="openAccountSelectorModal('battle')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
                           <span id="battleAccountLabel" class="truncate">Select Acc</span>
@@ -530,10 +536,10 @@
                         <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#acff46]"></div>
                       </label>
                     </div>
-                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0d0d0e]"></span>
                       <!-- Target Account Selector Button -->
-                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#16171a] border border-white/5 w-full">
                         <span class="text-[11px] font-semibold text-[#9aa3a8]">Account</span>
                         <button type="button" id="minesAccountBtn" onclick="openAccountSelectorModal('mines')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
                           <span id="minesAccountLabel" class="truncate">Select Acc</span>
@@ -557,8 +563,8 @@
                       </label>
                     </div>
 
-                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0e131f] p-[16px] border border-white/[0.03]">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[16px] border border-white/[0.03]">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0d0d0e]"></span>
 
                       <!-- Warning Cooldown Badge (shows ONLY during cooldown) -->
                       <div id="tipCooldownBadge" class="hidden relative z-10 w-full items-center justify-between px-3 py-2 rounded-full text-xs font-black uppercase tracking-wider text-[#ffedd5] bg-[#f97316]/15 border border-[#f97316]/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] select-none">
@@ -572,7 +578,7 @@
                       </div>
 
                       <!-- Target Recipient Account Selector -->
-                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                      <div class="relative z-10 flex items-center justify-between p-2 rounded-lg bg-[#16171a] border border-white/5 w-full">
                         <span class="text-[11px] font-semibold text-[#9aa3a8]">Tip To (Main)</span>
                         <button type="button" id="tipAccountBtn" onclick="openAccountSelectorModal('tip')" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-[#7c3aed]/25 cursor-pointer">
                           <span id="tipAccountLabel" class="truncate">Select Main</span>
@@ -585,6 +591,11 @@
                       </div>
                     </div>
 
+                    
+
+                  
+                  <!-- Rightmost Column 4: Auto Claim Giveaway (Across Auto Battles on its right) -->
+                  <div id="autoGiveawaySection" class="flex w-full flex-col items-start gap-[16px]">
                     <!-- Auto Claim Giveaway Card (Extracted from Cue) -->
                     <div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
@@ -598,12 +609,12 @@
                     </div>
 
                     <!-- Card with Cue Layout & Discord Login Blur Overlay -->
-                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-hidden rounded-[16px] bg-[#0e131f] p-[16px] border border-white/[0.04] shadow-xl">
-                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[16px] bg-[#0e131f]"></span>
+                    <div class="relative flex w-full flex-col justify-center gap-3 overflow-hidden rounded-[16px] bg-[#0d0d0e] p-[16px] border border-white/[0.04] shadow-xl">
+                      <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[16px] bg-[#0d0d0e]"></span>
 
                       <!-- Underneath Preview Content (matches Cue giveaway settings & logs) -->
                       <div class="relative z-10 flex flex-col gap-3 filter blur-[5px] select-none pointer-events-none opacity-60">
-                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#16171a] border border-white/5 w-full">
                           <div class="flex items-center gap-2">
                             <span class="size-2 rounded-full bg-[#5865F2]"></span>
                             <span class="text-xs font-bold text-white">Giveaway Channel</span>
@@ -611,19 +622,19 @@
                           <span class="text-[11px] font-mono text-[#9aa3a8]">#1540411748073472070</span>
                         </div>
 
-                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#16171a] border border-white/5 w-full">
                           <span class="text-xs font-semibold text-[#9aa3a8]">Claim Ticket Message</span>
                           <span class="text-xs font-mono font-bold text-[#acff46]">Auto Enabled</span>
                         </div>
 
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5 w-full">
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-[#16171a] border border-white/5 w-full">
                           <span class="text-[11px] font-medium text-[#9aa3a8]">Fast Reaction & Ticket Solver</span>
                           <span class="text-[11px] font-bold text-white bg-white/5 px-2 py-0.5 rounded">v2.4 Engine</span>
                         </div>
                       </div>
 
                       <!-- Discord Lock Blur Overlay on top with 3D Discord Icon -->
-                      <div id="gwLockOverlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#07090f]/75 backdrop-blur-[6px] p-4 text-center">
+                      <div id="gwLockOverlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#070708]/75 backdrop-blur-[6px] p-4 text-center">
                         <img src="/discord-3d.png" alt="Discord" class="w-14 h-14 object-contain drop-shadow-[0_8px_16px_rgba(88,101,242,0.45)] mb-2 animate-bounce hover:scale-105 transition duration-300" style="animation-duration: 3s;" onerror="this.onerror=null; this.src='discord-3d.png';" />
                         <h4 class="text-sm font-black text-white tracking-tight mb-3">Auto Claim Giveaway</h4>
                         <button type="button" onclick="openDiscordLoginModal()" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2e3475] hover:bg-[#252a60] border border-[#5865F2]/40 text-white text-xs font-black tracking-tight transition active:scale-95 shadow-md shadow-black/40 cursor-pointer">
@@ -634,7 +645,7 @@
 
                       <!-- Authenticated Card View (Shown once logged into Discord) -->
                       <div id="gwUnlockedView" class="hidden relative z-10 flex-col gap-3">
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5">
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-[#16171a] border border-white/5">
                           <div class="flex items-center gap-2">
                             <img id="gwDiscordAvatar" class="w-7 h-7 rounded-full bg-white/10 object-cover" src="/discord-3d.png" alt="Avatar" />
                             <div class="flex flex-col text-left">
@@ -644,7 +655,7 @@
                           </div>
                           <button type="button" onclick="disconnectDiscordGw()" class="text-[11px] font-bold text-red-400 hover:text-red-300 transition px-2 py-1 bg-red-500/10 rounded">Disconnect</button>
                         </div>
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-[#131a29] border border-white/5">
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-[#16171a] border border-white/5">
                           <span class="text-[11px] font-semibold text-[#9aa3a8]">Giveaway Bot Engine</span>
                           <span class="text-xs font-black text-[#5865F2]">Standby / Ready</span>
                         </div>
@@ -654,7 +665,6 @@
                         </div>
                       </div>
                     </div>
-
                   </div>
 
                 </div>
@@ -685,7 +695,7 @@
                   <div data-node-id="671:33164" class="flex w-full shrink-0 flex-col items-center gap-[12px]" bis_skin_checked="1">
                     <div class="custom-scroll w-full max-w-full overflow-x-auto overflow-y-hidden" bis_skin_checked="1">
                       <div data-node-id="671:33165" class="relative w-full min-w-[650px] shrink-0 rounded-[12px] border border-white/[0.03] overflow-hidden" style="min-height: 164px;" bis_skin_checked="1">
-                        <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0e131f]"></span>
+                        <span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[12px] bg-[#0d0d0e]"></span>
                         
                         <!-- Table Column Headers: Account | Time Left | Amount | Time | Action -->
                         <div class="relative z-10 grid grid-cols-[1fr_1fr_1fr_40px] items-center gap-[12px] px-[16px] py-[14px] text-[13px] font-semibold tracking-[0.28px] text-[#9aa3a8] border-b border-white/[0.04]">
@@ -722,7 +732,7 @@
 
   <!-- Farmer Token Modal -->
   <div id="farmerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-    <div class="glass-card w-full max-w-md rounded-2xl p-6 bg-[#0e131f] border border-white/10 space-y-4 shadow-2xl">
+    <div class="glass-card w-full max-w-md rounded-2xl p-6 bg-[#0d0d0e] border border-white/10 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <h3 id="modalTitle" class="text-base font-bold text-white">Configure Cloud Farmer</h3>
         <button id="closeFarmerModalBtn" class="text-gray-400 hover:text-white text-lg font-bold">&times;</button>
@@ -735,11 +745,11 @@
       <form id="farmerForm" class="space-y-4">
         <div>
           <label class="block text-[11px] font-semibold text-gray-400 uppercase mb-1">Account Name</label>
-          <input type="text" id="farmerNameInput" placeholder="e.g. Sotarium" required class="w-full bg-[#131a29] border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#acff46]">
+          <input type="text" id="farmerNameInput" placeholder="e.g. Sotarium" required class="w-full bg-[#16171a] border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#acff46]">
         </div>
         <div>
           <label class="block text-[11px] font-semibold text-gray-400 uppercase mb-1">Session Token (JWT)</label>
-          <input type="password" id="farmerTokenInput" placeholder="eyJhbGciOiJIUzI1Ni..." required class="w-full bg-[#131a29] border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#acff46] font-mono">
+          <input type="password" id="farmerTokenInput" placeholder="eyJhbGciOiJIUzI1Ni..." required class="w-full bg-[#16171a] border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#acff46] font-mono">
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
@@ -752,7 +762,7 @@
 
   <!-- Account Selector Overlay Modal -->
   <div id="accountSelectorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-    <div class="glass-card w-full max-w-sm rounded-2xl p-5 bg-[#0e131f] border border-white/10 space-y-4 shadow-2xl">
+    <div class="glass-card w-full max-w-sm rounded-2xl p-5 bg-[#0d0d0e] border border-white/10 space-y-4 shadow-2xl">
       <!-- Modal Header: Game Mode displayed top-left -->
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <div class="flex flex-col">
@@ -773,6 +783,38 @@
       </div>
     </div>
   </div>
+
+  <!-- Discord Login Modal -->
+  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn select-none">
+    <div class="relative w-full max-w-sm rounded-[20px] bg-[#0d0d0e] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
+      <!-- Red X Close Button (top-right corner) -->
+      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-4 right-4 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
+        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <!-- Discord 3D Icon on top of the title -->
+      <img src="/discord-3d.png" class="w-14 h-14 object-contain drop-shadow-[0_8px_20px_rgba(88,101,242,0.4)] mt-1 hover:scale-105 transition" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
+      
+      <!-- Overlay Title: Discord Token -->
+      <div class="flex flex-col items-center">
+        <h3 class="text-base font-black text-white tracking-tight">Discord Token</h3>
+      </div>
+
+      <!-- Input box for user token -->
+      <div class="w-full flex flex-col gap-1.5 text-left">
+        <input type="password" id="discordTokenInput" placeholder="Enter your Discord token" class="w-full rounded-xl bg-[#16171a] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#5865F2] focus:ring-1 focus:ring-[#5865F2] font-mono transition" />
+      </div>
+
+      <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 text-left w-full"></div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2.5 w-full pt-1">
+        <button type="button" onclick="closeDiscordLoginModal()" class="flex-1 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
+        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="flex-1 py-2.5 rounded-xl bg-[#2e3475] hover:bg-[#252a60] border border-[#5865F2]/40 text-xs font-black text-white transition active:scale-95 shadow-md shadow-black/40 cursor-pointer">Save</button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- Interactive Script for Live User Stats & Dynamic Countdown -->
   <script>
@@ -1319,7 +1361,7 @@
           input.min = 1;
           input.max = totalPages;
           input.value = currentRainPage;
-          input.className = 'w-[52px] h-[32px] rounded-[7px] bg-[#1a1f2e] border border-white/[0.1] text-center text-[13px] text-white font-semibold outline-none focus:border-[#acff46] transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none';
+          input.className = 'w-[52px] h-[32px] rounded-[7px] bg-[#1c1d22] border border-white/[0.1] text-center text-[13px] text-white font-semibold outline-none focus:border-[#acff46] transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none';
           btn.replaceWith(input);
           input.focus();
           input.select();
@@ -2671,7 +2713,7 @@
           : (!isAllSelected && tempSelectedAccounts.some(x => x.toLowerCase() === item.name.toLowerCase()));
 
         return `
-          <div onclick="toggleAccountInOverlay('${item.name}')" class="w-full flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none ${isChecked ? 'bg-[#7c3aed]/15 border-[#7c3aed] text-white shadow-sm' : 'bg-[#131a29] hover:bg-[#182133] border-white/5 text-gray-300'}">
+          <div onclick="toggleAccountInOverlay('${item.name}')" class="w-full flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none ${isChecked ? 'bg-[#7c3aed]/15 border-[#7c3aed] text-white shadow-sm' : 'bg-[#16171a] hover:bg-[#1e1f24] border-white/5 text-gray-300'}">
             <div class="flex items-center gap-3 min-w-0">
               <div class="size-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'border-[#7c3aed] bg-[#7c3aed]' : 'border-gray-500 bg-transparent'}">
                 ${isChecked ? '<svg class="size-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
@@ -3593,18 +3635,28 @@
     const discordLoginError = document.getElementById('discordLoginError');
 
     window.openDiscordLoginModal = function() {
-      if (discordLoginError) discordLoginError.classList.add('hidden');
-      if (discordTokenInput) discordTokenInput.value = '';
-      if (discordLoginModal) {
-        discordLoginModal.classList.remove('hidden');
-        discordLoginModal.style.display = 'flex';
+      console.log('[Discord Token] Opening modal overlay...');
+      const m = document.getElementById('discordLoginModal');
+      const err = document.getElementById('discordLoginError');
+      const inp = document.getElementById('discordTokenInput');
+      if (err) err.classList.add('hidden');
+      if (inp) inp.value = '';
+      if (m) {
+        m.classList.remove('hidden');
+        m.style.display = 'flex';
+        console.log('[Discord Token] Modal overlay displayed successfully (display: flex, z-index: 9999).');
+        if (inp) setTimeout(() => inp.focus(), 50);
+      } else {
+        console.error('[Discord Token] Modal element #discordLoginModal not found in DOM!');
       }
     };
 
     window.closeDiscordLoginModal = function() {
-      if (discordLoginModal) {
-        discordLoginModal.classList.add('hidden');
-        discordLoginModal.style.display = 'none';
+      console.log('[Discord Token] Closing modal overlay...');
+      const m = document.getElementById('discordLoginModal');
+      if (m) {
+        m.classList.add('hidden');
+        m.style.display = 'none';
       }
     };
 
@@ -3823,35 +3875,6 @@
     })();
   </script>
 
-  <!-- Discord Login Modal -->
-  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn select-none">
-    <div class="relative w-full max-w-sm rounded-[20px] bg-[#0e131f] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
-      <!-- Red X Close Button (top-right corner) -->
-      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-4 right-4 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
-        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-
-      <!-- Discord 3D Icon on top of the title -->
-      <img src="/discord-3d.png" class="w-14 h-14 object-contain drop-shadow-[0_8px_20px_rgba(88,101,242,0.4)] mt-1 hover:scale-105 transition" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
-      
-      <!-- Overlay Title: Discord Token -->
-      <div class="flex flex-col items-center">
-        <h3 class="text-base font-black text-white tracking-tight">Discord Token</h3>
-      </div>
-
-      <!-- Input box for user token -->
-      <div class="w-full flex flex-col gap-1.5 text-left">
-        <input type="password" id="discordTokenInput" placeholder="Enter your Discord token" class="w-full rounded-xl bg-[#131a29] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#5865F2] focus:ring-1 focus:ring-[#5865F2] font-mono transition" />
-      </div>
-
-      <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 text-left w-full"></div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center gap-2.5 w-full pt-1">
-        <button type="button" onclick="closeDiscordLoginModal()" class="flex-1 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
-        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="flex-1 py-2.5 rounded-xl bg-[#2e3475] hover:bg-[#252a60] border border-[#5865F2]/40 text-xs font-black text-white transition active:scale-95 shadow-md shadow-black/40 cursor-pointer">Save</button>
-      </div>
-    </div>
-  </div>
+  
 </body>
 </html>
