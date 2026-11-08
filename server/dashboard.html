@@ -449,7 +449,7 @@
                   </div>
 
                   <!-- 3-Column Grid: Statistics, Auto Upgrader, Auto Mines -->
-                  <div class="grid grid-cols-1 xl:grid-cols-[1fr_380px_380px] lg:grid-cols-[1fr_340px_340px] gap-5 w-full items-start">
+                  <div class="grid grid-cols-1 xl:grid-cols-[1fr_380px_380px] lg:grid-cols-[1fr_340px_340px] gap-5 w-full items-stretch">
                     
                     <!-- ── Column 1: Statistics, Accounts, Results ── -->
                     <div class="flex flex-col gap-5 w-full">
@@ -467,42 +467,49 @@
                           </div>
                         </div>
 
-                        <!-- Statistics Line Graph with 0, 2, 4, 6 and 3 PM, 6 PM, 9 PM -->
+                        <!-- Statistics Line Graph - interactive hover -->
                         <div class="dv-card p-5">
                           <div class="relative w-full h-[220px] select-none">
-                            <div class="absolute left-0 top-0 bottom-6 w-5 flex flex-col justify-between text-[11px] font-bold text-[#8f8f8f] font-mono">
-                              <span>6</span>
-                              <span>4</span>
-                              <span>2</span>
+                            <div class="absolute left-0 top-0 bottom-6 w-8 flex flex-col justify-between text-[11px] font-bold text-[#8f8f8f] font-mono pointer-events-none">
+                              <span id="yAxisTop">0</span>
+                              <span></span>
                               <span>0</span>
                             </div>
-                            <div class="absolute left-6 right-0 top-0 bottom-6">
-                              <svg class="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="none">
+                            <div id="chartInteractiveWrap" class="absolute left-8 right-0 top-0 bottom-6 cursor-crosshair">
+                              <svg class="w-full h-full overflow-visible" viewBox="0 0 744 330" preserveAspectRatio="none">
                                 <defs>
                                   <linearGradient id="dvChartAreaGrad" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stop-color="#ffffff" stop-opacity="0.14"/>
                                     <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
                                   </linearGradient>
                                 </defs>
-                                <line x1="0" y1="8" x2="400" y2="8" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
-                                <line x1="0" y1="56" x2="400" y2="56" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
-                                <line x1="0" y1="104" x2="400" y2="104" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
-                                <line x1="0" y1="152" x2="400" y2="152" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
-                                <path id="statsChartArea" d="M0 45 L400 45 L400 152 L0 152 Z" fill="url(#dvChartAreaGrad)"/>
-                                <path id="statsChartLine" d="M0 45 L400 45" fill="none" stroke="#ffffff" stroke-width="2"/>
+                                <line x1="0" y1="20"  x2="744" y2="20"  stroke="rgba(255,255,255,0.08)" stroke-dasharray="3 5"/>
+                                <line x1="0" y1="110" x2="744" y2="110" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3 5"/>
+                                <line x1="0" y1="220" x2="744" y2="220" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3 5"/>
+                                <line x1="0" y1="330" x2="744" y2="330" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3 5"/>
+                                <path id="chartAreaPath" d="M0 330 L744 330 L744 330 L0 330 Z" fill="url(#dvChartAreaGrad)"/>
+                                <path id="chartLinePath" d="M0 330 L744 330" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle id="chartHoverGlow" cx="0" cy="0" r="14" fill="rgba(255,255,255,0.08)" class="opacity-0 transition-opacity"/>
+                                <line id="chartHoverLine" x1="0" y1="0" x2="0" y2="330" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="4 3" class="opacity-0 transition-opacity"/>
+                                <circle id="chartHoverDot" cx="0" cy="0" r="5" fill="#ffffff" stroke="#000000" stroke-width="2" class="opacity-0 transition-opacity"/>
                               </svg>
+                              <div id="chartTooltip" class="absolute pointer-events-none opacity-0 transition-opacity z-10" style="transform:translateX(-50%);">
+                                <div class="rounded-[10px] bg-[#1a1a1a] border border-white/10 px-3 py-2 shadow-xl min-w-[90px] text-center">
+                                  <div id="chartTooltipTime" class="text-[10px] text-[#8f8f8f] font-mono"></div>
+                                  <div id="chartTooltipValue" class="text-[14px] font-bold text-white font-mono mt-0.5"></div>
+                                  <img id="chartTooltipCoinIcon" src="" class="size-3 mx-auto mt-0.5 hidden"/>
+                                </div>
+                              </div>
                             </div>
-                            <div class="absolute left-6 right-0 bottom-0 flex justify-around text-[11px] font-medium text-[#8f8f8f]">
-                              <span>3 PM</span>
-                              <span>6 PM</span>
-                              <span>9 PM</span>
+                            <div id="chartXAxisLabels" class="absolute left-8 right-0 bottom-0 flex justify-around text-[11px] font-medium text-[#8f8f8f]">
+                              <span>-</span><span>-</span><span>-</span>
                             </div>
                           </div>
                         </div>
                       </div>
 
                       <!-- Accounts Card matching accountsCard in SiteView -->
-                      <div class="dv-card flex flex-col gap-3 p-5">
+                      <div class="dv-card flex flex-col gap-3 p-5 h-full">
                         <div class="flex items-center justify-between">
                           <h3 class="text-[17px] font-bold text-white tracking-tight">Accounts</h3>
                           <div class="flex items-center gap-2 select-none">
@@ -531,7 +538,7 @@
                     </div>
 
                     <!-- ── Column 2: Auto Upgrader (Exact SiteView.swift Upgrader) ── -->
-                    <div class="flex flex-col gap-3 w-full">
+                    <div class="flex flex-col gap-3 w-full h-full">
                       <!-- FeatureHeader: title + MonoToggle -->
                       <div class="flex items-center justify-between">
                         <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Upgrader</h3>
@@ -541,7 +548,7 @@
                         </label>
                       </div>
 
-                      <div class="dv-card flex flex-col gap-3.5 p-5">
+                      <div class="dv-card flex flex-col gap-3.5 p-5 h-full">
                         <!-- Ring: 220px drag ring matching Ring in Theme.swift -->
                         <div class="relative flex flex-col items-center justify-center w-full select-none py-2">
                           <div id="upgraderWheelContainer" class="relative size-[210px] flex items-center justify-center cursor-grab active:cursor-grabbing">
@@ -628,7 +635,7 @@
                     </div>
 
                     <!-- ── Column 3: Auto Mines (Exact SiteView.swift Mines) ── -->
-                    <div class="flex flex-col gap-3 w-full">
+                    <div class="flex flex-col gap-3 w-full h-full">
                       <!-- FeatureHeader: title + MonoToggle -->
                       <div class="flex items-center justify-between">
                         <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Mines</h3>
@@ -1074,29 +1081,21 @@
     
     // --- Statistics Timeframe Range Switcher ---
     window.setStatsRange = function(range) {
-      const btn24h = document.getElementById('statsRange24h');
-      const btnWeek = document.getElementById('statsRangeWeek');
-      const btnMonth = document.getElementById('statsRangeMonth');
-
-      [btn24h, btnWeek, btnMonth].forEach(b => {
+      currentStatsRange = range;
+      var _b24 = document.getElementById('statsRange24h');
+      var _bWk = document.getElementById('statsRangeWeek');
+      var _bMo = document.getElementById('statsRangeMonth');
+      [_b24, _bWk, _bMo].forEach(function(b) {
         if (!b) return;
-        b.className = 'px-3 py-1 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer';
-        b.style.background = 'transparent';
-        b.style.color = '#8f8f8f';
+        b.className = 'dv-pill inactive';
+        b.style.cssText = 'height:28px;padding:0 10px;font-size:12px;border:none;background:transparent;color:#8f8f8f;';
       });
-
-      let activeBtn = btn24h;
-      if (range === 'Week') activeBtn = btnWeek;
-      if (range === 'Month') activeBtn = btnMonth;
-
-      if (activeBtn) {
-        activeBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-black shadow-sm transition cursor-pointer';
-        activeBtn.style.background = '#ffffff';
-        activeBtn.style.color = '#000000';
+      var _ba = range === '24H' ? _b24 : range === 'Week' ? _bWk : _bMo;
+      if (_ba) {
+        _ba.className = 'dv-pill active';
+        _ba.style.cssText = 'height:28px;padding:0 10px;font-size:12px;border:none;background:#ffffff;color:#000000;';
       }
-
-      // Re-render chart if user data exists
-      if (typeof liveUserData !== 'undefined' && liveUserData?.user) {
+      if (typeof liveUserData !== 'undefined' && liveUserData && liveUserData.user && typeof renderChart === 'function') {
         renderChart(liveUserData.user);
       }
     };
@@ -1801,8 +1800,10 @@
       if (history.length < 2) {
         if (typeof chartAreaPath !== 'undefined' && chartAreaPath) chartAreaPath.setAttribute('d', 'M0 330 L744 330 L744 330 L0 330 Z');
         if (typeof chartLinePath !== 'undefined' && chartLinePath) chartLinePath.setAttribute('d', 'M0 330 L744 330');
-        if (typeof yAxisTop !== 'undefined' && yAxisTop) yAxisTop.textContent = formatValue(100);
+        if (typeof yAxisTop !== 'undefined' && yAxisTop) yAxisTop.textContent = '0';
         currentChartPoints = [];
+        var _xLbls = document.getElementById('chartXAxisLabels');
+        if (_xLbls) _xLbls.innerHTML = '<span>-</span><span>-</span><span>-</span>';
         return;
       }
 
@@ -1863,6 +1864,20 @@
 
       chartLinePath.setAttribute('d', smoothLine);
       chartAreaPath.setAttribute('d', smoothArea);
+
+      // Update X-axis time labels
+      var _xLbls2 = document.getElementById('chartXAxisLabels');
+      if (_xLbls2 && history.length >= 2) {
+        function _fmtAx(isoStr) {
+          if (!isoStr) return '-';
+          var d = new Date(isoStr);
+          if (isNaN(d.getTime())) return '-';
+          var h = d.getHours() % 12 || 12;
+          return h + (d.getHours() >= 12 ? ' PM' : ' AM');
+        }
+        var _idxs = [0, Math.floor((history.length - 1) / 2), history.length - 1];
+        _xLbls2.innerHTML = _idxs.map(function(i){ return '<span>' + _fmtAx(history[i] && history[i].time) + '</span>'; }).join('');
+      }
     }
 
     // Chart Interactive Hover Event Handlers
@@ -4229,9 +4244,9 @@
         <div class="flex flex-col items-center justify-center py-4 text-center">
           <div class="relative size-[72px] rounded-full overflow-hidden border border-[rgba(255,255,255,0.12)] shadow-md mb-2 bg-[#232328] flex items-center justify-center">
             <img id="modalProfileAvatar" src="" class="size-full object-cover hidden" alt="Profile" />
-            <div id="modalProfileAvatarPlaceholder" class="size-full rounded-full bg-[#232328]"></div>
+            <div id="modalProfileAvatarPlaceholder" class="size-full rounded-full bg-[#2a2a2e]"></div>
           </div>
-          <h4 id="modalProfileName" class="text-[18px] font-bold text-white leading-tight">Connect Discord</h4>
+          <h4 id="modalProfileName" class="text-[15px] font-semibold text-white leading-tight hidden"></h4>
           <p id="modalProfileHandle" class="text-[12px] text-[#8f8f8f] mt-0.5 hidden"></p>
         </div>
 
@@ -4241,12 +4256,12 @@
           <span id="modalProfileUserId" class="text-[12px] font-mono font-medium text-[#8f8f8f]">Not Connected</span>
         </div>
 
-        <!-- Connected Account Card -->
-        <div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]">
+        <!-- Connected Account Card (hidden until connected) -->
+        <div id="modalAccountRow" class="hidden items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]">
           <div class="flex items-center gap-3">
             <img id="modalAccountAvatar" src="" class="size-[28px] rounded-full object-cover hidden" />
             <div id="modalAccountAvatarPlaceholder" class="size-[28px] rounded-full bg-[#232328] shrink-0"></div>
-            <span id="modalAccountName" class="text-[13px] font-bold text-white">No Account Linked</span>
+            <span id="modalAccountName" class="text-[13px] font-bold text-white"></span>
           </div>
           <div id="modalAccountCheck" class="flex items-center justify-center text-[#54d487] font-bold text-sm" style="display:none;">
             <svg class="size-4 text-[#54d487]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -4379,6 +4394,9 @@
           const accPh = document.getElementById('modalAccountAvatarPlaceholder');
           if (accPh) accPh.classList.add('hidden');
           if (modalAccName) modalAccName.textContent = displayName;
+          var _ar = document.getElementById('modalAccountRow');
+          if (_ar) { _ar.style.display = 'flex'; _ar.classList.remove('hidden'); }
+          if (modalName) { modalName.textContent = displayName; modalName.classList.remove('hidden'); }
           if (modalAccCheck) modalAccCheck.style.display = 'flex';
           if (modalTokenBtnText) modalTokenBtnText.textContent = 'Linked';
           return;
@@ -4394,14 +4412,16 @@
       if (modalAvatar) { modalAvatar.src = ''; modalAvatar.classList.add('hidden'); }
       const modPh = document.getElementById('modalProfileAvatarPlaceholder');
       if (modPh) modPh.classList.remove('hidden');
-      if (modalName) modalName.textContent = 'Connect Discord';
+      if (modalName) { modalName.textContent = ''; modalName.classList.add('hidden'); }
       if (modalHandle) { modalHandle.textContent = ''; modalHandle.classList.add('hidden'); }
       if (modalUserId) modalUserId.textContent = 'Not Connected';
 
       if (modalAccAvatar) { modalAccAvatar.src = ''; modalAccAvatar.classList.add('hidden'); }
       const accPh = document.getElementById('modalAccountAvatarPlaceholder');
       if (accPh) accPh.classList.remove('hidden');
-      if (modalAccName) modalAccName.textContent = 'No Account Linked';
+      if (modalAccName) modalAccName.textContent = '';
+      const _accRow2 = document.getElementById('modalAccountRow');
+      if (_accRow2) { _accRow2.style.display = 'none'; _accRow2.classList.add('hidden'); }
       if (modalAccCheck) modalAccCheck.style.display = 'none';
       if (modalTokenBtnText) modalTokenBtnText.textContent = 'Link';
     }
