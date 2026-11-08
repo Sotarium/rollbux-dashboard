@@ -547,27 +547,29 @@
                           <div id="upgraderWheelContainer" class="relative size-[210px] flex items-center justify-center cursor-grab active:cursor-grabbing">
                             <svg id="upgraderWheelSvg" class="size-full overflow-visible" viewBox="0 0 200 200">
                               <defs>
-                                <linearGradient id="wheelBevel" x1="0" y1="0" x2="0" y2="100%">
-                                  <stop offset="0%" stop-color="#181d2a" />
-                                  <stop offset="100%" stop-color="#0b0e15" />
-                                </linearGradient>
+                                <radialGradient id="wheelInnerDisc" cx="50%" cy="50%" r="50%">
+                                  <stop offset="0%" stop-color="#181920" />
+                                  <stop offset="100%" stop-color="#0d0e12" />
+                                </radialGradient>
                               </defs>
 
-                              <!-- Outer Beveled Dark Track -->
-                              <circle cx="100" cy="100" r="78" fill="#0c0f17" stroke="url(#wheelBevel)" stroke-width="15" />
-                              <circle cx="100" cy="100" r="70" fill="none" stroke="#121622" stroke-width="1.5" />
-                              <circle cx="100" cy="100" r="86" fill="none" stroke="#242b3d" stroke-width="1.5" />
-
-                              <!-- Active White Arc -->
-                              <circle id="upgraderArc" cx="100" cy="100" r="78" fill="none" stroke="#ffffff" stroke-width="15"
-                                stroke-dasharray="220.5 490.09" stroke-dashoffset="0"
-                                transform="rotate(-90 100 100)" style="transition: transform 0.05s linear, stroke-dasharray 0.15s ease;" />
-
-                              <!-- End-Point 1 White Dot Knob (Start) -->
-                              <circle id="upgraderKnobStart" cx="100" cy="22" r="6.5" fill="#ffffff" stroke="#ffffff" stroke-width="2" class="filter drop-shadow" style="transition: cx 0.05s linear, cy 0.05s linear;" />
+                              <!-- Cartoon Smooth Outer Bezel Ring -->
+                              <circle cx="100" cy="100" r="82" fill="#090a0d" stroke="#262832" stroke-width="3" />
+                              <circle cx="100" cy="100" r="75" fill="none" stroke="#16171f" stroke-width="16" />
                               
-                              <!-- End-Point 2 White Dot Knob (End) -->
-                              <circle id="upgraderKnobEnd" cx="100" cy="22" r="6.5" fill="#ffffff" stroke="#ffffff" stroke-width="2" class="filter drop-shadow" style="transition: cx 0.05s linear, cy 0.05s linear;" />
+                              <!-- Inner Center Disc -->
+                              <circle cx="100" cy="100" r="66" fill="url(#wheelInnerDisc)" stroke="#22232c" stroke-width="1.5" />
+
+                              <!-- Active Clean White Cartoon Arc with Rounded Ends -->
+                              <circle id="upgraderArc" cx="100" cy="100" r="75" fill="none" stroke="#ffffff" stroke-width="16"
+                                stroke-linecap="round"
+                                stroke-dasharray="212 471.24" stroke-dashoffset="0"
+                                transform="rotate(-90 100 100)" style="transition: stroke-dasharray 0.15s ease, transform 0.04s linear;" />
+
+                              <!-- Cartoon Draggable Knob Marker (pure white glowing pill) -->
+                              <g id="upgraderKnobGroup" transform="rotate(0 100 100)">
+                                <circle id="upgraderKnobStart" cx="100" cy="25" r="9" fill="#ffffff" stroke="#000000" stroke-width="2.5" class="shadow-lg filter drop-shadow cursor-grab" />
+                              </g>
                             </svg>
 
                             <!-- Center Info: Big Bold Percentage and Chance Label -->
@@ -836,38 +838,9 @@
                       <h3 class="text-[17px] font-bold text-white tracking-tight">Activity</h3>
                       <button type="button" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
                     </div>
-                    <div class="flex flex-col gap-2 w-full pt-1">
-                      <!-- Activity Item 1 -->
-                      <div class="flex items-center gap-3 p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.04)]">
-                        <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center shrink-0">
-                          <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        </div>
-                        <div class="flex flex-col flex-1 min-w-0">
-                          <span class="text-[13px] font-bold text-white">Giveaway entry detected</span>
-                          <span class="text-[11px] text-[#8f8f8f]">Rollbux: 🎉 Flash giveaway — 5,000 tokens React with 🎉 within <strong>20 seconds</strong> to enter!</span>
-                        </div>
-                      </div>
-
-                      <!-- Activity Item 2 -->
-                      <div class="flex items-center gap-3 p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.04)]">
-                        <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center shrink-0">
-                          <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        </div>
-                        <div class="flex flex-col flex-1 min-w-0">
-                          <span class="text-[13px] font-bold text-white">Giveaway ended</span>
-                          <span class="text-[11px] text-[#8f8f8f]">Rollbux: the giveaway posted its result.</span>
-                        </div>
-                      </div>
-
-                      <!-- Activity Item 3 -->
-                      <div class="flex items-center gap-3 p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.04)]">
-                        <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center shrink-0">
-                          <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        </div>
-                        <div class="flex flex-col flex-1 min-w-0">
-                          <span class="text-[13px] font-bold text-white">Winner selected</span>
-                          <span class="text-[11px] text-[#8f8f8f]">Someone else was selected in Rollbux.</span>
-                        </div>
+                    <div id="discordActivityList" class="flex flex-col gap-2 w-full pt-1">
+                      <div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]">
+                        <span>No recent activity. Active watchers will log events here.</span>
                       </div>
                     </div>
                   </div>
@@ -876,7 +849,8 @@
                   <div class="w-full mt-4 select-none rounded-[18px] bg-[#121212] border border-[rgba(255,255,255,0.10)] p-3.5 flex items-center justify-between">
                     <!-- Profile Pill: Clicking this OPENS Profile & Accounts Modal! -->
                     <button id="discordProfilePillBtn" onclick="openDiscordProfileModal()" type="button" class="flex items-center gap-2.5 px-3 py-1.5 rounded-[11px] bg-[#080808] hover:bg-[#1d1d1d] border border-[rgba(255,255,255,0.10)] transition cursor-pointer">
-                      <img id="discordPillAvatar" src="/discord-3d.png" class="size-7 rounded-full object-cover" alt="Profile" />
+                      <img id="discordPillAvatar" src="" class="size-7 rounded-full object-cover hidden" alt="Profile" />
+                      <div id="discordPillAvatarPlaceholder" class="size-7 rounded-full bg-[#232328] shrink-0"></div>
                       <span id="discordPillName" class="text-[13px] font-bold text-white">Connect Discord</span>
                     </button>
                     <!-- Stop / Start Monitoring Button -->
@@ -2607,8 +2581,8 @@
     const triggerAfterRain = document.getElementById('triggerAfterRain');
     const triggerWhenBalance = document.getElementById('triggerWhenBalance');
 
-    const UPGRADER_RADIUS = 78;
-    const UPGRADER_CIRCUMFERENCE = 2 * Math.PI * UPGRADER_RADIUS; // 490.09
+    const UPGRADER_RADIUS = 75;
+    const UPGRADER_CIRCUMFERENCE = 2 * Math.PI * UPGRADER_RADIUS; // 471.24
     let upgraderAngle = parseFloat(localStorage.getItem('rollbux_upgrader_angle') || '0'); // degrees 0-360
     let isDraggingKnob = false;
     let isUpgraderExecuting = false;
@@ -2678,7 +2652,7 @@
       }
 
       // Arc length in SVG stroke dash
-      const arcLen = (chance / 100) * UPGRADER_CIRCUMFERENCE;
+      const arcLen = Math.max(1, (chance / 100) * UPGRADER_CIRCUMFERENCE);
       if (upgraderArc) {
         upgraderArc.setAttribute('stroke-dasharray', `${arcLen.toFixed(2)} ${UPGRADER_CIRCUMFERENCE.toFixed(2)}`);
         // The arc sits exactly at the play position
@@ -2686,42 +2660,31 @@
         upgraderArc.style.opacity = '1';
       }
 
-      // Compute exact positions of start and end white knobs on the circle
-      const startRad = (upgraderAngle - 90) * (Math.PI / 180);
-      const startX = 100 + UPGRADER_RADIUS * Math.cos(startRad);
-      const startY = 100 + UPGRADER_RADIUS * Math.sin(startRad);
-
-      const endDeg = upgraderAngle + (chance / 100) * 360;
-      const endRad = (endDeg - 90) * (Math.PI / 180);
-      const endX = 100 + UPGRADER_RADIUS * Math.cos(endRad);
-      const endY = 100 + UPGRADER_RADIUS * Math.sin(endRad);
-
-      if (upgraderKnobStart) {
-        upgraderKnobStart.setAttribute('cx', startX.toFixed(2));
-        upgraderKnobStart.setAttribute('cy', startY.toFixed(2));
-        upgraderKnobStart.style.opacity = '1';
-      }
-      if (upgraderKnobEnd) {
-        upgraderKnobEnd.setAttribute('cx', endX.toFixed(2));
-        upgraderKnobEnd.setAttribute('cy', endY.toFixed(2));
-        upgraderKnobEnd.style.opacity = '1';
+      const knobGroup = document.getElementById('upgraderKnobGroup');
+      if (knobGroup) {
+        knobGroup.setAttribute('transform', `rotate(${upgraderAngle.toFixed(2)} 100 100)`);
       }
 
       if (upgraderChanceDisplay) {
         upgraderChanceDisplay.textContent = `${chance.toFixed(2)}%`;
       }
+      const rangeEl = document.getElementById('upgraderRangeDisplay');
+      if (rangeEl) {
+        const zoneMax = Math.round((chance / 100) * 1000000);
+        rangeEl.textContent = '0 - ' + zoneMax.toLocaleString();
+      }
     }
 
     // Drag / Spin interaction for Wheel (only active in manual mode)
     function handleWheelPointerEvent(e) {
-      if (upgraderRandomPosCheck?.checked) return;
       if (!upgraderWheelContainer) return;
       const rect = upgraderWheelContainer.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+      const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
       
+      if (clientX === undefined || clientY === undefined) return;
       const rad = Math.atan2(clientY - cy, clientX - cx);
       let deg = (rad * (180 / Math.PI)) + 90; // normalize so top = 0deg
       if (deg < 0) deg += 360;
@@ -3180,7 +3143,7 @@
     battleFeedback = battleFeedback || document.getElementById('battleFeedback');
     battleTotalCostPreview = battleTotalCostPreview || document.getElementById('battleTotalCostPreview');
 
-    let isBattleExecuting = false;
+    isBattleExecuting = false;
     const lastBattleAccountPlayTimes = {};
 
     function syncBattleStatusBadge() {
@@ -4264,11 +4227,12 @@
       <div class="flex flex-col p-5 gap-3.5">
         <!-- Center Profile Info -->
         <div class="flex flex-col items-center justify-center py-4 text-center">
-          <div class="relative size-[72px] rounded-full overflow-hidden border border-[rgba(255,255,255,0.12)] shadow-md mb-2 bg-[#1d1d1d] flex items-center justify-center">
-            <img id="modalProfileAvatar" src="/discord-3d.png" class="size-full object-cover" alt="Profile" />
+          <div class="relative size-[72px] rounded-full overflow-hidden border border-[rgba(255,255,255,0.12)] shadow-md mb-2 bg-[#232328] flex items-center justify-center">
+            <img id="modalProfileAvatar" src="" class="size-full object-cover hidden" alt="Profile" />
+            <div id="modalProfileAvatarPlaceholder" class="size-full rounded-full bg-[#232328]"></div>
           </div>
           <h4 id="modalProfileName" class="text-[18px] font-bold text-white leading-tight">Connect Discord</h4>
-          <p id="modalProfileHandle" class="text-[12px] text-[#8f8f8f] mt-0.5">@not_connected</p>
+          <p id="modalProfileHandle" class="text-[12px] text-[#8f8f8f] mt-0.5 hidden"></p>
         </div>
 
         <!-- User ID Row matching field style -->
@@ -4280,7 +4244,8 @@
         <!-- Connected Account Card -->
         <div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]">
           <div class="flex items-center gap-3">
-            <img id="modalAccountAvatar" src="/discord-3d.png" class="size-[28px] rounded-full object-cover" />
+            <img id="modalAccountAvatar" src="" class="size-[28px] rounded-full object-cover hidden" />
+            <div id="modalAccountAvatarPlaceholder" class="size-[28px] rounded-full bg-[#232328] shrink-0"></div>
             <span id="modalAccountName" class="text-[13px] font-bold text-white">No Account Linked</span>
           </div>
           <div id="modalAccountCheck" class="flex items-center justify-center text-[#54d487] font-bold text-sm" style="display:none;">
@@ -4288,10 +4253,9 @@
           </div>
         </div>
 
-        <!-- Connect / Change Token Button -->
-        <button type="button" onclick="closeDiscordProfileModal(); openDiscordLoginModal();" class="dv-pill active w-full mt-2" style="height:44px; font-size:13px; font-weight:700;">
-          <svg class="size-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-          <span id="modalTokenBtnText">Connect Discord Token</span>
+        <!-- White Sleek Link Button -->
+        <button type="button" onclick="closeDiscordProfileModal(); openDiscordLoginModal();" class="dv-pill active w-full mt-2" style="height:44px; font-size:14px; font-weight:700;">
+          <span id="modalTokenBtnText">Link</span>
         </button>
       </div>
     </div>
@@ -4399,32 +4363,47 @@
           const avatarUrl = u.avatar || '/discord-3d.png';
           const userId = u.id || 'Unknown ID';
 
-          if (pillAvatar) pillAvatar.src = avatarUrl;
+          if (pillAvatar) { pillAvatar.src = avatarUrl; pillAvatar.classList.remove('hidden'); }
+          const pillPh = document.getElementById('discordPillAvatarPlaceholder');
+          if (pillPh) pillPh.classList.add('hidden');
           if (pillName) pillName.textContent = displayName;
-          if (modalAvatar) modalAvatar.src = avatarUrl;
+
+          if (modalAvatar) { modalAvatar.src = avatarUrl; modalAvatar.classList.remove('hidden'); }
+          const modPh = document.getElementById('modalProfileAvatarPlaceholder');
+          if (modPh) modPh.classList.add('hidden');
           if (modalName) modalName.textContent = displayName;
-          if (modalHandle) modalHandle.textContent = handleName;
+          if (modalHandle) { modalHandle.textContent = handleName; modalHandle.classList.remove('hidden'); }
           if (modalUserId) modalUserId.textContent = userId;
-          if (modalAccAvatar) modalAccAvatar.src = avatarUrl;
+
+          if (modalAccAvatar) { modalAccAvatar.src = avatarUrl; modalAccAvatar.classList.remove('hidden'); }
+          const accPh = document.getElementById('modalAccountAvatarPlaceholder');
+          if (accPh) accPh.classList.add('hidden');
           if (modalAccName) modalAccName.textContent = displayName;
           if (modalAccCheck) modalAccCheck.style.display = 'flex';
-          if (modalTokenBtnText) modalTokenBtnText.textContent = 'Change Discord Token';
-          if (lunarUserId) lunarUserId.textContent = userId;
+          if (modalTokenBtnText) modalTokenBtnText.textContent = 'Linked';
           return;
         } catch(e) {}
       }
 
       // If not connected yet:
-      if (pillAvatar) pillAvatar.src = '/discord-3d.png';
+      if (pillAvatar) { pillAvatar.src = ''; pillAvatar.classList.add('hidden'); }
+      const pillPh = document.getElementById('discordPillAvatarPlaceholder');
+      if (pillPh) pillPh.classList.remove('hidden');
       if (pillName) pillName.textContent = 'Connect Discord';
-      if (modalAvatar) modalAvatar.src = '/discord-3d.png';
+
+      if (modalAvatar) { modalAvatar.src = ''; modalAvatar.classList.add('hidden'); }
+      const modPh = document.getElementById('modalProfileAvatarPlaceholder');
+      if (modPh) modPh.classList.remove('hidden');
       if (modalName) modalName.textContent = 'Connect Discord';
-      if (modalHandle) modalHandle.textContent = 'Click below to connect your token';
+      if (modalHandle) { modalHandle.textContent = ''; modalHandle.classList.add('hidden'); }
       if (modalUserId) modalUserId.textContent = 'Not Connected';
-      if (modalAccAvatar) modalAccAvatar.src = '/discord-3d.png';
+
+      if (modalAccAvatar) { modalAccAvatar.src = ''; modalAccAvatar.classList.add('hidden'); }
+      const accPh = document.getElementById('modalAccountAvatarPlaceholder');
+      if (accPh) accPh.classList.remove('hidden');
       if (modalAccName) modalAccName.textContent = 'No Account Linked';
       if (modalAccCheck) modalAccCheck.style.display = 'none';
-      if (modalTokenBtnText) modalTokenBtnText.textContent = 'Connect Discord Token';
+      if (modalTokenBtnText) modalTokenBtnText.textContent = 'Link';
     }
 
     // Auto verify & refresh Discord user on load if token exists
@@ -4769,18 +4748,6 @@
         autoReact: true,
         autoGuess: false,
         sound: true
-      },
-      {
-        id: 'w_lunar',
-        name: 'Lunar',
-        serverID: '1454106247056982130',
-        channelID: '1535006568397934612',
-        targetID: '1381624213374505161',
-        mode: 'normal',
-        enabled: true,
-        autoReact: false,
-        autoGuess: false,
-        sound: true
       }
     ];
 
@@ -4788,9 +4755,39 @@
     try {
       const savedWatchers = JSON.parse(localStorage.getItem('discord_watchers_list'));
       if (Array.isArray(savedWatchers) && savedWatchers.length > 0) {
-        discordWatchersList = savedWatchers;
+        discordWatchersList = savedWatchers.filter(w => w.id !== 'w_lunar' && w.name !== 'Lunar');
       }
     } catch (e) {}
+
+    // Web Audio synthesizer for Discord Watcher sound alerts
+    window.playWatcherBeep = function() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      } catch(e) { console.error('Audio beep error:', e); }
+    };
+
+    window.toggleWatcherSound = function(id) {
+      const w = discordWatchersList.find(x => x.id === id);
+      if (w) {
+        w.sound = !w.sound;
+        saveWatchers();
+        if (w.sound) window.playWatcherBeep();
+      }
+    };
 
     function saveWatchers() {
       localStorage.setItem('discord_watchers_list', JSON.stringify(discordWatchersList));
@@ -4883,7 +4880,10 @@
               <div class="flex items-center gap-2">
                 ${w.autoReact ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React · 🎉</span>' : ''}
                 ${w.autoGuess ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>' : ''}
-                ${w.sound ? '<span class="dv-pill inactive text-[#8f8f8f]" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Sound</span>' : ''}
+                <button type="button" onclick="toggleWatcherSound('${w.id}')" class="dv-pill ${w.sound ? 'active' : 'inactive text-[#8f8f8f]'}" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; cursor:pointer;" title="Toggle sound notification">
+                  <svg class="size-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/></svg>
+                  <span>Sound</span>
+                </button>
               </div>
               <label class="dv-toggle-wrap">
                 <input type="checkbox" onchange="toggleWatcher('${w.id}')" ${isActive ? 'checked' : ''} class="dv-toggle-input">
