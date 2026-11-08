@@ -726,17 +726,910 @@
                   <!-- Tip Section matching tipSection in SiteView.swift -->
                   <div class="flex flex-col gap-3 w-full mt-2">
                     <h3 class="text-[20px] font-bold text-white tracking-tight">Tip</h3>
-                    <div class="dv-card p-5">
-                      <div class="flex flex-wrap md:flex-nowrap items-center gap-3">
-                        <input type="text" id="tipRecipientInput" placeholder="Username" class="dv-field flex-1 min-w-[150px]">
-                        <input type="number" id="tipAmountInput" placeholder="Amount" value="5" class="dv-field w-[130px] font-mono">
-                        <div class="flex items-center justify-between p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] min-w-[200px] select-none">
+                    <!-- Auto Chicken Card -->
+                      <div class="dv-card flex flex-col gap-3.5 p-5">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-2">
+                            <h3 class="text-[17px] font-bold text-white tracking-tight">Auto Chicken</h3>
+                            <span id="chickenStatusBadge" class="dv-badge text-[#8f8f8f]">Disabled</span>
+                          </div>
+                          <label class="dv-toggle-wrap">
+                            <input type="checkbox" id="chickenMasterToggle" class="dv-toggle-input">
+                            <div class="dv-toggle-track">
+                              <div class="dv-toggle-thumb"></div>
+                            </div>
+                          </label>
+                        </div>
+                        <div class="flex flex-col gap-2.5 w-full">
+                          <div class="grid grid-cols-2 gap-2">
+                            <button type="button" id="chickenDifficultyBtn" onclick="toggleChickenDifficulty()" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer">
+                              <span class="text-[11px] text-[#8f8f8f]">Diff</span>
+                              <span id="chickenDifficultyLabel" class="text-[12px] font-bold text-white">Easy</span>
+                            </button>
+                            <button type="button" id="chickenTilesBtn" onclick="toggleChickenTiles()" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer">
+                              <span class="text-[11px] text-[#8f8f8f]">Tiles</span>
+                              <span id="chickenTilesLabel" class="text-[12px] font-bold text-white">3</span>
+                            </button>
+                          </div>
+                          <!-- Account Picker -->
+                          <button type="button" id="chickenAccountBtn" onclick="openAccountSelectorModal('chicken')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer">
+                            <span class="text-[11px] text-[#8f8f8f]">Account</span>
+                            <span id="chickenAccountLabel" class="text-[13px] font-bold text-white truncate ml-2">All Accounts</span>
+                          </button>
+                          <div class="flex items-center justify-between pt-1">
+                            <span id="chickenFeedback" class="text-[12px] text-[#8f8f8f] truncate flex-1">Ready</span>
+                            <button id="chickenManualPlayBtn" type="button" onclick="executeChickenRound()" class="dv-pill active" style="height:36px; padding:0 18px;">
+                              Play
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                    <!-- Tip Section -->
+                      <div class="dv-card flex flex-col gap-3.5 p-5">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-2">
+                            <h3 class="text-[17px] font-bold text-white tracking-tight">Auto Tip</h3>
+                            <span id="tipStatusBadge" class="dv-badge text-[#8f8f8f]">Disabled</span>
+                          </div>
+                          <label class="dv-toggle-wrap">
+                            <input type="checkbox" id="tipMasterToggle" class="dv-toggle-input">
+                            <div class="dv-toggle-track">
+                              <div class="dv-toggle-thumb"></div>
+                            </div>
+                          </label>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-[1fr_120px_1fr_auto] gap-2.5 items-center">
+                          <input type="text" id="tipRecipientInput" placeholder="Recipient username" class="dv-field">
+                          <input type="number" id="tipAmountInput" placeholder="Amount" value="5" class="dv-field font-mono">
+                          <button type="button" id="tipAccountBtn" onclick="openAccountSelectorModal('tip')" class="dv-field flex items-center justify-between px-3 text-left hover:border-white/20 transition cursor-pointer">
+                            <span class="text-[11px] text-[#8f8f8f]">Account</span>
+                            <span id="tipAccountLabel" class="text-[13px] font-bold text-white truncate ml-2">All Accounts</span>
+                          </button>
+                          <button id="tipManualBtn" type="button" onclick="triggerTipSend()" class="dv-pill active" style="height:42px; padding:0 20px;">
+                            Tip
+                          </button>
+                        </div>
+                        <div id="tipCooldownBadge" class="hidden items-center justify-between p-2.5 rounded-[10px] bg-[#f55e5e]/10 border border-[#f55e5e]/20 text-[12px] font-semibold text-[#f55e5e]">
+                          <span>Cooldown Active</span>
+                          <span id="tipCooldownText" class="font-mono">--:--</span>
+                        </div>
+                        <span id="tipFeedback" class="text-[11px] text-[#8f8f8f] truncate">Ready</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ══════════════════════════════════════════════════════════ -->
+                <!-- VIEW 2: DISCORD (Exact DiscordViewer-Dashboard-11 DiscordView) -->
+                <!-- ══════════════════════════════════════════════════════════ -->
+                <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none;">
+                  <!-- Watchers Header -->
+                  <div class="flex items-center justify-between w-full mb-2">
+                    <div class="flex items-center gap-3">
+                      <h2 class="text-[28px] font-bold text-white tracking-tight">Watchers</h2>
+                      <span class="dv-badge font-mono font-bold text-[#8f8f8f]">2</span>
+                    </div>
+                    <div class="flex items-center gap-3 select-none">
+                      <!-- Live Status Badge -->
+                      <div class="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#080808] border border-[rgba(255,255,255,0.10)] text-xs font-semibold text-white">
+                        <span class="size-2 rounded-full bg-[#54d487] animate-pulse"></span>
+                        <span>Live</span>
+                      </div>
+                      <!-- Webhooks Button (height: 38) -->
+                      <button onclick="openDiscordLoginModal()" type="button" class="dv-pill inactive" style="height:38px;">
+                        <svg class="size-4 text-[#8f8f8f] mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span>Webhooks</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Watchers Grid -->
+                  <div id="discordWatchersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    <!-- Rendered dynamically by renderDiscordWatchers() -->
+                  </div>
+
+                  <!-- Add Watcher Dotted Button -->
+                  <div onclick="openAddWatcherModal()" class="w-full h-[86px] rounded-[18px] border border-dashed border-[rgba(255,255,255,0.12)] hover:border-white/25 bg-transparent flex items-center justify-center gap-2 text-white font-bold text-[14px] cursor-pointer transition select-none">
+                    <svg class="size-4 text-[#8f8f8f]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>Add Watcher</span>
+                  </div>TYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rollbux - Live Affiliate Stats</title>
+  <!-- Suppress cdn.tailwindcss.com production warning in console -->
+  <script>
+    (function(){
+      const _origWarn = console.warn;
+      console.warn = function(...args) {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+        _origWarn.apply(console, args);
+      };
+
+      // Suppress noisy browser extension errors (e.g. 200.js / M_ID fetch wrappers)
+      window.addEventListener('error', function(e) {
+        if (e && (e.filename?.includes('200.js') || e.message?.includes('M_ID'))) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function(e) {
+        if (e && (e.reason?.stack?.includes('200.js') || String(e.reason)?.includes('M_ID'))) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }, true);
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #070708;
+      background-image: radial-gradient(circle at 50% 0%, #111114 0%, #070708 70%);
+      background-attachment: fixed;
+      color: #f3f4f6;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+      letter-spacing: -0.01em;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #232429;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #232429;
+      border-radius: 9999px;
+    }
+    /* Hide input number spinner arrows */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  </style>
+
+  <script>
+    // Prevent login overlay flash if player already logged in
+    try {
+      var _tok = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
+      if (_tok && _tok.length > 10) {
+        document.documentElement.classList.add('is-logged-in');
+      }
+    } catch(e) {}
+  </script>
+  <style>
+    .is-logged-in #loginOverlay { display: none !important; }
+    .is-logged-in #dashboardContent { display: block !important; }
+  </style>
+  <!-- theme-screens.css removed -->
+
+  <style>
+    /* DiscordViewer-Dashboard-11 Exact Theme Tokens (Theme.swift) */
+    :root {
+      --dv-bg: #070707;       /* Color(white: 0.028) */
+      --dv-panel: #121212;    /* Color(white: 0.072) */
+      --dv-card: #0b0b0b;     /* Color(white: 0.042) */
+      --dv-field: #080808;    /* Color(white: 0.030) */
+      --dv-raised: #1d1d1d;   /* Color(white: 0.115) */
+      --dv-line: rgba(255, 255, 255, 0.10); /* Color.white.opacity(0.10) */
+      --dv-accent: #ffffff;
+      --dv-muted: #8f8f8f;    /* Color(white: 0.56) */
+      --dv-danger: #f55e5e;   /* Color(red: 0.96, green: 0.37, blue: 0.37) */
+      --dv-good: #54d487;     /* Color(red: 0.33, green: 0.83, blue: 0.53) */
+    }
+
+    body {
+      background-color: var(--dv-bg) !important;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .dv-card {
+      background-color: var(--dv-card);
+      border-radius: 18px;
+      border: 1px solid var(--dv-line);
+      padding: 18px;
+    }
+
+    .dv-field {
+      height: 42px;
+      background-color: var(--dv-field);
+      border-radius: 12px;
+      border: 1px solid var(--dv-line);
+      padding: 0 14px;
+      color: #ffffff;
+      outline: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: border-color 0.15s ease;
+    }
+    .dv-field:focus {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .dv-pill {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 0 14px;
+      height: 38px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .dv-pill.active, .dv-pill-active {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+    }
+    .dv-pill.inactive, .dv-pill-inactive {
+      background-color: var(--dv-raised) !important;
+      color: #ffffff !important;
+    }
+    .dv-pill:active {
+      opacity: 0.7;
+    }
+
+    .dv-chip {
+      font-size: 13px;
+      font-weight: 600;
+      height: 40px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .dv-chip.selected {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+    }
+    .dv-chip:not(.selected) {
+      background-color: var(--dv-raised) !important;
+      color: #ffffff !important;
+    }
+    .dv-chip:active {
+      opacity: 0.7;
+    }
+
+    .dv-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background-color: var(--dv-field);
+      border: 1px solid var(--dv-line);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Swift-matching MonoToggle */
+    .dv-toggle-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .dv-toggle-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .dv-toggle-track {
+      width: 38px;
+      height: 22px;
+      border-radius: 9999px;
+      background-color: var(--dv-raised);
+      border: 1px solid var(--dv-line);
+      transition: background-color 0.2s ease;
+      position: relative;
+    }
+    .dv-toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: #808080;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .dv-toggle-input:checked + .dv-toggle-track {
+      background-color: #ffffff;
+    }
+    .dv-toggle-input:checked + .dv-toggle-track .dv-toggle-thumb {
+      transform: translateX(16px);
+      background-color: #000000;
+    }
+
+    /* Mines 5x5 Tiles matching TileButton in SiteView.swift */
+    .dv-tile {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      background-color: var(--dv-field);
+      border: 1px solid var(--dv-line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      user-select: none;
+      font-size: 16px;
+      color: #ffffff;
+    }
+    .dv-tile:hover:not(.revealed-safe):not(.revealed-bomb) {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .dv-tile.selected {
+      background-color: rgba(255, 255, 255, 0.12);
+      border: 2px solid #ffffff;
+    }
+    .dv-tile.revealed-safe {
+      background-color: rgba(84, 212, 135, 0.16) !important;
+      border: 1px solid rgba(84, 212, 135, 0.5) !important;
+      color: var(--dv-good) !important;
+    }
+    .dv-tile.revealed-bomb {
+      background-color: rgba(245, 94, 94, 0.18) !important;
+      border: 1px solid rgba(245, 94, 94, 0.6) !important;
+      color: var(--dv-danger) !important;
+    }
+    .dv-tile:active {
+      transform: scale(0.96);
+    }
+
+    /* Modal Card styling */
+    .dv-modal-card {
+      width: 400px;
+      background-color: var(--dv-panel);
+      border-radius: 20px;
+      border: 1px solid var(--dv-line);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95);
+      overflow: hidden;
+    }
+    .dv-modal-header {
+      height: 62px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--dv-line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dv-icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background-color: var(--dv-raised);
+      border: 1px solid var(--dv-line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dv-muted);
+      cursor: pointer;
+      transition: color 0.15s, background-color 0.15s;
+    }
+    .dv-icon-btn:hover {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.18);
+    }
+
+    /* Feed row matching FeedRow in SiteView.swift */
+    .dv-feed-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background-color: var(--dv-field);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* Custom range slider thumb styling */
+    input[type=range].dv-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.12);
+      height: 4px;
+      border-radius: 2px;
+      outline: none;
+    }
+    input[type=range].dv-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    input[type=range].dv-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+
+</head>
+<body class="selection:bg-[#acff46] selection:text-[#0e131f]">
+  <!-- Login Overlay -->
+  <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#242424;align-items:center;justify-content:center;">
+    <div style="width:290px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;">
+      <p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;">Log in</p>
+      <form id="loginForm" style="width:100%;display:flex;flex-direction:column;gap:10px;">
+        <input id="loginSessionInput" type="password" placeholder="Enter Session Cookie" autocomplete="off" autofocus
+          style="width:100%;height:40px;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:9999px;padding:0 18px;font-size:12px;color:#fff;text-align:center;outline:none;font-family:inherit;" />
+        <button id="loginContinueBtn" type="submit"
+          style="width:100%;height:40px;background:#1c1c1c;border:1px solid rgba(255,255,255,0.04);border-radius:9999px;color:#777;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,color .15s;">
+          Continue
+        </button>
+      </form>
+      <p id="loginError" style="display:none;color:#ef4444;font-size:11px;margin-top:4px;"></p>
+    </div>
+  </div>
+  <div id="dashboardContent" style="display:none;">
+
+  <!-- Main Container -->
+  <div class="flex w-full justify-center pb-[40px] pt-[35px]" bis_skin_checked="1">
+    <div data-node-id="671:32993" class="flex w-full max-w-[1536px] flex-col items-start gap-[28px] px-4 md:px-8" bis_skin_checked="1">
+      <div data-node-id="671:32994" class="flex w-full flex-col items-start gap-[28px]" bis_skin_checked="1">
+        
+
+
+                <!-- Top Nav Switcher: RollBux | Discord -->
+        <div class="flex items-center justify-center w-full pt-1 pb-4 select-none">
+          <div class="flex items-center bg-[#121214] p-1 rounded-xl border border-white/[0.05] shadow-lg">
+            <button id="navTabRollbux" onclick="switchNavTab('rollbux')" class="px-5 py-1.5 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm cursor-pointer">RollBux</button>
+            <button id="navTabDiscord" onclick="switchNavTab('discord')" class="px-5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer">Discord</button>
+          </div>
+        </div>
+
+        <!-- Layout Body -->
+        <div data-node-id="671:33011" class="flex w-full flex-col items-start" bis_skin_checked="1">
+          <div data-node-id="671:33012" class="flex w-full flex-col items-start" bis_skin_checked="1">
+            <div data-node-id="671:33013" class="flex w-full flex-col items-start gap-[24px] lg:flex-row lg:gap-[28px]" bis_skin_checked="1">
+              <!-- Right Main Content -->
+              <div data-node-id="671:33061" class="flex flex-1 min-w-0 w-full flex-col items-start gap-[24px]" bis_skin_checked="1">
+                
+                                                <!-- ══════════════════════════════════════════════════════════ -->
+                <!-- VIEW 1: ROLLBUX (Exact DiscordViewer-Dashboard-11 SiteView) -->
+                <!-- ══════════════════════════════════════════════════════════ -->
+                <div id="viewRollbux" class="w-full flex flex-col gap-6">
+                  <!-- Header: Overview + Currency Switcher Segmented Pill -->
+                  <div class="flex w-full shrink-0 flex-wrap items-center justify-between gap-3">
+                    <div class="flex shrink-0 items-center gap-3">
+                      <h2 class="text-[28px] font-bold text-white tracking-tight">Overview</h2>
+                      <span class="dv-badge" style="display:none;" id="simBadge">Simulation</span>
+                    </div>
+                    <div class="flex items-center gap-3 select-none">
+                      <!-- Segmented Currency Switcher: BUX | USD | SOL -->
+                      <div class="flex items-center bg-[#121212] p-1 rounded-[11px] border border-[rgba(255,255,255,0.10)] shadow-sm">
+                        <button id="unitBuxBtn" type="button" class="dv-pill active" style="height:32px; padding:0 14px; border:none;">BUX</button>
+                        <button id="unitUsdBtn" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:32px; padding:0 14px; border:none; background:transparent;">USD</button>
+                        <button id="unitSolBtn" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:32px; padding:0 14px; border:none; background:transparent;">SOL</button>
+                      </div>
+                      <button id="clearOverviewBtn" type="button" class="hidden">Clear</button>
+                    </div>
+                  </div>
+
+                  <!-- Two Stat Cards: Total Earnings & Current Balance (StatCard from SiteView) -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-[18px] w-full">
+                    <!-- Total Earnings -->
+                    <div class="dv-card flex flex-col justify-between min-h-[120px] p-5">
+                      <span class="text-[14px] font-semibold text-[#8f8f8f]">Total Earnings</span>
+                      <div class="flex items-baseline gap-2 mt-2">
+                        <span id="statTotalEarnings" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">0</span>
+                      </div>
+                      <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono">$0.00 · 0.00 SOL</span>
+                    </div>
+
+                    <!-- Current Balance (strong border rgba(255,255,255,0.22)) -->
+                    <div class="dv-card flex flex-col justify-between min-h-[120px] p-5" style="border-color: rgba(255, 255, 255, 0.22);">
+                      <span class="text-[14px] font-semibold text-white">Current Balance</span>
+                      <div class="flex items-baseline gap-2 mt-2">
+                        <span id="statCurrentBalance" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">5</span>
+                      </div>
+                      <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono">$0.01 · 0.0001 SOL</span>
+                    </div>
+                  </div>
+
+                  <!-- 3-Column Grid: Statistics, Auto Upgrader, Auto Mines -->
+                  <div class="grid grid-cols-1 xl:grid-cols-[1fr_380px_380px] lg:grid-cols-[1fr_340px_340px] gap-5 w-full items-start">
+                    
+                    <!-- ── Column 1: Statistics, Accounts, Results ── -->
+                    <div class="flex flex-col gap-5 w-full">
+                      <!-- Statistics Section -->
+                      <div class="flex flex-col gap-3 w-full">
+                        <div class="flex items-center justify-between">
+                          <h3 class="text-[20px] font-bold text-white tracking-tight">Statistics</h3>
+                          <div class="flex items-center gap-2 select-none">
+                            <div class="flex items-center bg-[#121212] p-1 rounded-[11px] border border-[rgba(255,255,255,0.10)]">
+                              <button id="statsRange24h" onclick="setStatsRange('24H')" type="button" class="dv-pill active" style="height:28px; padding:0 10px; font-size:12px; border:none;">24H</button>
+                              <button id="statsRangeWeek" onclick="setStatsRange('Week')" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:28px; padding:0 10px; font-size:12px; border:none; background:transparent;">Week</button>
+                              <button id="statsRangeMonth" onclick="setStatsRange('Month')" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:28px; padding:0 10px; font-size:12px; border:none; background:transparent;">Month</button>
+                            </div>
+                            <button id="clearStatsBtn" type="button" class="dv-pill inactive" style="height:36px; padding:0 14px;">Clear</button>
+                          </div>
+                        </div>
+
+                        <!-- Statistics Line Graph with 0, 2, 4, 6 and 3 PM, 6 PM, 9 PM -->
+                        <div class="dv-card p-5">
+                          <div class="relative w-full h-[220px] select-none">
+                            <div class="absolute left-0 top-0 bottom-6 w-5 flex flex-col justify-between text-[11px] font-bold text-[#8f8f8f] font-mono">
+                              <span>6</span>
+                              <span>4</span>
+                              <span>2</span>
+                              <span>0</span>
+                            </div>
+                            <div class="absolute left-6 right-0 top-0 bottom-6">
+                              <svg class="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="none">
+                                <defs>
+                                  <linearGradient id="dvChartAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.14"/>
+                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                                  </linearGradient>
+                                </defs>
+                                <line x1="0" y1="8" x2="400" y2="8" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
+                                <line x1="0" y1="56" x2="400" y2="56" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
+                                <line x1="0" y1="104" x2="400" y2="104" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
+                                <line x1="0" y1="152" x2="400" y2="152" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
+                                <path id="statsChartArea" d="M0 45 L400 45 L400 152 L0 152 Z" fill="url(#dvChartAreaGrad)"/>
+                                <path id="statsChartLine" d="M0 45 L400 45" fill="none" stroke="#ffffff" stroke-width="2"/>
+                              </svg>
+                            </div>
+                            <div class="absolute left-6 right-0 bottom-0 flex justify-around text-[11px] font-medium text-[#8f8f8f]">
+                              <span>3 PM</span>
+                              <span>6 PM</span>
+                              <span>9 PM</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Accounts Card matching accountsCard in SiteView -->
+                      <div class="dv-card flex flex-col gap-3 p-5">
+                        <div class="flex items-center justify-between">
+                          <h3 class="text-[17px] font-bold text-white tracking-tight">Accounts</h3>
+                          <div class="flex items-center gap-2 select-none">
+                            <button id="refreshAccountsBtn" onclick="refreshAccountsList()" type="button" class="dv-pill inactive" style="height:32px; padding:0 10px;" title="Refresh">
+                              <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            </button>
+                            <button id="addAccountBtn" onclick="openFarmerModal()" type="button" class="dv-pill active" style="height:32px; padding:0 14px;">
+                              <svg class="size-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                              <span>Add</span>
+                            </button>
+                          </div>
+                        </div>
+                        <div id="accountsQuickList" class="flex flex-col gap-2 w-full pt-1">
+                          <div class="flex items-center justify-between p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]">
+                            <div class="flex items-center gap-2.5">
+                              <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center text-[13px] font-bold text-white">M</div>
+                              <span id="quickAccountUsername" class="text-[14px] font-semibold text-white">Main Account</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                              <span class="text-[14px] font-semibold text-[#8f8f8f] font-mono">5.00 BUX</span>
+                              <button type="button" class="size-[30px] rounded-[8px] bg-[#1d1d1d] text-[#8f8f8f] hover:text-white flex items-center justify-center transition">
+                                <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Results Feed Card matching resultsCard in SiteView -->
+                      <div class="dv-card flex flex-col gap-3 p-5">
+                        <div class="flex items-center justify-between">
+                          <h3 class="text-[17px] font-bold text-white tracking-tight">Results</h3>
+                          <button type="button" onclick="clearResultsFeed()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
+                        </div>
+                        <div id="resultsFeedList" class="flex flex-col gap-2 w-full pt-1">
+                          <!-- Example Feed Item 1: Win -->
+                          <div class="dv-feed-row">
+                            <div class="w-[3px] h-[28px] rounded-[2px] bg-[#54d487] shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0">
+                              <span class="text-[13px] font-bold text-white truncate">Main Account</span>
+                              <span class="text-[11px] text-[#8f8f8f] truncate">Upgrader 2.00x</span>
+                            </div>
+                            <span class="text-[13px] font-bold text-[#54d487] font-mono">+10.00 BUX</span>
+                            <span class="text-[11px] text-[#8f8f8f] opacity-70">Just now</span>
+                          </div>
+                          <!-- Example Feed Item 2: Loss -->
+                          <div class="dv-feed-row">
+                            <div class="w-[3px] h-[28px] rounded-[2px] bg-[#f55e5e] shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0">
+                              <span class="text-[13px] font-bold text-white truncate">Main Account</span>
+                              <span class="text-[11px] text-[#8f8f8f] truncate">Mines 3 Bombs</span>
+                            </div>
+                            <span class="text-[13px] font-bold text-[#f55e5e] font-mono">−5.00 BUX</span>
+                            <span class="text-[11px] text-[#8f8f8f] opacity-70">2m ago</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- ── Column 2: Auto Upgrader (Exact SiteView.swift Upgrader) ── -->
+                    <div class="flex flex-col gap-3 w-full">
+                      <!-- FeatureHeader: title + MonoToggle -->
+                      <div class="flex items-center justify-between">
+                        <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Upgrader</h3>
+                        <label class="dv-toggle-wrap">
+                          <input type="checkbox" id="upgraderMasterToggle" class="dv-toggle-input">
+                          <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
+                        </label>
+                      </div>
+
+                      <div class="dv-card flex flex-col gap-3.5 p-5">
+                        <!-- Ring: 220px drag ring matching Ring in Theme.swift -->
+                        <div class="relative flex flex-col items-center justify-center w-full py-2 select-none">
+                          <div id="upgraderWheelContainer" class="relative size-[210px] flex items-center justify-center cursor-pointer">
+                            <svg class="size-full -rotate-90" viewBox="0 0 120 120">
+                              <!-- Background track -->
+                              <circle cx="60" cy="60" r="48" fill="none" stroke="#16161a" stroke-width="10"/>
+                              <!-- Active white arc -->
+                              <circle id="upgraderGaugeArc" cx="60" cy="60" r="48" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-dasharray="135.7 301.6" class="transition-all duration-150"/>
+                            </svg>
+                            <!-- Center Text matching Ring: Upgrade Chance, 38px bold num, 11px medium range -->
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                              <span class="text-[12px] font-semibold text-[#8f8f8f] leading-none">Upgrade Chance</span>
+                              <span id="upgraderChanceDisplay" class="text-[38px] font-bold text-white tracking-tight mt-1 leading-none font-mono">45%</span>
+                              <span id="upgraderRangeDisplay" class="text-[11px] font-medium text-[#8f8f8f] mt-1 leading-none font-mono">0 - 450,000</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Game Amount Row + Segmented [ Fixed | All-In ] -->
+                        <div class="flex items-center justify-between select-none">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Game Amount</span>
+                          <div class="flex items-center bg-[#121212] p-0.5 rounded-[9px] border border-[rgba(255,255,255,0.10)]">
+                            <button id="upgraderModeFixed" onclick="setUpgraderMode('Fixed')" type="button" class="dv-pill active" style="height:26px; padding:0 12px; font-size:12px; border:none;">Fixed</button>
+                            <button id="upgraderModeAllIn" onclick="setUpgraderMode('All-In')" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:26px; padding:0 12px; font-size:12px; border:none; background:transparent;">All-In</button>
+                          </div>
+                        </div>
+
+                        <!-- Amount Input & Quick Chips: 1/2 (52px), 2x (52px), Max (56px) -->
+                        <div id="upgraderAmountContainer" class="flex items-center gap-1.5 select-none">
+                          <input type="number" id="upgraderAmountInput" value="50" min="1" class="dv-field flex-1 font-mono font-bold">
+                          <button type="button" onclick="multiplyUpgraderAmount('half')" class="dv-chip" style="width:52px; height:42px;">1/2</button>
+                          <button type="button" onclick="multiplyUpgraderAmount('double')" class="dv-chip" style="width:52px; height:42px;">2x</button>
+                          <button type="button" onclick="multiplyUpgraderAmount('max')" class="dv-chip" style="width:56px; height:42px;">Max</button>
+                        </div>
+
+                        <!-- Multiplier Row: Multiplier label + 2.00x text -->
+                        <div class="flex items-center justify-between">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Multiplier</span>
+                          <span id="upgraderMultiplierValue" class="text-[12px] font-bold text-white font-mono">2.00x</span>
+                        </div>
+
+                        <!-- Multiplier text field (width 64) + Preset Chips: 1.5x, 2x, 5x, 10x, 20x -->
+                        <div class="flex items-center gap-1.5 select-none">
+                          <input type="text" id="upgraderMultiplierInput" value="2" class="dv-field w-[64px] shrink-0 font-mono font-bold text-center">
+                          <button type="button" onclick="setUpgraderMultiplier(1.5)" class="dv-chip flex-1" style="height:42px;" id="chipMult15">1.5x</button>
+                          <button type="button" onclick="setUpgraderMultiplier(2)" class="dv-chip selected flex-1" style="height:42px;" id="chipMult2">2x</button>
+                          <button type="button" onclick="setUpgraderMultiplier(5)" class="dv-chip flex-1" style="height:42px;" id="chipMult5">5x</button>
+                          <button type="button" onclick="setUpgraderMultiplier(10)" class="dv-chip flex-1" style="height:42px;" id="chipMult10">10x</button>
+                          <button type="button" onclick="setUpgraderMultiplier(20)" class="dv-chip flex-1" style="height:42px;" id="chipMult20">20x</button>
+                        </div>
+
+                        <!-- Account Picker -->
+                        <div class="flex items-center justify-between p-2 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] select-none">
                           <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
                           <span class="text-[13px] font-semibold text-white">All Accounts</span>
                         </div>
-                        <button id="tipManualBtn" type="button" onclick="triggerTipSend()" class="dv-pill active shrink-0" style="height:44px; padding:0 24px; font-size:14px; font-weight:700;">
-                          Tip
+
+                        <!-- Action Button: Upgrade / Stop (height: 44) -->
+                        <button id="upgraderManualPlayBtn" type="button" onclick="triggerUpgraderPlay()" class="dv-pill active w-full" style="height:44px; font-size:14px; font-weight:700;">
+                          Upgrade
                         </button>
+                      </div>
+                    </div>
+
+                    <!-- ── Column 3: Auto Mines (Exact SiteView.swift Mines) ── -->
+                    <div class="flex flex-col gap-3 w-full">
+                      <!-- FeatureHeader: title + MonoToggle -->
+                      <div class="flex items-center justify-between">
+                        <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Mines</h3>
+                        <label class="dv-toggle-wrap">
+                          <input type="checkbox" id="minesMasterToggle" class="dv-toggle-input">
+                          <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
+                        </label>
+                      </div>
+
+                      <div class="dv-card flex flex-col gap-3 p-5">
+                        <!-- Account Picker -->
+                        <div class="flex items-center justify-between p-2 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] select-none">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                          <span class="text-[13px] font-semibold text-white">All Accounts</span>
+                        </div>
+
+                        <!-- SettingRow: Bombs with Slider -->
+                        <div class="flex items-center justify-between select-none">
+                          <span class="text-[13px] font-semibold text-[#8f8f8f]">Bombs</span>
+                          <div class="flex items-center gap-3">
+                            <input type="range" id="minesBombsRange" min="1" max="24" value="3" oninput="document.getElementById('minesBombsValue').textContent = this.value" class="dv-slider w-[150px]">
+                            <span id="minesBombsValue" class="text-[14px] font-bold text-white font-mono w-[26px] text-right">3</span>
+                          </div>
+                        </div>
+
+                        <!-- SettingRow: Bet input -->
+                        <div class="flex items-center justify-between">
+                          <span class="text-[13px] font-semibold text-[#8f8f8f]">Bet</span>
+                          <input type="number" id="minesBetInput" value="10" min="1" class="dv-field w-[90px] font-mono font-semibold text-right">
+                        </div>
+
+                        <!-- 5x5 Grid: 25 TileButtons matching TileButton in SiteView.swift -->
+                        <div class="grid grid-cols-5 gap-2 w-full pt-1 select-none">
+                          <!-- 25 Tiles -->
+                          <div class="dv-tile" data-index="0"></div>
+                          <div class="dv-tile" data-index="1"></div>
+                          <div class="dv-tile" data-index="2"></div>
+                          <div class="dv-tile" data-index="3"></div>
+                          <div class="dv-tile" data-index="4"></div>
+
+                          <div class="dv-tile" data-index="5"></div>
+                          <div class="dv-tile" data-index="6"></div>
+                          <div class="dv-tile" data-index="7"></div>
+                          <div class="dv-tile" data-index="8"></div>
+                          <div class="dv-tile" data-index="9"></div>
+
+                          <div class="dv-tile" data-index="10"></div>
+                          <div class="dv-tile" data-index="11"></div>
+                          <div class="dv-tile" data-index="12"></div>
+                          <div class="dv-tile" data-index="13"></div>
+                          <div class="dv-tile" data-index="14"></div>
+
+                          <div class="dv-tile" data-index="15"></div>
+                          <div class="dv-tile" data-index="16"></div>
+                          <div class="dv-tile" data-index="17"></div>
+                          <div class="dv-tile" data-index="18"></div>
+                          <div class="dv-tile" data-index="19"></div>
+
+                          <div class="dv-tile" data-index="20"></div>
+                          <div class="dv-tile" data-index="21"></div>
+                          <div class="dv-tile" data-index="22"></div>
+                          <div class="dv-tile" data-index="23"></div>
+                          <div class="dv-tile" data-index="24"></div>
+                        </div>
+
+                        <!-- Tile helpers: Selected count, Random, Max, Clear -->
+                        <div class="flex items-center justify-between select-none pt-1">
+                          <span id="minesSelectedCountLabel" class="text-[12px] font-medium text-[#8f8f8f]">0 Selected</span>
+                          <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="minesSelectRandom()" class="dv-pill inactive" style="height:30px; padding:0 10px; font-size:12px;">Random</button>
+                            <button type="button" onclick="minesSelectMax()" class="dv-pill inactive" style="height:30px; padding:0 10px; font-size:12px;">Max</button>
+                            <button type="button" onclick="minesClearTiles()" class="dv-pill inactive" style="height:30px; padding:0 10px; font-size:12px;">Clear</button>
+                          </div>
+                        </div>
+
+                        <!-- Action Button: Play / Stop (height: 44) -->
+                        <button id="minesManualPlayBtn" type="button" onclick="triggerMinesPlay()" class="dv-pill active w-full" style="height:44px; font-size:14px; font-weight:700;">
+                          Play
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <!-- Tip Section matching tipSection in SiteView.swift -->
+                  <div class="flex flex-col gap-3 w-full mt-2">
+                    <h3 class="text-[20px] font-bold text-white tracking-tight">Tip</h3>
+                    <!-- Auto Chicken Card -->
+                      <div class="dv-card flex flex-col gap-3.5 p-5">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-2">
+                            <h3 class="text-[17px] font-bold text-white tracking-tight">Auto Chicken</h3>
+                            <span id="chickenStatusBadge" class="dv-badge text-[#8f8f8f]">Disabled</span>
+                          </div>
+                          <label class="dv-toggle-wrap">
+                            <input type="checkbox" id="chickenMasterToggle" class="dv-toggle-input">
+                            <div class="dv-toggle-track">
+                              <div class="dv-toggle-thumb"></div>
+                            </div>
+                          </label>
+                        </div>
+                        <div class="flex flex-col gap-2.5 w-full">
+                          <div class="grid grid-cols-2 gap-2">
+                            <button type="button" id="chickenDifficultyBtn" onclick="toggleChickenDifficulty()" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer">
+                              <span class="text-[11px] text-[#8f8f8f]">Diff</span>
+                              <span id="chickenDifficultyLabel" class="text-[12px] font-bold text-white">Easy</span>
+                            </button>
+                            <button type="button" id="chickenTilesBtn" onclick="toggleChickenTiles()" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer">
+                              <span class="text-[11px] text-[#8f8f8f]">Tiles</span>
+                              <span id="chickenTilesLabel" class="text-[12px] font-bold text-white">3</span>
+                            </button>
+                          </div>
+                          <!-- Account Picker -->
+                          <button type="button" id="chickenAccountBtn" onclick="openAccountSelectorModal('chicken')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer">
+                            <span class="text-[11px] text-[#8f8f8f]">Account</span>
+                            <span id="chickenAccountLabel" class="text-[13px] font-bold text-white truncate ml-2">All Accounts</span>
+                          </button>
+                          <div class="flex items-center justify-between pt-1">
+                            <span id="chickenFeedback" class="text-[12px] text-[#8f8f8f] truncate flex-1">Ready</span>
+                            <button id="chickenManualPlayBtn" type="button" onclick="executeChickenRound()" class="dv-pill active" style="height:36px; padding:0 18px;">
+                              Play
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                    <!-- Tip Section -->
+                      <div class="dv-card flex flex-col gap-3.5 p-5">
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-2">
+                            <h3 class="text-[17px] font-bold text-white tracking-tight">Auto Tip</h3>
+                            <span id="tipStatusBadge" class="dv-badge text-[#8f8f8f]">Disabled</span>
+                          </div>
+                          <label class="dv-toggle-wrap">
+                            <input type="checkbox" id="tipMasterToggle" class="dv-toggle-input">
+                            <div class="dv-toggle-track">
+                              <div class="dv-toggle-thumb"></div>
+                            </div>
+                          </label>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-[1fr_120px_1fr_auto] gap-2.5 items-center">
+                          <input type="text" id="tipRecipientInput" placeholder="Recipient username" class="dv-field">
+                          <input type="number" id="tipAmountInput" placeholder="Amount" value="5" class="dv-field font-mono">
+                          <button type="button" id="tipAccountBtn" onclick="openAccountSelectorModal('tip')" class="dv-field flex items-center justify-between px-3 text-left hover:border-white/20 transition cursor-pointer">
+                            <span class="text-[11px] text-[#8f8f8f]">Account</span>
+                            <span id="tipAccountLabel" class="text-[13px] font-bold text-white truncate ml-2">All Accounts</span>
+                          </button>
+                          <button id="tipManualBtn" type="button" onclick="triggerTipSend()" class="dv-pill active" style="height:42px; padding:0 20px;">
+                            Tip
+                          </button>
+                        </div>
+                        <div id="tipCooldownBadge" class="hidden items-center justify-between p-2.5 rounded-[10px] bg-[#f55e5e]/10 border border-[#f55e5e]/20 text-[12px] font-semibold text-[#f55e5e]">
+                          <span>Cooldown Active</span>
+                          <span id="tipCooldownText" class="font-mono">--:--</span>
+                        </div>
+                        <span id="tipFeedback" class="text-[11px] text-[#8f8f8f] truncate">Ready</span>
                       </div>
                     </div>
                   </div>
@@ -985,30 +1878,33 @@
   </div>
 
 <!-- Farmer Token Modal -->
-  <div id="farmerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-    <div class="glass-card w-full max-w-md rounded-2xl p-6 bg-[#0d0d0e] border border-white/10 space-y-4 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-white/10 pb-3">
-        <h3 id="modalTitle" class="text-base font-bold text-white">Configure Cloud Farmer</h3>
-        <button id="closeFarmerModalBtn" class="text-gray-400 hover:text-white text-lg font-bold">&times;</button>
+  <div id="farmerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="dv-modal w-full max-w-[420px] p-6 flex flex-col gap-5">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-1">
+        <h3 id="modalTitle" class="text-[20px] font-bold text-white tracking-tight">Add Account</h3>
+        <button id="closeFarmerModalBtn" onclick="closeFarmerModal()" type="button" class="dv-close-btn" title="Close">
+          <svg class="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
 
-      <p class="text-xs text-gray-400 leading-relaxed">
-        Paste your RollBux <code class="text-white bg-white/10 px-1 py-0.5 rounded">authjs.session-token</code> cookie below. The 24/7 cloud worker will use it to maintain rain eligibility and auto-join rain cycles.
+      <p class="text-[12px] text-[#8f8f8f] leading-relaxed">
+        Enter your RollBux account username and paste your <span class="text-white font-mono bg-[#1d1d1d] px-1.5 py-0.5 rounded">authjs.session-token</span>. Accounts are securely stored on Supabase.
       </p>
 
-      <form id="farmerForm" class="space-y-4">
-        <div>
-          <label class="block text-[11px] font-semibold text-gray-400 uppercase mb-1">Account Name</label>
-          <input type="text" id="farmerNameInput" placeholder="e.g. Sotarium" required class="w-full bg-[#16171a] border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#acff46]">
+      <form id="farmerForm" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Account Name</label>
+          <input type="text" id="farmerNameInput" placeholder="e.g. Sotarium" required class="dv-field">
         </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-gray-400 uppercase mb-1">Session Token (JWT)</label>
-          <input type="password" id="farmerTokenInput" placeholder="eyJhbGciOiJIUzI1Ni..." required class="w-full bg-[#16171a] border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#acff46] font-mono">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Session Token (JWT)</label>
+          <input type="password" id="farmerTokenInput" placeholder="eyJhbGciOiJIUzI1Ni..." required class="dv-field font-mono">
         </div>
 
-        <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
-          <button type="button" id="cancelFarmerModalBtn" class="px-4 py-2 text-xs font-semibold text-gray-400 hover:text-white transition">Cancel</button>
-          <button type="submit" id="saveFarmerTokenBtn" class="px-5 py-2 bg-[#acff46] text-[#121418] font-bold text-xs rounded-lg hover:bg-[#96e036] transition shadow-md shadow-[#acff46]/10">Save & Start Farming</button>
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-[rgba(255,255,255,0.08)]">
+          <button type="button" id="cancelFarmerModalBtn" onclick="closeFarmerModal()" class="dv-pill inactive" style="height:38px;">Cancel</button>
+          <button type="submit" id="saveFarmerTokenBtn" class="dv-pill active" style="height:38px; padding:0 20px;">Save Account</button>
         </div>
       </form>
     </div>
@@ -1254,6 +2150,7 @@
       });
       saveGameHistory(list);
       renderGameHistory();
+      if (typeof renderResultsFeed === 'function') renderResultsFeed();
     };
 
     function renderGameHistory() {
@@ -4417,7 +5314,7 @@
           } else {
             minesSelectedSet.add(idx);
             tile.classList.add('selected');
-            tile.innerHTML = '<svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+            tile.innerHTML = '';
           }
           const lbl = document.getElementById('minesSelectedCountLabel');
           if (lbl) lbl.textContent = minesSelectedSet.size + ' Selected';
@@ -4578,9 +5475,259 @@
       });
     }
 
+    
+    // --- Real Accounts Management with Supabase ---
+    window.refreshAccountsList = async function() {
+      const container = document.getElementById('accountsQuickList');
+      if (!container) return;
+      try {
+        const res = await fetch('/api/roach/accounts');
+        if (!res.ok) throw new Error('Failed to fetch accounts');
+        const data = await res.json();
+        const accs = data.accounts || [];
+
+        if (accs.length === 0) {
+          container.innerHTML = `
+            <div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]">
+              <span>No accounts saved. Click <b>+ Add</b> to add your first account.</span>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = accs.map(acc => {
+          const initial = (acc.name || 'A').charAt(0).toUpperCase();
+          const bal = acc.live_balance !== undefined && acc.live_balance !== null ? acc.live_balance : (acc.balance_bux || 0);
+          const safeId = acc.id || acc.name;
+          return `
+            <div class="flex items-center justify-between p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] hover:border-white/10 transition">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center text-[13px] font-bold text-white shrink-0">${initial}</div>
+                <span class="text-[14px] font-semibold text-white truncate">${acc.name}</span>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <span class="text-[13px] font-bold text-[#8f8f8f] font-mono">${bal.toFixed(2)} BUX</span>
+                <button type="button" onclick="deleteAccount('${safeId}', '${acc.name}')" class="size-[30px] rounded-[8px] bg-[#1d1d1d] hover:bg-[#f55e5e]/20 text-[#8f8f8f] hover:text-[#f55e5e] flex items-center justify-center transition cursor-pointer" title="Delete account">
+                  <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Error refreshing accounts:', e);
+      }
+    };
+
+    window.deleteAccount = async function(id, name) {
+      if (!confirm(`Are you sure you want to delete account "${name}"?`)) return;
+      try {
+        const res = await fetch('/api/roach/accounts', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, name })
+        });
+        if (res.ok) {
+          refreshAccountsList();
+        } else {
+          alert('Failed to delete account.');
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };
+
+    // --- Real Results Feed with Clean Fonts & Real Game Events ---
+    window.renderResultsFeed = function() {
+      const listEl = document.getElementById('resultsFeedList');
+      if (!listEl) return;
+      const history = (typeof loadGameHistory === 'function') ? loadGameHistory() : [];
+      if (!history || history.length === 0) {
+        listEl.innerHTML = `
+          <div class="flex h-[80px] items-center justify-center text-xs text-[#8f8f8f] text-center">
+            No game rounds recorded yet. Start a game to see real results here.
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = history.slice(0, 15).map(item => {
+        const win = Boolean(item.success);
+        const color = win ? '#54d487' : '#f55e5e';
+        const sign = win ? '+' : '−';
+        const amt = item.amountBux || item.betBux || 0;
+        const timeAgo = formatSecondsAgo(item.ts);
+        return `
+          <div class="dv-feed-row">
+            <div class="w-[3px] h-[28px] rounded-[2px]" style="background:${color};" shrink-0></div>
+            <div class="flex flex-col flex-1 min-w-0">
+              <span class="text-[13px] font-bold text-white truncate tracking-tight">${item.account || 'Main'}</span>
+              <span class="text-[11px] text-[#8f8f8f] truncate font-medium">${item.mode || 'Game'}</span>
+            </div>
+            <span class="text-[13px] font-bold font-mono" style="color:${color};">${sign}${Math.abs(amt).toFixed(2)} BUX</span>
+            <span class="text-[11px] text-[#8f8f8f] opacity-70 shrink-0 font-medium">${timeAgo}</span>
+          </div>
+        `;
+      }).join('');
+    };
+
+    function formatSecondsAgo(ts) {
+      if (!ts) return 'Just now';
+      const sec = Math.floor((Date.now() - ts) / 1000);
+      if (sec < 60) return 'Just now';
+      const min = Math.floor(sec / 60);
+      if (min < 60) return `${min}m ago`;
+      const hrs = Math.floor(min / 60);
+      return `${hrs}h ago`;
+    }
+
+    // --- Real Discord Watchers Implementation ---
+    let discordWatchersList = [
+      {
+        id: 'w_rollbux',
+        name: 'Rollbux',
+        serverID: '1454106247056982130',
+        channelID: '1535006568397934612',
+        targetID: '',
+        mode: 'giveaway',
+        enabled: true,
+        autoReact: true,
+        autoGuess: false,
+        sound: true
+      },
+      {
+        id: 'w_lunar',
+        name: 'Lunar',
+        serverID: '1454106247056982130',
+        channelID: '1535006568397934612',
+        targetID: '1381624213374505161',
+        mode: 'normal',
+        enabled: true,
+        autoReact: false,
+        autoGuess: false,
+        sound: true
+      }
+    ];
+
+    // Load persisted watchers from localStorage
+    try {
+      const savedWatchers = JSON.parse(localStorage.getItem('discord_watchers_list'));
+      if (Array.isArray(savedWatchers) && savedWatchers.length > 0) {
+        discordWatchersList = savedWatchers;
+      }
+    } catch (e) {}
+
+    function saveWatchers() {
+      localStorage.setItem('discord_watchers_list', JSON.stringify(discordWatchersList));
+      renderDiscordWatchers();
+    }
+
+    window.toggleWatcher = function(id) {
+      const w = discordWatchersList.find(x => x.id === id);
+      if (w) {
+        w.enabled = !w.enabled;
+        saveWatchers();
+      }
+    };
+
+    window.deleteWatcher = function(id) {
+      if (!confirm('Delete this watcher?')) return;
+      discordWatchersList = discordWatchersList.filter(x => x.id !== id);
+      saveWatchers();
+    };
+
+    window.openAddWatcherModal = function() {
+      const name = prompt('Watcher Name:', 'New Watcher');
+      if (!name) return;
+      const sId = prompt('Server ID:', '1454106247056982130');
+      if (!sId) return;
+      const cId = prompt('Channel ID:', '1535006568397934612');
+      if (!cId) return;
+      discordWatchersList.push({
+        id: 'w_' + Date.now(),
+        name,
+        serverID: sId,
+        channelID: cId,
+        targetID: '',
+        mode: 'giveaway',
+        enabled: true,
+        autoReact: true,
+        autoGuess: false,
+        sound: true
+      });
+      saveWatchers();
+    };
+
+    window.editWatcher = function(id) {
+      const w = discordWatchersList.find(x => x.id === id);
+      if (!w) return;
+      const newName = prompt('Edit Watcher Name:', w.name);
+      if (newName) w.name = newName;
+      const newChannel = prompt('Edit Channel ID:', w.channelID);
+      if (newChannel) w.channelID = newChannel;
+      saveWatchers();
+    };
+
+    window.renderDiscordWatchers = function() {
+      const grid = document.getElementById('discordWatchersGrid');
+      if (!grid) return;
+      grid.innerHTML = discordWatchersList.map(w => {
+        const isActive = w.enabled;
+        const statusBadge = isActive 
+          ? '<span class="dv-badge" style="background:#54d487/15; border-color:#54d487/30; color:#54d487;">Active</span>'
+          : '<span class="dv-badge" style="color:#8f8f8f;">Paused</span>';
+        const modeBadge = `<span class="dv-badge">${w.mode === 'giveaway' ? 'Giveaway' : 'Normal'}</span>`;
+        return `
+          <div class="dv-card flex flex-col justify-between h-[196px] p-4">
+            <div class="flex items-center justify-between select-none">
+              <div class="flex items-center gap-2">
+                ${statusBadge}
+                ${modeBadge}
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="editWatcher('${w.id}')" class="dv-icon-btn" title="Edit">
+                  <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                </button>
+                <button type="button" onclick="deleteWatcher('${w.id}')" class="dv-icon-btn" title="Delete">
+                  <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-0.5">
+              <h3 class="text-[18px] font-bold text-white tracking-tight">${w.name}</h3>
+              <div class="flex flex-col text-[11px] font-mono text-[#8f8f8f] space-y-0.5 mt-0.5">
+                <div>Server: ${w.serverID}</div>
+                <div>Channel: ${w.channelID}</div>
+                ${w.targetID ? `<div>User: ${w.targetID}</div>` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between select-none pt-1">
+              <div class="flex items-center gap-2">
+                ${w.autoReact ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React · 🎉</span>' : ''}
+                ${w.autoGuess ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>' : ''}
+                ${w.sound ? '<span class="dv-pill inactive text-[#8f8f8f]" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Sound</span>' : ''}
+              </div>
+              <label class="dv-toggle-wrap">
+                <input type="checkbox" onchange="toggleWatcher('${w.id}')" ${isActive ? 'checked' : ''} class="dv-toggle-input">
+                <div class="dv-toggle-track">
+                  <div class="dv-toggle-thumb"></div>
+                </div>
+              </label>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+
     document.addEventListener('DOMContentLoaded', () => {
       setupMinesTiles();
       setupRingDragging();
+      refreshAccountsList();
+      renderResultsFeed();
+      renderDiscordWatchers();
     });
 
     // Interactive Mines tiles
