@@ -435,7 +435,7 @@
                       <div class="flex items-baseline gap-2 mt-2">
                         <span id="statTotalEarnings" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">0</span>
                       </div>
-                      <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono">$0.00 · 0.00 SOL</span>
+                      <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono" style="display:none;">$0.00 · 0.00 SOL</span>
                     </div>
 
                     <!-- Current Balance (strong border rgba(255,255,255,0.22)) -->
@@ -444,7 +444,7 @@
                       <div class="flex items-baseline gap-2 mt-2">
                         <span id="statCurrentBalance" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">5</span>
                       </div>
-                      <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono">$0.01 · 0.0001 SOL</span>
+                      <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono" style="display:none;">$0.01 · 0.0001 SOL</span>
                     </div>
                   </div>
 
@@ -516,18 +516,6 @@
                           </div>
                         </div>
                         <div id="accountsQuickList" class="flex flex-col gap-2 w-full pt-1">
-                          <div class="flex items-center justify-between p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]">
-                            <div class="flex items-center gap-2.5">
-                              <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center text-[13px] font-bold text-white">M</div>
-                              <span id="quickAccountUsername" class="text-[14px] font-semibold text-white">Main Account</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                              <span class="text-[14px] font-semibold text-[#8f8f8f] font-mono">5.00 BUX</span>
-                              <button type="button" class="size-[30px] rounded-[8px] bg-[#1d1d1d] text-[#8f8f8f] hover:text-white flex items-center justify-center transition">
-                                <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                              </button>
-                            </div>
-                          </div>
                         </div>
                       </div>
 
@@ -538,26 +526,6 @@
                           <button type="button" onclick="clearResultsFeed()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
                         </div>
                         <div id="resultsFeedList" class="flex flex-col gap-2 w-full pt-1">
-                          <!-- Example Feed Item 1: Win -->
-                          <div class="dv-feed-row">
-                            <div class="w-[3px] h-[28px] rounded-[2px] bg-[#54d487] shrink-0"></div>
-                            <div class="flex flex-col flex-1 min-w-0">
-                              <span class="text-[13px] font-bold text-white truncate">Main Account</span>
-                              <span class="text-[11px] text-[#8f8f8f] truncate">Upgrader 2.00x</span>
-                            </div>
-                            <span class="text-[13px] font-bold text-[#54d487] font-mono">+10.00 BUX</span>
-                            <span class="text-[11px] text-[#8f8f8f] opacity-70">Just now</span>
-                          </div>
-                          <!-- Example Feed Item 2: Loss -->
-                          <div class="dv-feed-row">
-                            <div class="w-[3px] h-[28px] rounded-[2px] bg-[#f55e5e] shrink-0"></div>
-                            <div class="flex flex-col flex-1 min-w-0">
-                              <span class="text-[13px] font-bold text-white truncate">Main Account</span>
-                              <span class="text-[11px] text-[#8f8f8f] truncate">Mines 3 Bombs</span>
-                            </div>
-                            <span class="text-[13px] font-bold text-[#f55e5e] font-mono">−5.00 BUX</span>
-                            <span class="text-[11px] text-[#8f8f8f] opacity-70">2m ago</span>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -579,9 +547,6 @@
                           <div id="upgraderWheelContainer" class="relative size-[210px] flex items-center justify-center cursor-grab active:cursor-grabbing">
                             <svg id="upgraderWheelSvg" class="size-full overflow-visible" viewBox="0 0 200 200">
                               <defs>
-                                <filter id="upgraderGlow" x="-20%" y="-20%" width="140%" height="140%">
-                                  <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#8b5cf6" flood-opacity="0.9"/>
-                                </filter>
                                 <linearGradient id="wheelBevel" x1="0" y1="0" x2="0" y2="100%">
                                   <stop offset="0%" stop-color="#181d2a" />
                                   <stop offset="100%" stop-color="#0b0e15" />
@@ -593,17 +558,16 @@
                               <circle cx="100" cy="100" r="70" fill="none" stroke="#121622" stroke-width="1.5" />
                               <circle cx="100" cy="100" r="86" fill="none" stroke="#242b3d" stroke-width="1.5" />
 
-                              <!-- Active Glowing Purple Arc -->
-                              <circle id="upgraderArc" cx="100" cy="100" r="78" fill="none" stroke="#8b5cf6" stroke-width="15"
-                                filter="url(#upgraderGlow)"
+                              <!-- Active White Arc -->
+                              <circle id="upgraderArc" cx="100" cy="100" r="78" fill="none" stroke="#ffffff" stroke-width="15"
                                 stroke-dasharray="220.5 490.09" stroke-dashoffset="0"
                                 transform="rotate(-90 100 100)" style="transition: transform 0.05s linear, stroke-dasharray 0.15s ease;" />
 
                               <!-- End-Point 1 White Dot Knob (Start) -->
-                              <circle id="upgraderKnobStart" cx="100" cy="22" r="6.5" fill="#ffffff" stroke="#8b5cf6" stroke-width="2" class="filter drop-shadow" style="transition: cx 0.05s linear, cy 0.05s linear;" />
+                              <circle id="upgraderKnobStart" cx="100" cy="22" r="6.5" fill="#ffffff" stroke="#ffffff" stroke-width="2" class="filter drop-shadow" style="transition: cx 0.05s linear, cy 0.05s linear;" />
                               
                               <!-- End-Point 2 White Dot Knob (End) -->
-                              <circle id="upgraderKnobEnd" cx="100" cy="22" r="6.5" fill="#ffffff" stroke="#8b5cf6" stroke-width="2" class="filter drop-shadow" style="transition: cx 0.05s linear, cy 0.05s linear;" />
+                              <circle id="upgraderKnobEnd" cx="100" cy="22" r="6.5" fill="#ffffff" stroke="#ffffff" stroke-width="2" class="filter drop-shadow" style="transition: cx 0.05s linear, cy 0.05s linear;" />
                             </svg>
 
                             <!-- Center Info: Big Bold Percentage and Chance Label -->
@@ -649,10 +613,10 @@
                         </div>
 
                         <!-- Account Picker -->
-                        <div class="flex items-center justify-between p-2 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] select-none">
+                        <button type="button" id="upgraderAccountBtn" onclick="openAccountSelectorModal('upgrader')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
                           <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
-                          <span class="text-[13px] font-semibold text-white">All Accounts</span>
-                        </div>
+                          <span id="upgraderAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
+                        </button>
 
                         <!-- Action Button: Upgrade / Stop (height: 44) -->
                         <button id="upgraderManualPlayBtn" type="button" onclick="triggerUpgraderPlay()" class="dv-pill active w-full" style="height:44px; font-size:14px; font-weight:700;">
@@ -674,10 +638,10 @@
 
                       <div class="dv-card flex flex-col gap-3 p-5">
                         <!-- Account Picker -->
-                        <div class="flex items-center justify-between p-2 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] select-none">
+                        <button type="button" id="minesAccountBtn" onclick="openAccountSelectorModal('mines')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
                           <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
-                          <span class="text-[13px] font-semibold text-white">All Accounts</span>
-                        </div>
+                          <span id="minesAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
+                        </button>
 
                         <!-- SettingRow: Bombs with Slider -->
                         <div class="flex items-center justify-between select-none">
@@ -855,91 +819,12 @@
                   </div>
 
                   <!-- Watchers Grid (2 Columns, matching watchCard in DiscordView.swift, height: 196px) -->
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                    <!-- Watcher Card 1: Rollbux -->
-                    <div class="dv-card flex flex-col justify-between h-[196px] p-4">
-                      <!-- Top: Badges & icon buttons -->
-                      <div class="flex items-center justify-between select-none">
-                        <div class="flex items-center gap-2">
-                          <span class="dv-badge">Active</span>
-                          <span class="dv-badge">Giveaway</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                          <button type="button" class="dv-icon-btn" title="Edit">
-                            <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                          </button>
-                          <button type="button" class="dv-icon-btn" title="Delete">
-                            <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Center: Title & IDs -->
-                      <div class="flex flex-col gap-0.5">
-                        <h3 class="text-[18px] font-bold text-white tracking-tight">Rollbux</h3>
-                        <div class="flex flex-col text-[11px] font-mono text-[#8f8f8f] space-y-0.5 mt-0.5">
-                          <div>Server: 1454106247056982130</div>
-                          <div>Channel: 1535006568397934612</div>
-                        </div>
-                      </div>
-
-                      <!-- Bottom: Chips & MonoToggle -->
-                      <div class="flex items-center justify-between select-none pt-1">
-                        <div class="flex items-center gap-2">
-                          <span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React · Detect</span>
-                          <span class="dv-pill inactive text-[#8f8f8f]" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>
-                        </div>
-                        <label class="dv-toggle-wrap">
-                          <input type="checkbox" checked class="dv-toggle-input">
-                          <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
-                        </label>
-                      </div>
-                    </div>
-
-                    <!-- Watcher Card 2: Lunar -->
-                    <div class="dv-card flex flex-col justify-between h-[196px] p-4">
-                      <!-- Top: Badges & icon buttons -->
-                      <div class="flex items-center justify-between select-none">
-                        <div class="flex items-center gap-2">
-                          <span class="dv-badge">Paused</span>
-                          <span class="dv-badge">Normal</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                          <button type="button" class="dv-icon-btn" title="Edit">
-                            <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                          </button>
-                          <button type="button" class="dv-icon-btn" title="Delete">
-                            <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Center: Title & IDs -->
-                      <div class="flex flex-col gap-0.5">
-                        <h3 class="text-[18px] font-bold text-white tracking-tight">Lunar</h3>
-                        <div class="flex flex-col text-[11px] font-mono text-[#8f8f8f] space-y-0.5 mt-0.5">
-                          <div>Server: 1454106247056982130</div>
-                          <div>Channel: 1535006568397934612</div>
-                          <div>User: <span id="lunarWatcherUserId">1381624213374505161</span></div>
-                        </div>
-                      </div>
-
-                      <!-- Bottom: Chips & MonoToggle -->
-                      <div class="flex items-center justify-between select-none pt-1">
-                        <div class="flex items-center gap-2">
-                          <span class="dv-pill inactive text-[#8f8f8f]" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Sound</span>
-                        </div>
-                        <label class="dv-toggle-wrap">
-                          <input type="checkbox" class="dv-toggle-input">
-                          <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
-                        </label>
-                      </div>
-                    </div>
+                  <div id="discordWatchersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                   </div>
 
                   <!-- Add Watcher Dashed Card (height: 196px matching addTile in DiscordView.swift) -->
                   <div class="w-full mt-2 select-none">
-                    <div onclick="openDiscordLoginModal()" class="w-full border border-dashed border-[rgba(255,255,255,0.10)] hover:border-[rgba(255,255,255,0.25)] rounded-[18px] h-[196px] flex items-center justify-center gap-2 text-[#8f8f8f] hover:text-white transition cursor-pointer bg-[rgba(11,11,11,0.5)]">
+                    <div onclick="openAddWatcherModal()" class="w-full border border-dashed border-[rgba(255,255,255,0.10)] hover:border-[rgba(255,255,255,0.25)] rounded-[18px] h-[196px] flex items-center justify-center gap-2 text-[#8f8f8f] hover:text-white transition cursor-pointer bg-[rgba(11,11,11,0.5)]">
                       <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                       <span class="text-[14px] font-semibold">Add Watcher</span>
                     </div>
@@ -2676,10 +2561,10 @@
             fetch('/api/roach/tick', { method: 'POST' });
           } else {
             const errData = await res.json().catch(() => ({}));
-            alert('Error saving token: ' + (errData.error || res.statusText));
+            await vibeAlert('Error saving token: ' + (errData.error || res.statusText), 'Error');
           }
         } catch (err) {
-          alert('Network error: ' + err.message);
+          await vibeAlert('Network error: ' + err.message, 'Error');
         } finally {
           if (saveBtn) {
             saveBtn.disabled = false;
@@ -4442,18 +4327,6 @@
       inp.value = val;
     };
 
-    window.setUpgraderMultiplier = function(mult) {
-      const valEl = document.getElementById('upgraderMultiplierValue');
-      if (valEl) valEl.textContent = mult + 'x';
-      const chanceEl = document.getElementById('upgraderChanceDisplay');
-      const arcEl = document.getElementById('upgraderGaugeArc');
-      const chance = Math.min(95, Math.max(1, Math.round(95 / mult)));
-      if (chanceEl) chanceEl.textContent = chance + '%';
-      if (arcEl) {
-        const dash = (chance / 100) * 301.6;
-        arcEl.setAttribute('stroke-dasharray', dash.toFixed(1) + ' 301.6');
-      }
-    };
 
     // Sync Discord data fetched from user token
     function syncDiscordCustomProfile() {
@@ -4794,10 +4667,10 @@
         if (res.ok) {
           refreshAccountsList();
         } else {
-          alert('Failed to delete account.');
+          await vibeAlert('Failed to delete account.', 'Error');
         }
       } catch (err) {
-        alert('Error: ' + err.message);
+        await vibeAlert('Error: ' + err.message, 'Error');
       }
     };
 
@@ -4894,14 +4767,14 @@
       }
     };
 
-    window.deleteWatcher = function(id) {
+    window.deleteWatcher = async function(id) {
       const ok = await vibeConfirm('Are you sure you want to delete this watcher?', 'Delete Watcher');
       if (!ok) return;
       discordWatchersList = discordWatchersList.filter(x => x.id !== id);
       saveWatchers();
     };
 
-    window.openAddWatcherModal = function() {
+    window.openAddWatcherModal = async function() {
       const name = await vibePrompt('Enter watcher name:', 'New Watcher', 'Add Watcher');
       if (!name) return;
       const sId = await vibePrompt('Enter Discord Server ID:', '1454106247056982130', 'Add Watcher');
@@ -4923,7 +4796,7 @@
       saveWatchers();
     };
 
-    window.editWatcher = function(id) {
+    window.editWatcher = async function(id) {
       const w = discordWatchersList.find(x => x.id === id);
       if (!w) return;
       const newName = await vibePrompt('Edit watcher name:', w.name, 'Edit Watcher');
