@@ -619,7 +619,7 @@
                         </button>
 
                         <!-- Action Button: Upgrade / Stop (height: 44) -->
-                        <button id="upgraderManualPlayBtn" type="button" onclick="triggerUpgraderPlay()" class="dv-pill active w-full" style="height:44px; font-size:14px; font-weight:700;">
+                        <button id="upgraderManualPlayBtn" type="button" class="dv-pill active w-full" style="height:44px; font-size:14px; font-weight:700;">
                           Upgrade
                         </button>
                       </div>
@@ -703,7 +703,7 @@
                         </div>
 
                         <!-- Action Button: Play / Stop (height: 44) -->
-                        <button id="minesManualPlayBtn" type="button" onclick="triggerMinesPlay()" class="dv-pill active w-full" style="height:44px; font-size:14px; font-weight:700;">
+                        <button id="minesManualPlayBtn" type="button" class="dv-pill active w-full" style="height:44px; font-size:14px; font-weight:700;">
                           Play
                         </button>
                       </div>
@@ -786,7 +786,7 @@
 
                       <div class="flex items-center justify-between pt-2 border-t border-[rgba(255,255,255,0.06)]">
                         <span id="tipFeedback" class="text-[12px] text-[#8f8f8f] truncate flex-1">Ready</span>
-                        <button id="tipManualBtn" type="button" onclick="triggerTipSend()" class="dv-pill active" style="height:38px; padding:0 22px;">
+                        <button id="tipManualBtn" type="button" class="dv-pill active" style="height:38px; padding:0 22px;">
                           Tip
                         </button>
                       </div>
@@ -2086,6 +2086,14 @@
       }
     }
 
+    var battleMasterToggle = document.getElementById('battleMasterToggle');
+    var battleStatusBadge = document.getElementById('battleStatusBadge');
+    var battleBorrowToggle = document.getElementById('battleBorrowToggle');
+    var battleManualCreateBtn = document.getElementById('battleManualCreateBtn');
+    var battleFeedback = document.getElementById('battleFeedback');
+    var battleTotalCostPreview = document.getElementById('battleTotalCostPreview');
+    var isBattleExecuting = false;
+
     fetchUserData();
     setInterval(fetchUserData, 2500);
 
@@ -2920,6 +2928,44 @@
       return registeredAccountsCache;
     }
 
+    const accountSelectorModeLabel = document.getElementById('accountSelectorModeLabel');
+    const accountSelectorList = document.getElementById('accountSelectorList');
+    const closeAccountSelectorModalBtn = document.getElementById('closeAccountSelectorModalBtn');
+    const closeAccountSelectorModalBtn2 = document.getElementById('closeAccountSelectorModalBtn2');
+
+    const accountSettings = {
+      upgrader: {
+        labelEl: document.getElementById('upgraderAccountLabel'),
+        key: 'rollbux_upgrader_account',
+        title: 'Auto Upgrader'
+      },
+      battle: {
+        labelEl: document.getElementById('battleAccountLabel'),
+        key: 'rollbux_battle_account',
+        title: 'Auto Battle'
+      },
+      mines: {
+        labelEl: document.getElementById('minesAccountLabel'),
+        key: 'rollbux_mines_account',
+        title: 'Auto Mines'
+      },
+      chicken: {
+        labelEl: document.getElementById('chickenAccountLabel'),
+        key: 'rollbux_chicken_account',
+        title: 'Auto Chicken'
+      },
+      tip: {
+        labelEl: document.getElementById('tipAccountLabel'),
+        key: 'rollbux_tip_recipient',
+        title: 'Tip Recipient (Main Account)'
+      },
+      rains: {
+        labelEl: document.getElementById('rainsAccountLabel'),
+        key: 'rollbux_rains_account',
+        title: 'Watch Rains Account'
+      }
+    };
+
     function getSelectedAccountsForMode(mode) {
       const raw = localStorage.getItem(accountSettings[mode]?.key);
       if (mode === 'tip' || mode === 'rains') {
@@ -3127,12 +3173,12 @@
     // ==========================================
     // AUTO BATTLE CONTROLLER & STATE LOGIC
     // ==========================================
-    const battleMasterToggle = document.getElementById('battleMasterToggle');
-    const battleStatusBadge = document.getElementById('battleStatusBadge');
-    const battleBorrowToggle = document.getElementById('battleBorrowToggle');
-    const battleManualCreateBtn = document.getElementById('battleManualCreateBtn');
-    const battleFeedback = document.getElementById('battleFeedback');
-    const battleTotalCostPreview = document.getElementById('battleTotalCostPreview');
+    battleMasterToggle = battleMasterToggle || document.getElementById('battleMasterToggle');
+    battleStatusBadge = battleStatusBadge || document.getElementById('battleStatusBadge');
+    battleBorrowToggle = battleBorrowToggle || document.getElementById('battleBorrowToggle');
+    battleManualCreateBtn = battleManualCreateBtn || document.getElementById('battleManualCreateBtn');
+    battleFeedback = battleFeedback || document.getElementById('battleFeedback');
+    battleTotalCostPreview = battleTotalCostPreview || document.getElementById('battleTotalCostPreview');
 
     let isBattleExecuting = false;
     const lastBattleAccountPlayTimes = {};
@@ -4003,7 +4049,7 @@
           if (avatarEl && u.avatar) avatarEl.src = u.avatar;
           if (gwMasterToggle) {
             gwMasterToggle.disabled = false;
-            gwMasterToggle.parentElement.querySelector('div').classList.remove('opacity-50', 'cursor-not-allowed');
+            (gwMasterToggle.parentElement?.querySelector('div') || gwMasterToggle.parentElement).classList.remove('opacity-50', 'cursor-not-allowed');
             gwMasterToggle.checked = localStorage.getItem('sotarium_discord_gw_active') === 'true';
           }
           if (gwStatusBadge) {
@@ -4029,7 +4075,7 @@
       if (gwMasterToggle) {
         gwMasterToggle.disabled = true;
         gwMasterToggle.checked = false;
-        gwMasterToggle.parentElement.querySelector('div').classList.add('opacity-50', 'cursor-not-allowed');
+        (gwMasterToggle.parentElement?.querySelector('div') || gwMasterToggle.parentElement).classList.add('opacity-50', 'cursor-not-allowed');
       }
       if (gwStatusBadge) {
         gwStatusBadge.textContent = '';
@@ -4409,7 +4455,10 @@
       const valEl = document.getElementById('upgraderMultiplierValue');
       const inpEl = document.getElementById('upgraderMultiplierInput');
       if (valEl) valEl.textContent = Number(mult).toFixed(2) + 'x';
-      if (inpEl) inpEl.value = mult;
+      if (inpEl) {
+        inpEl.value = mult;
+        localStorage.setItem('rollbux_upgrader_multiplier', mult);
+      }
 
       // Update chip selection
       [1.5, 2, 5, 10, 20].forEach(p => {
@@ -4420,19 +4469,8 @@
         }
       });
 
-      // Win chance formula from README.txt: chance = 90 / multiplier
-      const chance = Math.min(95, Math.max(1, (90 / mult)));
-      const chanceEl = document.getElementById('upgraderChanceDisplay');
-      const rangeEl = document.getElementById('upgraderRangeDisplay');
-      const arcEl = document.getElementById('upgraderGaugeArc');
-
-      if (chanceEl) chanceEl.textContent = chance.toFixed(0) + '%';
-      const zoneMax = Math.round((chance / 100) * 1000000);
-      if (rangeEl) rangeEl.textContent = '0 - ' + zoneMax.toLocaleString();
-      if (arcEl) {
-        const circumference = 301.6;
-        const dash = (chance / 100) * circumference;
-        arcEl.setAttribute('stroke-dasharray', dash.toFixed(1) + ' ' + circumference);
+      if (typeof updateUpgraderWheelUI === 'function') {
+        updateUpgraderWheelUI();
       }
     };
 
@@ -4862,7 +4900,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       setupMinesTiles();
-      setupRingDragging();
       refreshAccountsList();
       renderResultsFeed();
       renderDiscordWatchers();
