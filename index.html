@@ -737,30 +737,59 @@
     </div>
   </div>
 
-    <!-- Discord Token Modal (Clean Minimal Vibe) -->
-  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn select-none">
-    <div class="relative w-full max-w-sm rounded-[18px] bg-[#0d0d0e] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
+      <!-- Discord Token Modal (Tuff Matte Dark UI) -->
+  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn select-none">
+    <div class="relative w-full max-w-[420px] rounded-[26px] bg-[#0b0c10] border border-white/[0.08] p-7 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] flex flex-col items-center text-center">
       <!-- Close Button (Top-Right) -->
-      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
-        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-4 right-4 size-8 rounded-full bg-[#18191f] hover:bg-[#23242c] text-gray-400 hover:text-white flex items-center justify-center transition active:scale-90 cursor-pointer" title="Close">
+        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
 
-      <!-- Discord 3D Icon -->
-      <img src="/discord-3d.png" class="size-14 object-contain mt-1" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
+      <!-- Discord 3D Icon with gentle soft ambient blur -->
+      <div class="relative flex items-center justify-center mt-1 mb-4">
+        <div class="absolute -inset-2 bg-[#5865F2]/20 rounded-full blur-xl pointer-events-none"></div>
+        <img src="/discord-3d.png" class="relative size-16 object-contain drop-shadow-[0_10px_20px_rgba(88,101,242,0.4)]" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
+      </div>
       
       <!-- Modal Title -->
-      <h3 class="text-base font-black text-white tracking-tight">Discord Token</h3>
+      <h3 class="text-xl font-bold text-white tracking-tight">Discord Token</h3>
+      <p class="text-[12.5px] text-[#888c96] leading-relaxed mt-1.5 px-4">Paste your user token to authenticate and enable automatic giveaway joining & claiming</p>
 
-      <!-- Clean Input Box -->
-      <div class="w-full flex flex-col gap-1.5 text-left">
-        <input type="password" id="discordTokenInput" placeholder="Enter your Discord token" autocomplete="off" spellcheck="false" class="w-full rounded-xl bg-[#16171a] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#5865F2] font-mono transition" />
-        <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 px-1 pt-0.5"></div>
+      <!-- Input Box (Strictly NO highlight on typing/focus) -->
+      <div class="w-full flex flex-col gap-1.5 mt-5">
+        <div class="relative w-full flex items-center rounded-[14px] bg-[#07080b] border border-white/[0.09] transition-none">
+          <input 
+            type="password" 
+            id="discordTokenInput" 
+            placeholder="Paste Discord user token..." 
+            autocomplete="off" 
+            spellcheck="false" 
+            style="outline: none !important; box-shadow: none !important; border: none !important;"
+            class="w-full bg-transparent px-4 py-3 text-xs text-white placeholder-[#525763] font-mono focus:outline-none focus:ring-0 focus:border-transparent select-text" 
+          />
+          <button 
+            type="button" 
+            id="toggleDiscordTokenVisibility" 
+            onclick="toggleDiscordTokenVisibility()" 
+            class="pr-3.5 pl-2 text-gray-500 hover:text-gray-300 transition cursor-pointer"
+            title="Toggle visibility"
+          >
+            <svg id="eyeIconShow" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <svg id="eyeIconHide" class="size-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+            </svg>
+          </button>
+        </div>
+        <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 text-left px-1 pt-1"></div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex items-center gap-2.5 w-full pt-1">
-        <button type="button" onclick="closeDiscordLoginModal()" class="flex-1 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
-        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="flex-1 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-xs font-black text-white transition active:scale-95 shadow-md shadow-[#5865F2]/20 cursor-pointer">Save</button>
+      <div class="grid grid-cols-2 gap-3 w-full mt-5">
+        <button type="button" onclick="closeDiscordLoginModal()" class="w-full py-2.5 rounded-[12px] bg-[#17181f] hover:bg-[#21232d] text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
+        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="w-full py-2.5 rounded-[12px] bg-[#4f6bf7] hover:bg-[#435ee8] text-xs font-black text-white transition active:scale-95 shadow-[0_4px_16px_rgba(79,107,247,0.3)] cursor-pointer">Connect</button>
       </div>
     </div>
   </div>
@@ -3636,6 +3665,22 @@
     const discordTokenInput = document.getElementById('discordTokenInput');
     const discordLoginBtn = document.getElementById('discordLoginBtn');
     const discordLoginError = document.getElementById('discordLoginError');
+
+    window.toggleDiscordTokenVisibility = function() {
+      const inp = document.getElementById('discordTokenInput');
+      const showIcon = document.getElementById('eyeIconShow');
+      const hideIcon = document.getElementById('eyeIconHide');
+      if (!inp) return;
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        if (showIcon) showIcon.classList.add('hidden');
+        if (hideIcon) hideIcon.classList.remove('hidden');
+      } else {
+        inp.type = 'password';
+        if (showIcon) showIcon.classList.remove('hidden');
+        if (hideIcon) hideIcon.classList.add('hidden');
+      }
+    };
 
     window.openDiscordLoginModal = function() {
       console.log('[Discord Token] Opening modal overlay...');
