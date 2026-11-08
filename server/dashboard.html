@@ -56,10 +56,13 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
       letter-spacing: -0.01em;
     }
-    /* Vibe coded sleek styling */
-    .glass-card, [class*="bg-[#0d0d0e]"], [class*="bg-[#0d0d0e]"] {
-      border: 1px solid rgba(255, 255, 255, 0.07) !important;
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #232429;
+      border-radius: 9999px;
     }
     .custom-scroll::-webkit-scrollbar {
       height: 6px;
@@ -79,34 +82,40 @@
       -moz-appearance: textfield;
       appearance: textfield;
     }
-  
-    /* Vibe coded 4-column dashboard layout (guaranteed 4 columns across on desktop) */
-    .rollbux-4col-grid {
-      display: grid !important;
-      grid-template-columns: minmax(0, 1fr) 270px 270px 270px !important;
-      gap: 16px !important;
-      align-items: start !important;
-      width: 100% !important;
-    }
-    @media (max-width: 1300px) {
-      .rollbux-4col-grid {
-        grid-template-columns: minmax(0, 1fr) 250px 250px 250px !important;
-        gap: 12px !important;
+  </style>
+
+  <script>
+    // Prevent login overlay flash if player already logged in
+    try {
+      var _tok = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
+      if (_tok && _tok.length > 10) {
+        document.documentElement.classList.add('is-logged-in');
       }
-    }
-    @media (max-width: 1080px) {
-      .rollbux-4col-grid {
-        grid-template-columns: minmax(0, 1fr) 260px 260px !important;
-      }
-    }
-    @media (max-width: 768px) {
-      .rollbux-4col-grid {
-        grid-template-columns: 1fr !important;
-      }
-    }
-    </style>
+    } catch(e) {}
+  </script>
+  <style>
+    .is-logged-in #loginOverlay { display: none !important; }
+    .is-logged-in #dashboardContent { display: block !important; }
+  </style>
 </head>
 <body class="selection:bg-[#acff46] selection:text-[#0e131f]">
+  <!-- Login Overlay -->
+  <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#242424;align-items:center;justify-content:center;">
+    <div style="width:290px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;">
+      <p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;">Log in</p>
+      <form id="loginForm" style="width:100%;display:flex;flex-direction:column;gap:10px;">
+        <input id="loginSessionInput" type="password" placeholder="Enter Session Cookie" autocomplete="off" autofocus
+          style="width:100%;height:40px;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:9999px;padding:0 18px;font-size:12px;color:#fff;text-align:center;outline:none;font-family:inherit;" />
+        <button id="loginContinueBtn" type="submit"
+          style="width:100%;height:40px;background:#1c1c1c;border:1px solid rgba(255,255,255,0.04);border-radius:9999px;color:#777;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,color .15s;">
+          Continue
+        </button>
+      </form>
+      <p id="loginError" style="display:none;color:#ef4444;font-size:11px;margin-top:4px;"></p>
+    </div>
+  </div>
+  <div id="dashboardContent" style="display:none;">
+
   <!-- Main Container -->
   <div class="flex w-full justify-center pb-[40px] pt-[35px]" bis_skin_checked="1">
     <div data-node-id="671:32993" class="flex w-full max-w-[1536px] flex-col items-start gap-[28px] px-4 md:px-8" bis_skin_checked="1">
@@ -178,7 +187,7 @@
                 </div>
 
                 <!-- Statistics + Auto Upgrader + Auto Battle Grid -->
-                <div class="rollbux-4col-grid w-full items-start">
+                <div class="grid grid-cols-1 xl:grid-cols-[1fr_270px_270px_270px] lg:grid-cols-[1fr_240px_240px_240px] gap-4 w-full items-start">
                   
                   <!-- Left: Statistics Section -->
                   <div data-node-id="671:33117" class="flex w-full min-w-0 flex-col items-start gap-[16px]" bis_skin_checked="1">
@@ -266,7 +275,7 @@
                     </div>
                   
 
-                    <!-- Your Accounts Card (On top of Rains Section) -->
+                    <!-- Your Accounts Card (Placed directly under graph card) -->
                     <div class="relative flex w-full flex-col items-start gap-3 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[20px] shadow-sm border border-white/[0.03]">
                       <div class="flex w-full items-center justify-between gap-3">
                         <div>
@@ -275,6 +284,7 @@
                         </div>
                       </div>
                       <a id="dashboardAccountLink" href="/accounts" class="w-full rounded-lg bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] py-2 text-center text-xs font-bold text-white transition hover:brightness-110 active:scale-95">Open Your Accounts</a>
+                    </div>
 
                     <!-- Rains Section (Under Your Accounts) -->
                     <div class="flex w-full flex-col items-start gap-4 mt-2">
@@ -435,7 +445,7 @@
                     </div>
 
                     <!-- Auto Chicken (Under Auto Upgrader) -->
-<div class="flex w-full shrink-0 items-center justify-between">
+<div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
                         <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Chicken</p>
                         <span id="chickenStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
@@ -570,7 +580,7 @@
                     </div>
 
                     <!-- ── Auto Mines (below battle card, same column) ── -->
-                    <div class="flex w-full shrink-0 items-center justify-between">
+                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
                         <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Mines</p>
                         <span id="minesStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
@@ -596,7 +606,7 @@
                     </div>
 
                     <!-- Auto Tip (below Auto Mines, same column) -->
-                    <div class="flex w-full shrink-0 items-center justify-between">
+                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
                         <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Tip</p>
                         <span id="tipStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
@@ -636,14 +646,14 @@
                     </div>
 
                     
+                  </div>
 
-                  
-                  <!-- Rightmost Column 4: Auto Claim Giveaway (Across Auto Battles on its right) -->
+                  <!-- Rightmost Column 4: Auto Claim Giveaway (Across Auto Battle on its right) -->
                   <div id="autoGiveawaySection" class="flex w-full flex-col items-start gap-[16px]">
                     <!-- Auto Claim Giveaway Card (Extracted from Cue) -->
-                    <div class="flex w-full shrink-0 items-center justify-between">
+                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
-                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-bold italic">Auto Claim Giveaway</p>
+                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Claim Giveaway</p>
                         <span id="gwStatusBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"></span>
                       </div>
                       <label class="relative inline-flex items-center cursor-pointer select-none">
@@ -727,7 +737,35 @@
     </div>
   </div>
 
-  <!-- Farmer Token Modal -->
+    <!-- Discord Token Modal (Clean Minimal Vibe) -->
+  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn select-none">
+    <div class="relative w-full max-w-sm rounded-[18px] bg-[#0d0d0e] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
+      <!-- Close Button (Top-Right) -->
+      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
+        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <!-- Discord 3D Icon -->
+      <img src="/discord-3d.png" class="size-14 object-contain mt-1" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
+      
+      <!-- Modal Title -->
+      <h3 class="text-base font-black text-white tracking-tight">Discord Token</h3>
+
+      <!-- Clean Input Box -->
+      <div class="w-full flex flex-col gap-1.5 text-left">
+        <input type="password" id="discordTokenInput" placeholder="Enter your Discord token" autocomplete="off" spellcheck="false" class="w-full rounded-xl bg-[#16171a] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#5865F2] font-mono transition" />
+        <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 px-1 pt-0.5"></div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2.5 w-full pt-1">
+        <button type="button" onclick="closeDiscordLoginModal()" class="flex-1 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
+        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="flex-1 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-xs font-black text-white transition active:scale-95 shadow-md shadow-[#5865F2]/20 cursor-pointer">Save</button>
+      </div>
+    </div>
+  </div>
+
+<!-- Farmer Token Modal -->
   <div id="farmerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
     <div class="glass-card w-full max-w-md rounded-2xl p-6 bg-[#0d0d0e] border border-white/10 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -780,35 +818,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Discord Token Modal (Clean Minimal Vibe) -->
-  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn select-none">
-    <div class="relative w-full max-w-sm rounded-[18px] bg-[#0d0d0e] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
-      <!-- Close Button (Top-Right) -->
-      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
-        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-
-      <!-- Discord 3D Icon -->
-      <img src="/discord-3d.png" class="size-14 object-contain mt-1" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
-      
-      <!-- Modal Title -->
-      <h3 class="text-base font-black text-white tracking-tight">Discord Token</h3>
-
-      <!-- Clean Input Box -->
-      <div class="w-full flex flex-col gap-1.5 text-left">
-        <input type="password" id="discordTokenInput" placeholder="Enter your Discord token" autocomplete="off" spellcheck="false" class="w-full rounded-xl bg-[#16171a] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#5865F2] font-mono transition" />
-        <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 px-1 pt-0.5"></div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center gap-2.5 w-full pt-1">
-        <button type="button" onclick="closeDiscordLoginModal()" class="flex-1 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
-        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="flex-1 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-xs font-black text-white transition active:scale-95 shadow-md shadow-[#5865F2]/20 cursor-pointer">Save</button>
-      </div>
-    </div>
-  </div>
-
 
   <!-- Interactive Script for Live User Stats & Dynamic Countdown -->
   <script>
@@ -3186,6 +3195,7 @@
     const chickenTilesLabel = document.getElementById('chickenTilesLabel');
 
     let isChickenExecuting = false;
+    let chickenLastFailed = false; // tracks if last round had an error (for backoff)
     let chickenLoopTimer = null;
 
     // Difficulty options: 1: Easy (19 steps), 2: Medium (17 steps), 3: Hard (14 steps), 4: Expert (8 steps)
@@ -3232,7 +3242,7 @@
       updateTilesUI();
       chickenTilesBtn.addEventListener('click', () => {
         const diff = chickenDifficulties[currentDifficultyIndex];
-        // Cycle 1 → 2 → 3 → … → maxTiles → 1 (increment by 1 each click)
+        // +1 per click, wraps back to 1 after maxTiles
         currentTilesCount = (currentTilesCount >= diff.maxTiles) ? 1 : currentTilesCount + 1;
         updateTilesUI();
       });
@@ -3304,6 +3314,7 @@
         if (!startRes.ok || !startData.success) {
           const errDetail = startData?.error || 'Start failed';
           setChickenFeedback(`${acc}: ${errDetail}`, '#ff6b6b');
+          chickenLastFailed = true;
           return;
         }
 
@@ -3357,11 +3368,12 @@
       } finally {
         isChickenExecuting = false;
         if (chickenManualPlayBtn) { chickenManualPlayBtn.disabled = false; chickenManualPlayBtn.classList.remove('opacity-50'); }
-        scheduleChickenLoop();
+        scheduleChickenLoop(chickenLastFailed ? 20000 : 4000);
+        chickenLastFailed = false;
       }
     }
 
-    function scheduleChickenLoop() {
+    function scheduleChickenLoop(delay) {
       if (!chickenMasterToggle || !chickenMasterToggle.checked) return;
       if (chickenLoopTimer) clearTimeout(chickenLoopTimer);
       chickenLoopTimer = setTimeout(async () => {
@@ -3393,7 +3405,7 @@
         }
         setChickenFeedback('Waiting for >=50 BUX...', '#9aa3a8');
         scheduleChickenLoop();
-      }, 4000);
+      }, delay || 4000);
     }
 
     if (chickenManualPlayBtn) {
@@ -3611,6 +3623,258 @@
       }, 5000);
     }
   </script>
-  
-</body>
+  </div><!-- /dashboardContent -->
+
+  <script>
+    
+    // ── Auto Claim Giveaway (Cue Integration) ───────────────────────────────────
+    const gwMasterToggle = document.getElementById('gwMasterToggle');
+    const gwStatusBadge = document.getElementById('gwStatusBadge');
+    const gwLockOverlay = document.getElementById('gwLockOverlay');
+    const gwUnlockedView = document.getElementById('gwUnlockedView');
+    const discordLoginModal = document.getElementById('discordLoginModal');
+    const discordTokenInput = document.getElementById('discordTokenInput');
+    const discordLoginBtn = document.getElementById('discordLoginBtn');
+    const discordLoginError = document.getElementById('discordLoginError');
+
+    window.openDiscordLoginModal = function() {
+      console.log('[Discord Token] Opening modal overlay...');
+      const m = document.getElementById('discordLoginModal');
+      const err = document.getElementById('discordLoginError');
+      const inp = document.getElementById('discordTokenInput');
+      if (err) err.classList.add('hidden');
+      if (inp) inp.value = '';
+      if (m) {
+        m.classList.remove('hidden');
+        m.style.display = 'flex';
+        console.log('[Discord Token] Modal overlay displayed successfully.');
+        if (inp) setTimeout(() => inp.focus(), 50);
+      }
+    };
+
+    window.closeDiscordLoginModal = function() {
+      console.log('[Discord Token] Closing modal overlay...');
+      const m = document.getElementById('discordLoginModal');
+      if (m) {
+        m.classList.add('hidden');
+        m.style.display = 'none';
+      }
+    };
+
+    function syncDiscordGwUI() {
+      const savedToken = localStorage.getItem('sotarium_discord_token');
+      const savedUser = localStorage.getItem('sotarium_discord_user');
+      if (savedToken && savedUser) {
+        try {
+          const u = JSON.parse(savedUser);
+          if (gwLockOverlay) gwLockOverlay.classList.add('hidden');
+          if (gwUnlockedView) {
+            gwUnlockedView.classList.remove('hidden');
+            gwUnlockedView.classList.add('flex');
+          }
+          const nameEl = document.getElementById('gwDiscordName');
+          if (nameEl) nameEl.textContent = u.username || 'Connected';
+          const avatarEl = document.getElementById('gwDiscordAvatar');
+          if (avatarEl && u.avatar) avatarEl.src = u.avatar;
+          if (gwMasterToggle) {
+            gwMasterToggle.disabled = false;
+            gwMasterToggle.parentElement.querySelector('div').classList.remove('opacity-50', 'cursor-not-allowed');
+            gwMasterToggle.checked = localStorage.getItem('sotarium_discord_gw_active') === 'true';
+          }
+          if (gwStatusBadge) {
+            gwStatusBadge.classList.remove('hidden');
+            if (gwMasterToggle && gwMasterToggle.checked) {
+              gwStatusBadge.textContent = 'Active';
+              gwStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#5865F2]/15 border border-[#5865F2]/40 text-[#5865F2]';
+            } else {
+              gwStatusBadge.textContent = 'Standby';
+              gwStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 border border-white/20 text-gray-300';
+            }
+          }
+          return;
+        } catch(e) {}
+      }
+
+      // Default locked state
+      if (gwLockOverlay) gwLockOverlay.classList.remove('hidden');
+      if (gwUnlockedView) {
+        gwUnlockedView.classList.add('hidden');
+        gwUnlockedView.classList.remove('flex');
+      }
+      if (gwMasterToggle) {
+        gwMasterToggle.disabled = true;
+        gwMasterToggle.checked = false;
+        gwMasterToggle.parentElement.querySelector('div').classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      if (gwStatusBadge) {
+        gwStatusBadge.textContent = '';
+        gwStatusBadge.className = 'hidden';
+      }
+    }
+
+    window.submitDiscordLogin = async function() {
+      const token = (discordTokenInput?.value || '').trim();
+      if (!token) {
+        if (discordLoginError) {
+          discordLoginError.textContent = 'Please enter your Discord token';
+          discordLoginError.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (discordLoginBtn) {
+        discordLoginBtn.disabled = true;
+        discordLoginBtn.textContent = 'Connecting...';
+      }
+
+      try {
+        const resp = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: { Authorization: token }
+        });
+
+        if (resp.ok) {
+          const d = await resp.json();
+          const u = {
+            id: d.id,
+            username: d.username,
+            avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '/discord-3d.png'
+          };
+          localStorage.setItem('sotarium_discord_token', token);
+          localStorage.setItem('sotarium_discord_user', JSON.stringify(u));
+          closeDiscordLoginModal();
+          syncDiscordGwUI();
+        } else {
+          throw new Error('Invalid Discord Token (check authorization)');
+        }
+      } catch (err) {
+        if (discordLoginError) {
+          discordLoginError.textContent = err.message || 'Authentication failed';
+          discordLoginError.classList.remove('hidden');
+        }
+      } finally {
+        if (discordLoginBtn) {
+          discordLoginBtn.disabled = false;
+          discordLoginBtn.textContent = 'Connect';
+        }
+      }
+    };
+
+    window.disconnectDiscordGw = function() {
+      localStorage.removeItem('sotarium_discord_token');
+      localStorage.removeItem('sotarium_discord_user');
+      localStorage.removeItem('sotarium_discord_gw_active');
+      syncDiscordGwUI();
+    };
+
+    window.testDiscordGw = function() {
+      const fb = document.getElementById('gwFeedback');
+      if (fb) {
+        fb.textContent = 'Scanning channel #1540411748073472070...';
+        fb.style.color = '#5865F2';
+        setTimeout(() => {
+          fb.textContent = 'Ready & listening for next giveaway message';
+          fb.style.color = '#acff46';
+        }, 1200);
+      }
+    };
+
+    if (gwMasterToggle) {
+      gwMasterToggle.addEventListener('change', () => {
+        localStorage.setItem('sotarium_discord_gw_active', gwMasterToggle.checked ? 'true' : 'false');
+        syncDiscordGwUI();
+      });
+    }
+
+    // Init Discord GW UI on load
+    syncDiscordGwUI();
+
+
+    // SPA Auth: Synchronously check if player already logged in before rendering!
+    (function() {
+      const hasToken = (function() {
+        try {
+          const t = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
+          return Boolean(t && t.length > 10);
+        } catch(e) { return false; }
+      })();
+
+      const overlay = document.getElementById('loginOverlay');
+      const dashContent = document.getElementById('dashboardContent');
+      const loginForm = document.getElementById('loginForm');
+      const loginInput = document.getElementById('loginSessionInput');
+      const loginBtn = document.getElementById('loginContinueBtn');
+      const loginErr = document.getElementById('loginError');
+
+      function showDashboard() {
+        if (overlay) overlay.style.display = 'none';
+        if (dashContent) dashContent.style.display = 'block';
+      }
+
+      function showLogin() {
+        if (overlay) overlay.style.display = 'flex';
+        if (dashContent) dashContent.style.display = 'none';
+      }
+
+      // If token already exists in localStorage, immediately show dashboard forever!
+      if (hasToken) {
+        showDashboard();
+        // Background verify without blocking or flashing login screen
+        const token = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token');
+        fetch('/api/verify-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        }).then(r => r.ok ? r.json() : null).then(d => {
+          if (d && d.success && d.user) {
+            localStorage.setItem('sotarium_user_profile', JSON.stringify(d.user));
+          }
+        }).catch(() => {});
+      } else {
+        showLogin();
+      }
+
+      if (loginInput) {
+        loginInput.addEventListener('input', () => {
+          if (loginErr) loginErr.style.display = 'none';
+          loginBtn.style.color = loginInput.value.trim() ? '#fff' : '#777';
+          loginBtn.style.background = loginInput.value.trim() ? '#262626' : '#1c1c1c';
+        });
+      }
+
+      if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const token = loginInput.value.trim();
+          if (!token) return;
+          loginBtn.disabled = true;
+          loginBtn.textContent = 'Verifying...';
+          if (loginErr) loginErr.style.display = 'none';
+          try {
+            const res = await fetch('/api/verify-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token })
+            });
+            const data = await res.json();
+            if (res.ok && data.success && data.user) {
+              localStorage.setItem('sotarium_session_token', token);
+              localStorage.setItem('sotarium_registered_token', token);
+              localStorage.setItem('sotarium_user_profile', JSON.stringify(data.user));
+              showDashboard();
+            } else {
+              loginBtn.disabled = false;
+              loginBtn.textContent = 'Continue';
+              if (loginErr) { loginErr.textContent = data.error || 'Invalid session cookie.'; loginErr.style.display = 'block'; }
+            }
+          } catch(err) {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Continue';
+            if (loginErr) { loginErr.textContent = 'Network error.'; loginErr.style.display = 'block'; }
+          }
+        });
+      }
+    })();
+  </script>
+
+  </body>
 </html>

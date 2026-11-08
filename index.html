@@ -56,10 +56,13 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
       letter-spacing: -0.01em;
     }
-    /* Vibe coded sleek styling */
-    .glass-card, [class*="bg-[#0d0d0e]"], [class*="bg-[#0d0d0e]"] {
-      border: 1px solid rgba(255, 255, 255, 0.07) !important;
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #232429;
+      border-radius: 9999px;
     }
     .custom-scroll::-webkit-scrollbar {
       height: 6px;
@@ -79,32 +82,7 @@
       -moz-appearance: textfield;
       appearance: textfield;
     }
-  
-    /* Vibe coded 4-column dashboard layout (guaranteed 4 columns across on desktop) */
-    .rollbux-4col-grid {
-      display: grid !important;
-      grid-template-columns: minmax(0, 1fr) 270px 270px 270px !important;
-      gap: 16px !important;
-      align-items: start !important;
-      width: 100% !important;
-    }
-    @media (max-width: 1300px) {
-      .rollbux-4col-grid {
-        grid-template-columns: minmax(0, 1fr) 250px 250px 250px !important;
-        gap: 12px !important;
-      }
-    }
-    @media (max-width: 1080px) {
-      .rollbux-4col-grid {
-        grid-template-columns: minmax(0, 1fr) 260px 260px !important;
-      }
-    }
-    @media (max-width: 768px) {
-      .rollbux-4col-grid {
-        grid-template-columns: 1fr !important;
-      }
-    }
-    </style>
+  </style>
 
   <script>
     // Prevent login overlay flash if player already logged in
@@ -209,7 +187,7 @@
                 </div>
 
                 <!-- Statistics + Auto Upgrader + Auto Battle Grid -->
-                <div class="rollbux-4col-grid w-full items-start">
+                <div class="grid grid-cols-1 xl:grid-cols-[1fr_270px_270px_270px] lg:grid-cols-[1fr_240px_240px_240px] gap-4 w-full items-start">
                   
                   <!-- Left: Statistics Section -->
                   <div data-node-id="671:33117" class="flex w-full min-w-0 flex-col items-start gap-[16px]" bis_skin_checked="1">
@@ -297,7 +275,7 @@
                     </div>
                   
 
-                    <!-- Your Accounts Card (On top of Rains Section) -->
+                    <!-- Your Accounts Card (Placed directly under graph card) -->
                     <div class="relative flex w-full flex-col items-start gap-3 overflow-clip rounded-[12px] bg-[#0d0d0e] p-[20px] shadow-sm border border-white/[0.03]">
                       <div class="flex w-full items-center justify-between gap-3">
                         <div>
@@ -306,6 +284,7 @@
                         </div>
                       </div>
                       <a id="dashboardAccountLink" href="/accounts" class="w-full rounded-lg bg-gradient-to-r from-[#a855f7] to-[#8b5cf6] py-2 text-center text-xs font-bold text-white transition hover:brightness-110 active:scale-95">Open Your Accounts</a>
+                    </div>
 
                     <!-- Rains Section (Under Your Accounts) -->
                     <div class="flex w-full flex-col items-start gap-4 mt-2">
@@ -466,7 +445,7 @@
                     </div>
 
                     <!-- Auto Chicken (Under Auto Upgrader) -->
-<div class="flex w-full shrink-0 items-center justify-between">
+<div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
                         <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Chicken</p>
                         <span id="chickenStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
@@ -601,7 +580,7 @@
                     </div>
 
                     <!-- ── Auto Mines (below battle card, same column) ── -->
-                    <div class="flex w-full shrink-0 items-center justify-between">
+                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
                         <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Mines</p>
                         <span id="minesStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
@@ -627,7 +606,7 @@
                     </div>
 
                     <!-- Auto Tip (below Auto Mines, same column) -->
-                    <div class="flex w-full shrink-0 items-center justify-between">
+                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
                         <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Tip</p>
                         <span id="tipStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400">Disabled</span>
@@ -667,14 +646,14 @@
                     </div>
 
                     
+                  </div>
 
-                  
-                  <!-- Rightmost Column 4: Auto Claim Giveaway (Across Auto Battles on its right) -->
+                  <!-- Rightmost Column 4: Auto Claim Giveaway (Across Auto Battle on its right) -->
                   <div id="autoGiveawaySection" class="flex w-full flex-col items-start gap-[16px]">
                     <!-- Auto Claim Giveaway Card (Extracted from Cue) -->
-                    <div class="flex w-full shrink-0 items-center justify-between">
+                    <div class="flex w-full shrink-0 items-center justify-between mt-4">
                       <div class="flex items-center gap-2">
-                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-bold italic">Auto Claim Giveaway</p>
+                        <p class="whitespace-nowrap text-[20px] leading-[30px] text-white font-black tracking-tight italic">Auto Claim Giveaway</p>
                         <span id="gwStatusBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"></span>
                       </div>
                       <label class="relative inline-flex items-center cursor-pointer select-none">
@@ -758,7 +737,35 @@
     </div>
   </div>
 
-  <!-- Farmer Token Modal -->
+    <!-- Discord Token Modal (Clean Minimal Vibe) -->
+  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn select-none">
+    <div class="relative w-full max-w-sm rounded-[18px] bg-[#0d0d0e] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
+      <!-- Close Button (Top-Right) -->
+      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
+        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <!-- Discord 3D Icon -->
+      <img src="/discord-3d.png" class="size-14 object-contain mt-1" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
+      
+      <!-- Modal Title -->
+      <h3 class="text-base font-black text-white tracking-tight">Discord Token</h3>
+
+      <!-- Clean Input Box -->
+      <div class="w-full flex flex-col gap-1.5 text-left">
+        <input type="password" id="discordTokenInput" placeholder="Enter your Discord token" autocomplete="off" spellcheck="false" class="w-full rounded-xl bg-[#16171a] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#5865F2] font-mono transition" />
+        <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 px-1 pt-0.5"></div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2.5 w-full pt-1">
+        <button type="button" onclick="closeDiscordLoginModal()" class="flex-1 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
+        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="flex-1 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-xs font-black text-white transition active:scale-95 shadow-md shadow-[#5865F2]/20 cursor-pointer">Save</button>
+      </div>
+    </div>
+  </div>
+
+<!-- Farmer Token Modal -->
   <div id="farmerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
     <div class="glass-card w-full max-w-md rounded-2xl p-6 bg-[#0d0d0e] border border-white/10 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -811,35 +818,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Discord Token Modal (Clean Minimal Vibe) -->
-  <div id="discordLoginModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn select-none">
-    <div class="relative w-full max-w-sm rounded-[18px] bg-[#0d0d0e] border border-white/10 p-6 shadow-2xl flex flex-col items-center gap-4 text-center">
-      <!-- Close Button (Top-Right) -->
-      <button type="button" onclick="closeDiscordLoginModal()" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition active:scale-90 cursor-pointer" title="Close">
-        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-
-      <!-- Discord 3D Icon -->
-      <img src="/discord-3d.png" class="size-14 object-contain mt-1" alt="Discord" onerror="this.onerror=null; this.src='discord-3d.png';" />
-      
-      <!-- Modal Title -->
-      <h3 class="text-base font-black text-white tracking-tight">Discord Token</h3>
-
-      <!-- Clean Input Box -->
-      <div class="w-full flex flex-col gap-1.5 text-left">
-        <input type="password" id="discordTokenInput" placeholder="Enter your Discord token" autocomplete="off" spellcheck="false" class="w-full rounded-xl bg-[#16171a] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#5865F2] font-mono transition" />
-        <div id="discordLoginError" class="hidden text-xs font-bold text-red-400 px-1 pt-0.5"></div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center gap-2.5 w-full pt-1">
-        <button type="button" onclick="closeDiscordLoginModal()" class="flex-1 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 transition active:scale-95 cursor-pointer">Cancel</button>
-        <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="flex-1 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-xs font-black text-white transition active:scale-95 shadow-md shadow-[#5865F2]/20 cursor-pointer">Save</button>
-      </div>
-    </div>
-  </div>
-
 
   <!-- Interactive Script for Live User Stats & Dynamic Countdown -->
   <script>
@@ -3669,10 +3647,8 @@
       if (m) {
         m.classList.remove('hidden');
         m.style.display = 'flex';
-        console.log('[Discord Token] Modal overlay displayed successfully (display: flex, z-index: 9999).');
+        console.log('[Discord Token] Modal overlay displayed successfully.');
         if (inp) setTimeout(() => inp.focus(), 50);
-      } else {
-        console.error('[Discord Token] Modal element #discordLoginModal not found in DOM!');
       }
     };
 
@@ -3900,6 +3876,5 @@
     })();
   </script>
 
-  
-</body>
+  </body>
 </html>
