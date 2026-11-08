@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Page</title>
+  <title>Rollbux - Live Affiliate Stats</title>
   <!-- Suppress cdn.tailwindcss.com production warning in console -->
   <script>
     (function(){
@@ -98,6 +98,272 @@
     .is-logged-in #dashboardContent { display: block !important; }
   </style>
   <link rel="stylesheet" href="/theme-screens.css">
+
+  <style>
+    /* DiscordViewer-Dashboard-11 Exact Theme Tokens (Theme.swift) */
+    :root {
+      --dv-bg: #070707;       /* Color(white: 0.028) */
+      --dv-panel: #121212;    /* Color(white: 0.072) */
+      --dv-card: #0b0b0b;     /* Color(white: 0.042) */
+      --dv-field: #080808;    /* Color(white: 0.030) */
+      --dv-raised: #1d1d1d;   /* Color(white: 0.115) */
+      --dv-line: rgba(255, 255, 255, 0.10); /* Color.white.opacity(0.10) */
+      --dv-accent: #ffffff;
+      --dv-muted: #8f8f8f;    /* Color(white: 0.56) */
+      --dv-danger: #f55e5e;   /* Color(red: 0.96, green: 0.37, blue: 0.37) */
+      --dv-good: #54d487;     /* Color(red: 0.33, green: 0.83, blue: 0.53) */
+    }
+
+    body {
+      background-color: var(--dv-bg) !important;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .dv-card {
+      background-color: var(--dv-card);
+      border-radius: 18px;
+      border: 1px solid var(--dv-line);
+      padding: 18px;
+    }
+
+    .dv-field {
+      height: 42px;
+      background-color: var(--dv-field);
+      border-radius: 12px;
+      border: 1px solid var(--dv-line);
+      padding: 0 14px;
+      color: #ffffff;
+      outline: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: border-color 0.15s ease;
+    }
+    .dv-field:focus {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .dv-pill {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 0 14px;
+      height: 38px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .dv-pill.active, .dv-pill-active {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+    }
+    .dv-pill.inactive, .dv-pill-inactive {
+      background-color: var(--dv-raised) !important;
+      color: #ffffff !important;
+    }
+    .dv-pill:active {
+      opacity: 0.7;
+    }
+
+    .dv-chip {
+      font-size: 13px;
+      font-weight: 600;
+      height: 40px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .dv-chip.selected {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+    }
+    .dv-chip:not(.selected) {
+      background-color: var(--dv-raised) !important;
+      color: #ffffff !important;
+    }
+    .dv-chip:active {
+      opacity: 0.7;
+    }
+
+    .dv-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background-color: var(--dv-field);
+      border: 1px solid var(--dv-line);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Swift-matching MonoToggle */
+    .dv-toggle-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .dv-toggle-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .dv-toggle-track {
+      width: 38px;
+      height: 22px;
+      border-radius: 9999px;
+      background-color: var(--dv-raised);
+      border: 1px solid var(--dv-line);
+      transition: background-color 0.2s ease;
+      position: relative;
+    }
+    .dv-toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: #808080;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .dv-toggle-input:checked + .dv-toggle-track {
+      background-color: #ffffff;
+    }
+    .dv-toggle-input:checked + .dv-toggle-track .dv-toggle-thumb {
+      transform: translateX(16px);
+      background-color: #000000;
+    }
+
+    /* Mines 5x5 Tiles matching TileButton in SiteView.swift */
+    .dv-tile {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      background-color: var(--dv-field);
+      border: 1px solid var(--dv-line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      user-select: none;
+      font-size: 16px;
+      color: #ffffff;
+    }
+    .dv-tile:hover:not(.revealed-safe):not(.revealed-bomb) {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .dv-tile.selected {
+      background-color: rgba(255, 255, 255, 0.12);
+      border: 2px solid #ffffff;
+    }
+    .dv-tile.revealed-safe {
+      background-color: rgba(84, 212, 135, 0.16) !important;
+      border: 1px solid rgba(84, 212, 135, 0.5) !important;
+      color: var(--dv-good) !important;
+    }
+    .dv-tile.revealed-bomb {
+      background-color: rgba(245, 94, 94, 0.18) !important;
+      border: 1px solid rgba(245, 94, 94, 0.6) !important;
+      color: var(--dv-danger) !important;
+    }
+    .dv-tile:active {
+      transform: scale(0.96);
+    }
+
+    /* Modal Card styling */
+    .dv-modal-card {
+      width: 400px;
+      background-color: var(--dv-panel);
+      border-radius: 20px;
+      border: 1px solid var(--dv-line);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95);
+      overflow: hidden;
+    }
+    .dv-modal-header {
+      height: 62px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--dv-line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dv-icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background-color: var(--dv-raised);
+      border: 1px solid var(--dv-line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dv-muted);
+      cursor: pointer;
+      transition: color 0.15s, background-color 0.15s;
+    }
+    .dv-icon-btn:hover {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.18);
+    }
+
+    /* Feed row matching FeedRow in SiteView.swift */
+    .dv-feed-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background-color: var(--dv-field);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* Custom range slider thumb styling */
+    input[type=range].dv-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.12);
+      height: 4px;
+      border-radius: 2px;
+      outline: none;
+    }
+    input[type=range].dv-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    input[type=range].dv-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+
 </head>
 <body class="selection:bg-[#acff46] selection:text-[#0e131f]">
   <!-- Login Overlay -->
@@ -139,474 +405,509 @@
               <!-- Right Main Content -->
               <div data-node-id="671:33061" class="flex flex-1 min-w-0 w-full flex-col items-start gap-[24px]" bis_skin_checked="1">
                 
-                                <!-- ══════════════════════════════════════════════════════════ -->
-                <!-- VIEW 1: ROLLBUX (Matches Image 1 & Image 2) -->
+                                                <!-- ══════════════════════════════════════════════════════════ -->
+                <!-- VIEW 1: ROLLBUX (Exact DiscordViewer-Dashboard-11 SiteView) -->
                 <!-- ══════════════════════════════════════════════════════════ -->
-                <div id="viewRollbux" class="w-full flex flex-col gap-5">
-                  <!-- Header: Overview + Currency Switcher Pill -->
+                <div id="viewRollbux" class="w-full flex flex-col gap-6">
+                  <!-- Header: Overview + Currency Switcher Segmented Pill -->
                   <div class="flex w-full shrink-0 flex-wrap items-center justify-between gap-3">
-                    <div class="flex shrink-0 items-center gap-2">
-                      <h2 class="text-[26px] font-bold text-white tracking-tight">Overview</h2>
+                    <div class="flex shrink-0 items-center gap-3">
+                      <h2 class="text-[28px] font-bold text-white tracking-tight">Overview</h2>
+                      <span class="dv-badge" style="display:none;" id="simBadge">Simulation</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                      <!-- Currency Switcher Pill: BUX | USD | SOL -->
-                      <div class="flex items-center bg-[#121214] p-1 rounded-xl border border-white/[0.06] shadow-sm select-none">
-                        <button id="unitBuxBtn" type="button" class="px-3.5 py-1 rounded-lg text-xs font-bold bg-white text-black transition cursor-pointer">BUX</button>
-                        <button id="unitUsdBtn" type="button" class="px-3.5 py-1 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer">USD</button>
-                        <button id="unitSolBtn" type="button" class="px-3.5 py-1 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer">SOL</button>
+                    <div class="flex items-center gap-3 select-none">
+                      <!-- Segmented Currency Switcher: BUX | USD | SOL -->
+                      <div class="flex items-center bg-[#121212] p-1 rounded-[11px] border border-[rgba(255,255,255,0.10)] shadow-sm">
+                        <button id="unitBuxBtn" type="button" class="dv-pill active" style="height:32px; padding:0 14px; border:none;">BUX</button>
+                        <button id="unitUsdBtn" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:32px; padding:0 14px; border:none; background:transparent;">USD</button>
+                        <button id="unitSolBtn" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:32px; padding:0 14px; border:none; background:transparent;">SOL</button>
                       </div>
                       <button id="clearOverviewBtn" type="button" class="hidden">Clear</button>
                     </div>
                   </div>
 
-                  <!-- Two Top Stats Cards: Total Earnings & Current Balance -->
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                  <!-- Two Stat Cards: Total Earnings & Current Balance (StatCard from SiteView) -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-[18px] w-full">
                     <!-- Total Earnings -->
-                    <div class="relative flex flex-col justify-between rounded-2xl bg-[#0e0e11] border border-white/[0.05] p-5 min-h-[110px] shadow-sm">
-                      <span class="text-xs font-medium text-zinc-400">Total Earnings</span>
-                      <div class="flex items-baseline gap-2 mt-1">
-                        <span id="statTotalEarnings" class="text-[32px] font-bold text-white tracking-tight leading-none">0</span>
+                    <div class="dv-card flex flex-col justify-between min-h-[120px] p-5">
+                      <span class="text-[14px] font-semibold text-[#8f8f8f]">Total Earnings</span>
+                      <div class="flex items-baseline gap-2 mt-2">
+                        <span id="statTotalEarnings" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">0</span>
                       </div>
-                      <span id="statTotalEarningsSub" class="text-xs text-zinc-500 font-medium mt-1 leading-none">$0.00 · 0.00 SOL</span>
+                      <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono">$0.00 · 0.00 SOL</span>
                     </div>
 
-                    <!-- Current Balance -->
-                    <div class="relative flex flex-col justify-between rounded-2xl bg-[#0e0e11] border border-white/[0.05] p-5 min-h-[110px] shadow-sm">
-                      <span class="text-xs font-medium text-zinc-400">Current Balance</span>
-                      <div class="flex items-baseline gap-2 mt-1">
-                        <span id="statCurrentBalance" class="text-[32px] font-bold text-white tracking-tight leading-none">5</span>
+                    <!-- Current Balance (strong border rgba(255,255,255,0.22)) -->
+                    <div class="dv-card flex flex-col justify-between min-h-[120px] p-5" style="border-color: rgba(255, 255, 255, 0.22);">
+                      <span class="text-[14px] font-semibold text-white">Current Balance</span>
+                      <div class="flex items-baseline gap-2 mt-2">
+                        <span id="statCurrentBalance" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">5</span>
                       </div>
-                      <span id="statCurrentBalanceSub" class="text-xs text-zinc-500 font-medium mt-1 leading-none">$0.01 · 0.0001 SOL</span>
+                      <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono">$0.01 · 0.0001 SOL</span>
                     </div>
                   </div>
 
-                  <!-- Row 2: 3-Column Layout (Statistics, Auto Upgrader, Auto Mines) -->
-                  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full items-start">
+                  <!-- 3-Column Grid: Statistics, Auto Upgrader, Auto Mines -->
+                  <div class="grid grid-cols-1 xl:grid-cols-[1fr_380px_380px] lg:grid-cols-[1fr_340px_340px] gap-5 w-full items-start">
                     
-                    <!-- ── Column 1: Statistics & Accounts ── -->
+                    <!-- ── Column 1: Statistics, Accounts, Results ── -->
                     <div class="flex flex-col gap-5 w-full">
-                      <!-- Statistics Card -->
-                      <div class="flex flex-col gap-3.5 w-full rounded-2xl bg-[#0e0e11] border border-white/[0.05] p-5 shadow-sm">
+                      <!-- Statistics Section -->
+                      <div class="flex flex-col gap-3 w-full">
                         <div class="flex items-center justify-between">
-                          <h3 class="text-lg font-bold text-white tracking-tight">Statistics</h3>
+                          <h3 class="text-[20px] font-bold text-white tracking-tight">Statistics</h3>
                           <div class="flex items-center gap-2 select-none">
-                            <div class="flex items-center bg-[#121214] p-1 rounded-xl border border-white/[0.05]">
-                              <button id="statsRange24h" onclick="setStatsRange('24H')" type="button" class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-black transition cursor-pointer">24H</button>
-                              <button id="statsRangeWeek" onclick="setStatsRange('Week')" type="button" class="px-3 py-1 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer">Week</button>
-                              <button id="statsRangeMonth" onclick="setStatsRange('Month')" type="button" class="px-3 py-1 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer">Month</button>
+                            <div class="flex items-center bg-[#121212] p-1 rounded-[11px] border border-[rgba(255,255,255,0.10)]">
+                              <button id="statsRange24h" onclick="setStatsRange('24H')" type="button" class="dv-pill active" style="height:28px; padding:0 10px; font-size:12px; border:none;">24H</button>
+                              <button id="statsRangeWeek" onclick="setStatsRange('Week')" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:28px; padding:0 10px; font-size:12px; border:none; background:transparent;">Week</button>
+                              <button id="statsRangeMonth" onclick="setStatsRange('Month')" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:28px; padding:0 10px; font-size:12px; border:none; background:transparent;">Month</button>
                             </div>
-                            <button id="clearStatsBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#18181b] hover:bg-[#222226] text-white border border-white/[0.05] transition cursor-pointer">Clear</button>
+                            <button id="clearStatsBtn" type="button" class="dv-pill inactive" style="height:36px; padding:0 14px;">Clear</button>
                           </div>
                         </div>
 
                         <!-- Statistics Line Graph with 0, 2, 4, 6 and 3 PM, 6 PM, 9 PM -->
-                        <div class="relative w-full h-[220px] mt-2 select-none">
-                          <!-- Y-Axis Ticks -->
-                          <div class="absolute left-0 top-0 bottom-6 w-5 flex flex-col justify-between text-[11px] font-bold text-zinc-500">
-                            <span>6</span>
-                            <span>4</span>
-                            <span>2</span>
-                            <span>0</span>
-                          </div>
-                          <!-- Chart SVG -->
-                          <div class="absolute left-6 right-0 top-0 bottom-6">
-                            <svg class="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="none">
-                              <defs>
-                                <linearGradient id="statsFillGrad" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.14"/>
-                                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-                                </linearGradient>
-                              </defs>
-                              <!-- Dotted gridlines -->
-                              <line x1="0" y1="8" x2="400" y2="8" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
-                              <line x1="0" y1="56" x2="400" y2="56" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
-                              <line x1="0" y1="104" x2="400" y2="104" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
-                              <line x1="0" y1="152" x2="400" y2="152" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
-                              <!-- Fill -->
-                              <path id="statsChartArea" d="M0 45 L400 45 L400 152 L0 152 Z" fill="url(#statsFillGrad)"/>
-                              <!-- Line -->
-                              <path id="statsChartLine" d="M0 45 L400 45" fill="none" stroke="#e4e4e7" stroke-width="2"/>
-                            </svg>
-                          </div>
-                          <!-- X-Axis Labels -->
-                          <div class="absolute left-6 right-0 bottom-0 flex justify-around text-[11px] font-medium text-zinc-500">
-                            <span>3 PM</span>
-                            <span>6 PM</span>
-                            <span>9 PM</span>
+                        <div class="dv-card p-5">
+                          <div class="relative w-full h-[220px] select-none">
+                            <div class="absolute left-0 top-0 bottom-6 w-5 flex flex-col justify-between text-[11px] font-bold text-[#8f8f8f] font-mono">
+                              <span>6</span>
+                              <span>4</span>
+                              <span>2</span>
+                              <span>0</span>
+                            </div>
+                            <div class="absolute left-6 right-0 top-0 bottom-6">
+                              <svg class="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="none">
+                                <defs>
+                                  <linearGradient id="dvChartAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.14"/>
+                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                                  </linearGradient>
+                                </defs>
+                                <line x1="0" y1="8" x2="400" y2="8" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
+                                <line x1="0" y1="56" x2="400" y2="56" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
+                                <line x1="0" y1="104" x2="400" y2="104" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
+                                <line x1="0" y1="152" x2="400" y2="152" stroke="rgba(255,255,255,0.10)" stroke-dasharray="3 4"/>
+                                <path id="statsChartArea" d="M0 45 L400 45 L400 152 L0 152 Z" fill="url(#dvChartAreaGrad)"/>
+                                <path id="statsChartLine" d="M0 45 L400 45" fill="none" stroke="#ffffff" stroke-width="2"/>
+                              </svg>
+                            </div>
+                            <div class="absolute left-6 right-0 bottom-0 flex justify-around text-[11px] font-medium text-[#8f8f8f]">
+                              <span>3 PM</span>
+                              <span>6 PM</span>
+                              <span>9 PM</span>
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      <!-- Accounts Section -->
-                      <div class="flex flex-col gap-3.5 w-full rounded-2xl bg-[#0e0e11] border border-white/[0.05] p-5 shadow-sm">
+                      <!-- Accounts Card matching accountsCard in SiteView -->
+                      <div class="dv-card flex flex-col gap-3 p-5">
                         <div class="flex items-center justify-between">
-                          <h3 class="text-lg font-bold text-white tracking-tight">Accounts</h3>
+                          <h3 class="text-[17px] font-bold text-white tracking-tight">Accounts</h3>
                           <div class="flex items-center gap-2 select-none">
-                            <button id="refreshAccountsBtn" onclick="refreshAccountsList()" type="button" class="p-2 rounded-xl bg-[#141417] hover:bg-[#1c1c20] text-zinc-400 hover:text-white transition border border-white/[0.05] cursor-pointer" title="Refresh">
-                              <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <button id="refreshAccountsBtn" onclick="refreshAccountsList()" type="button" class="dv-pill inactive" style="height:32px; padding:0 10px;" title="Refresh">
+                              <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                             </button>
-                            <button id="addAccountBtn" onclick="openFarmerModal()" type="button" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold transition cursor-pointer shadow-sm">
-                              <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <button id="addAccountBtn" onclick="openFarmerModal()" type="button" class="dv-pill active" style="height:32px; padding:0 14px;">
+                              <svg class="size-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                               <span>Add</span>
                             </button>
                           </div>
                         </div>
                         <div id="accountsQuickList" class="flex flex-col gap-2 w-full pt-1">
-                          <div class="flex items-center justify-between p-3 rounded-xl bg-[#121214] border border-white/[0.04]">
+                          <div class="flex items-center justify-between p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]">
                             <div class="flex items-center gap-2.5">
-                              <div class="size-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white">RB</div>
-                              <div class="flex flex-col">
-                                <span id="quickAccountUsername" class="text-xs font-bold text-white">Main Account</span>
-                                <span class="text-[11px] text-zinc-400">Connected</span>
-                              </div>
+                              <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center text-[13px] font-bold text-white">M</div>
+                              <span id="quickAccountUsername" class="text-[14px] font-semibold text-white">Main Account</span>
                             </div>
-                            <span class="text-xs font-mono font-bold text-emerald-400">Active</span>
+                            <div class="flex items-center gap-3">
+                              <span class="text-[14px] font-semibold text-[#8f8f8f] font-mono">5.00 BUX</span>
+                              <button type="button" class="size-[30px] rounded-[8px] bg-[#1d1d1d] text-[#8f8f8f] hover:text-white flex items-center justify-center transition">
+                                <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Results Feed Card matching resultsCard in SiteView -->
+                      <div class="dv-card flex flex-col gap-3 p-5">
+                        <div class="flex items-center justify-between">
+                          <h3 class="text-[17px] font-bold text-white tracking-tight">Results</h3>
+                          <button type="button" onclick="clearResultsFeed()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
+                        </div>
+                        <div id="resultsFeedList" class="flex flex-col gap-2 w-full pt-1">
+                          <!-- Example Feed Item 1: Win -->
+                          <div class="dv-feed-row">
+                            <div class="w-[3px] h-[28px] rounded-[2px] bg-[#54d487] shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0">
+                              <span class="text-[13px] font-bold text-white truncate">Main Account</span>
+                              <span class="text-[11px] text-[#8f8f8f] truncate">Upgrader 2.00x</span>
+                            </div>
+                            <span class="text-[13px] font-bold text-[#54d487] font-mono">+10.00 BUX</span>
+                            <span class="text-[11px] text-[#8f8f8f] opacity-70">Just now</span>
+                          </div>
+                          <!-- Example Feed Item 2: Loss -->
+                          <div class="dv-feed-row">
+                            <div class="w-[3px] h-[28px] rounded-[2px] bg-[#f55e5e] shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0">
+                              <span class="text-[13px] font-bold text-white truncate">Main Account</span>
+                              <span class="text-[11px] text-[#8f8f8f] truncate">Mines 3 Bombs</span>
+                            </div>
+                            <span class="text-[13px] font-bold text-[#f55e5e] font-mono">−5.00 BUX</span>
+                            <span class="text-[11px] text-[#8f8f8f] opacity-70">2m ago</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <!-- ── Column 2: Auto Upgrader Card ── -->
-                    <div class="flex flex-col gap-4 w-full rounded-2xl bg-[#0e0e11] border border-white/[0.05] p-5 shadow-sm">
-                      <!-- Header -->
+                    <!-- ── Column 2: Auto Upgrader (Exact SiteView.swift Upgrader) ── -->
+                    <div class="flex flex-col gap-3 w-full">
+                      <!-- FeatureHeader: title + MonoToggle -->
                       <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-bold text-white tracking-tight">Auto Upgrader</h3>
-                        <label class="relative inline-flex items-center cursor-pointer select-none">
-                          <input type="checkbox" id="upgraderMasterToggle" class="sr-only peer">
-                          <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-white"></div>
+                        <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Upgrader</h3>
+                        <label class="dv-toggle-wrap">
+                          <input type="checkbox" id="upgraderMasterToggle" class="dv-toggle-input">
+                          <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
                         </label>
                       </div>
 
-                      <!-- Circular Gauge Wheel matching Image 1 -->
-                      <div class="relative flex flex-col items-center justify-center w-full py-4 select-none">
-                        <div class="relative size-[190px] flex items-center justify-center">
-                          <svg class="size-full -rotate-90" viewBox="0 0 120 120">
-                            <!-- Background dark track -->
-                            <circle cx="60" cy="60" r="48" fill="none" stroke="#16161a" stroke-width="10"/>
-                            <!-- Active White Progress Arc (45% of 301.6 circumference = 135.7) -->
-                            <circle id="upgraderGaugeArc" cx="60" cy="60" r="48" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-dasharray="135.7 301.6" class="transition-all duration-300"/>
-                          </svg>
-                          <!-- Center Text: Upgrade Chance 45% (0 - 450,000) -->
-                          <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                            <span class="text-xs font-medium text-zinc-400 leading-none">Upgrade Chance</span>
-                            <span id="upgraderChanceDisplay" class="text-3xl font-extrabold text-white tracking-tight mt-1.5 leading-none">45%</span>
-                            <span class="text-[11px] text-zinc-500 mt-1 leading-none">0 - 450,000</span>
+                      <div class="dv-card flex flex-col gap-3.5 p-5">
+                        <!-- Ring: 220px drag ring matching Ring in Theme.swift -->
+                        <div class="relative flex flex-col items-center justify-center w-full py-2 select-none">
+                          <div id="upgraderWheelContainer" class="relative size-[210px] flex items-center justify-center cursor-pointer">
+                            <svg class="size-full -rotate-90" viewBox="0 0 120 120">
+                              <!-- Background track -->
+                              <circle cx="60" cy="60" r="48" fill="none" stroke="#16161a" stroke-width="10"/>
+                              <!-- Active white arc -->
+                              <circle id="upgraderGaugeArc" cx="60" cy="60" r="48" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-dasharray="135.7 301.6" class="transition-all duration-150"/>
+                            </svg>
+                            <!-- Center Text matching Ring: Upgrade Chance, 38px bold num, 11px medium range -->
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                              <span class="text-[12px] font-semibold text-[#8f8f8f] leading-none">Upgrade Chance</span>
+                              <span id="upgraderChanceDisplay" class="text-[38px] font-bold text-white tracking-tight mt-1 leading-none font-mono">45%</span>
+                              <span id="upgraderRangeDisplay" class="text-[11px] font-medium text-[#8f8f8f] mt-1 leading-none font-mono">0 - 450,000</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <!-- Game Amount Row -->
-                      <div class="flex items-center justify-between pt-1 select-none">
-                        <span class="text-xs font-medium text-zinc-400">Game Amount</span>
-                        <div class="flex items-center bg-[#141417] p-0.5 rounded-lg border border-white/[0.05]">
-                          <button id="upgraderModeFixed" onclick="setUpgraderMode('Fixed')" type="button" class="px-3 py-1 rounded-md text-xs font-bold bg-white text-black shadow-sm transition cursor-pointer">Fixed</button>
-                          <button id="upgraderModeAllIn" onclick="setUpgraderMode('All-In')" type="button" class="px-3 py-1 rounded-md text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer">All-In</button>
+                        <!-- Game Amount Row + Segmented [ Fixed | All-In ] -->
+                        <div class="flex items-center justify-between select-none">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Game Amount</span>
+                          <div class="flex items-center bg-[#121212] p-0.5 rounded-[9px] border border-[rgba(255,255,255,0.10)]">
+                            <button id="upgraderModeFixed" onclick="setUpgraderMode('Fixed')" type="button" class="dv-pill active" style="height:26px; padding:0 12px; font-size:12px; border:none;">Fixed</button>
+                            <button id="upgraderModeAllIn" onclick="setUpgraderMode('All-In')" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:26px; padding:0 12px; font-size:12px; border:none; background:transparent;">All-In</button>
+                          </div>
                         </div>
-                      </div>
 
-                      <!-- Amount Input & Quick Multipliers (50, 1/2, 2x, Max) -->
-                      <div class="flex items-center gap-2">
-                        <input type="number" id="upgraderAmountInput" value="50" min="1" class="flex-1 bg-[#141417] border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-white/30 transition">
+                        <!-- Amount Input & Quick Chips: 1/2 (52px), 2x (52px), Max (56px) -->
+                        <div id="upgraderAmountContainer" class="flex items-center gap-1.5 select-none">
+                          <input type="number" id="upgraderAmountInput" value="50" min="1" class="dv-field flex-1 font-mono font-bold">
+                          <button type="button" onclick="multiplyUpgraderAmount('half')" class="dv-chip" style="width:52px; height:42px;">1/2</button>
+                          <button type="button" onclick="multiplyUpgraderAmount('double')" class="dv-chip" style="width:52px; height:42px;">2x</button>
+                          <button type="button" onclick="multiplyUpgraderAmount('max')" class="dv-chip" style="width:56px; height:42px;">Max</button>
+                        </div>
+
+                        <!-- Multiplier Row: Multiplier label + 2.00x text -->
+                        <div class="flex items-center justify-between">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Multiplier</span>
+                          <span id="upgraderMultiplierValue" class="text-[12px] font-bold text-white font-mono">2.00x</span>
+                        </div>
+
+                        <!-- Multiplier text field (width 64) + Preset Chips: 1.5x, 2x, 5x, 10x, 20x -->
                         <div class="flex items-center gap-1.5 select-none">
-                          <button type="button" onclick="multiplyUpgraderAmount('half')" class="px-3 py-2 rounded-xl bg-[#18181b] hover:bg-[#222226] text-xs font-bold text-zinc-300 transition cursor-pointer">1/2</button>
-                          <button type="button" onclick="multiplyUpgraderAmount('double')" class="px-3 py-2 rounded-xl bg-[#18181b] hover:bg-[#222226] text-xs font-bold text-zinc-300 transition cursor-pointer">2x</button>
-                          <button type="button" onclick="multiplyUpgraderAmount('max')" class="px-3 py-2 rounded-xl bg-[#18181b] hover:bg-[#222226] text-xs font-bold text-zinc-300 transition cursor-pointer">Max</button>
+                          <input type="text" id="upgraderMultiplierInput" value="2" class="dv-field w-[64px] shrink-0 font-mono font-bold text-center">
+                          <button type="button" onclick="setUpgraderMultiplier(1.5)" class="dv-chip flex-1" style="height:42px;" id="chipMult15">1.5x</button>
+                          <button type="button" onclick="setUpgraderMultiplier(2)" class="dv-chip selected flex-1" style="height:42px;" id="chipMult2">2x</button>
+                          <button type="button" onclick="setUpgraderMultiplier(5)" class="dv-chip flex-1" style="height:42px;" id="chipMult5">5x</button>
+                          <button type="button" onclick="setUpgraderMultiplier(10)" class="dv-chip flex-1" style="height:42px;" id="chipMult10">10x</button>
+                          <button type="button" onclick="setUpgraderMultiplier(20)" class="dv-chip flex-1" style="height:42px;" id="chipMult20">20x</button>
                         </div>
-                      </div>
 
-                      <!-- Multiplier Row -->
-                      <div class="flex items-center justify-between pt-1">
-                        <span class="text-xs font-medium text-zinc-400">Multiplier</span>
-                        <span id="upgraderMultiplierValue" class="text-xs font-bold text-white">2x</span>
-                      </div>
+                        <!-- Account Picker -->
+                        <div class="flex items-center justify-between p-2 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] select-none">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                          <span class="text-[13px] font-semibold text-white">All Accounts</span>
+                        </div>
 
-                      <!-- Quick Multiplier Selector Pills -->
-                      <div class="grid grid-cols-4 gap-1.5 select-none">
-                        <button type="button" onclick="setUpgraderMultiplier(1.5)" class="py-1.5 rounded-lg bg-[#141417] hover:bg-[#1e1e24] text-xs font-semibold text-zinc-400 hover:text-white transition cursor-pointer">1.5x</button>
-                        <button type="button" onclick="setUpgraderMultiplier(2)" class="py-1.5 rounded-lg bg-white text-black text-xs font-bold shadow-sm transition cursor-pointer">2x</button>
-                        <button type="button" onclick="setUpgraderMultiplier(5)" class="py-1.5 rounded-lg bg-[#141417] hover:bg-[#1e1e24] text-xs font-semibold text-zinc-400 hover:text-white transition cursor-pointer">5x</button>
-                        <button type="button" onclick="setUpgraderMultiplier(10)" class="py-1.5 rounded-lg bg-[#141417] hover:bg-[#1e1e24] text-xs font-semibold text-zinc-400 hover:text-white transition cursor-pointer">10x</button>
+                        <!-- Action Button: Upgrade / Stop (height: 44) -->
+                        <button id="upgraderManualPlayBtn" type="button" onclick="triggerUpgraderPlay()" class="dv-pill active w-full" style="height:44px; font-size:14px; font-weight:700;">
+                          Upgrade
+                        </button>
                       </div>
                     </div>
 
-                    <!-- ── Column 3: Auto Mines Card ── -->
-                    <div class="flex flex-col gap-4 w-full rounded-2xl bg-[#0e0e11] border border-white/[0.05] p-5 shadow-sm">
-                      <!-- Header -->
+                    <!-- ── Column 3: Auto Mines (Exact SiteView.swift Mines) ── -->
+                    <div class="flex flex-col gap-3 w-full">
+                      <!-- FeatureHeader: title + MonoToggle -->
                       <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-bold text-white tracking-tight">Auto Mines</h3>
-                        <label class="relative inline-flex items-center cursor-pointer select-none">
-                          <input type="checkbox" id="minesMasterToggle" class="sr-only peer">
-                          <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-white"></div>
+                        <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Mines</h3>
+                        <label class="dv-toggle-wrap">
+                          <input type="checkbox" id="minesMasterToggle" class="dv-toggle-input">
+                          <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
                         </label>
                       </div>
 
-                      <!-- Account Row -->
-                      <div class="flex items-center justify-between select-none">
-                        <span class="text-xs font-medium text-zinc-400">Account</span>
-                        <div class="px-3 py-1.5 rounded-xl bg-[#141417] border border-white/[0.05] text-xs font-medium text-white cursor-pointer hover:bg-[#1c1c20] transition">
-                          <span>All Accounts</span>
+                      <div class="dv-card flex flex-col gap-3 p-5">
+                        <!-- Account Picker -->
+                        <div class="flex items-center justify-between p-2 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] select-none">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                          <span class="text-[13px] font-semibold text-white">All Accounts</span>
                         </div>
-                      </div>
 
-                      <!-- Bombs Row with Range Slider -->
-                      <div class="flex items-center justify-between gap-3 select-none">
-                        <span class="text-xs font-medium text-zinc-400">Bombs</span>
-                        <input type="range" id="minesBombsRange" min="1" max="24" value="3" oninput="document.getElementById('minesBombsValue').textContent = this.value" class="flex-1 accent-white h-1.5 bg-white/10 rounded-lg cursor-pointer">
-                        <span id="minesBombsValue" class="text-xs font-bold text-white w-4 text-right">3</span>
-                      </div>
+                        <!-- SettingRow: Bombs with Slider -->
+                        <div class="flex items-center justify-between select-none">
+                          <span class="text-[13px] font-semibold text-[#8f8f8f]">Bombs</span>
+                          <div class="flex items-center gap-3">
+                            <input type="range" id="minesBombsRange" min="1" max="24" value="3" oninput="document.getElementById('minesBombsValue').textContent = this.value" class="dv-slider w-[150px]">
+                            <span id="minesBombsValue" class="text-[14px] font-bold text-white font-mono w-[26px] text-right">3</span>
+                          </div>
+                        </div>
 
-                      <!-- Bet Row -->
-                      <div class="flex items-center justify-between">
-                        <span class="text-xs font-medium text-zinc-400">Bet</span>
-                        <input type="number" id="minesBetInput" value="10" min="1" class="w-20 bg-[#141417] border border-white/[0.06] rounded-xl px-3 py-1.5 text-xs font-bold text-white text-right outline-none focus:border-white/30 transition">
-                      </div>
+                        <!-- SettingRow: Bet input -->
+                        <div class="flex items-center justify-between">
+                          <span class="text-[13px] font-semibold text-[#8f8f8f]">Bet</span>
+                          <input type="number" id="minesBetInput" value="10" min="1" class="dv-field w-[90px] font-mono font-semibold text-right">
+                        </div>
 
-                      <!-- 5x5 Grid of Dark Square Tiles matching Image 1 -->
-                      <div class="grid grid-cols-5 gap-2 w-full pt-1 select-none">
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
+                        <!-- 5x5 Grid: 25 TileButtons matching TileButton in SiteView.swift -->
+                        <div class="grid grid-cols-5 gap-2 w-full pt-1 select-none">
+                          <!-- 25 Tiles -->
+                          <div class="dv-tile" data-index="0"></div>
+                          <div class="dv-tile" data-index="1"></div>
+                          <div class="dv-tile" data-index="2"></div>
+                          <div class="dv-tile" data-index="3"></div>
+                          <div class="dv-tile" data-index="4"></div>
 
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
+                          <div class="dv-tile" data-index="5"></div>
+                          <div class="dv-tile" data-index="6"></div>
+                          <div class="dv-tile" data-index="7"></div>
+                          <div class="dv-tile" data-index="8"></div>
+                          <div class="dv-tile" data-index="9"></div>
 
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
+                          <div class="dv-tile" data-index="10"></div>
+                          <div class="dv-tile" data-index="11"></div>
+                          <div class="dv-tile" data-index="12"></div>
+                          <div class="dv-tile" data-index="13"></div>
+                          <div class="dv-tile" data-index="14"></div>
 
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
+                          <div class="dv-tile" data-index="15"></div>
+                          <div class="dv-tile" data-index="16"></div>
+                          <div class="dv-tile" data-index="17"></div>
+                          <div class="dv-tile" data-index="18"></div>
+                          <div class="dv-tile" data-index="19"></div>
 
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
-                        <div class="mines-tile aspect-square rounded-xl bg-[#141417] border border-white/[0.04] hover:border-white/20 hover:bg-[#1a1a20] cursor-pointer transition flex items-center justify-center"></div>
+                          <div class="dv-tile" data-index="20"></div>
+                          <div class="dv-tile" data-index="21"></div>
+                          <div class="dv-tile" data-index="22"></div>
+                          <div class="dv-tile" data-index="23"></div>
+                          <div class="dv-tile" data-index="24"></div>
+                        </div>
+
+                        <!-- Tile helpers: Selected count, Random, Max, Clear -->
+                        <div class="flex items-center justify-between select-none pt-1">
+                          <span id="minesSelectedCountLabel" class="text-[12px] font-medium text-[#8f8f8f]">0 Selected</span>
+                          <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="minesSelectRandom()" class="dv-pill inactive" style="height:30px; padding:0 10px; font-size:12px;">Random</button>
+                            <button type="button" onclick="minesSelectMax()" class="dv-pill inactive" style="height:30px; padding:0 10px; font-size:12px;">Max</button>
+                            <button type="button" onclick="minesClearTiles()" class="dv-pill inactive" style="height:30px; padding:0 10px; font-size:12px;">Clear</button>
+                          </div>
+                        </div>
+
+                        <!-- Action Button: Play / Stop (height: 44) -->
+                        <button id="minesManualPlayBtn" type="button" onclick="triggerMinesPlay()" class="dv-pill active w-full" style="height:44px; font-size:14px; font-weight:700;">
+                          Play
+                        </button>
                       </div>
                     </div>
 
                   </div>
+
+                  <!-- Tip Section matching tipSection in SiteView.swift -->
+                  <div class="flex flex-col gap-3 w-full mt-2">
+                    <h3 class="text-[20px] font-bold text-white tracking-tight">Tip</h3>
+                    <div class="dv-card p-5">
+                      <div class="flex flex-wrap md:flex-nowrap items-center gap-3">
+                        <input type="text" id="tipRecipientInput" placeholder="Username" class="dv-field flex-1 min-w-[150px]">
+                        <input type="number" id="tipAmountInput" placeholder="Amount" value="5" class="dv-field w-[130px] font-mono">
+                        <div class="flex items-center justify-between p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] min-w-[200px] select-none">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                          <span class="text-[13px] font-semibold text-white">All Accounts</span>
+                        </div>
+                        <button id="tipManualBtn" type="button" onclick="triggerTipSend()" class="dv-pill active shrink-0" style="height:44px; padding:0 24px; font-size:14px; font-weight:700;">
+                          Tip
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- ══════════════════════════════════════════════════════════ -->
-                <!-- VIEW 2: DISCORD (Matches Images 3, 4 & 5) -->
+                <!-- VIEW 2: DISCORD (Exact DiscordViewer-Dashboard-11 DiscordView) -->
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none;">
                   <!-- Watchers Header -->
                   <div class="flex items-center justify-between w-full mb-2">
-                    <div class="flex items-center gap-2.5">
-                      <h2 class="text-2xl font-bold text-white tracking-tight">Watchers</h2>
-                      <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#141417] border border-white/[0.06] text-zinc-400">2</span>
+                    <div class="flex items-center gap-3">
+                      <h2 class="text-[28px] font-bold text-white tracking-tight">Watchers</h2>
+                      <span class="dv-badge font-mono font-bold text-[#8f8f8f]">2</span>
                     </div>
                     <div class="flex items-center gap-3 select-none">
                       <!-- Live Status Badge -->
-                      <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#141417] border border-white/[0.06] text-xs font-semibold text-white">
-                        <span class="size-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <div class="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#080808] border border-[rgba(255,255,255,0.10)] text-xs font-semibold text-white">
+                        <span class="size-2 rounded-full bg-[#54d487] animate-pulse"></span>
                         <span>Live</span>
                       </div>
-                      <!-- Webhooks Button -->
-                      <button onclick="openDiscordLoginModal()" type="button" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#18181b] hover:bg-[#222226] border border-white/[0.06] text-xs font-semibold text-white transition cursor-pointer">
-                        <svg class="size-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                      <!-- Webhooks Button (height: 38) -->
+                      <button onclick="openDiscordLoginModal()" type="button" class="dv-pill inactive" style="height:38px;">
+                        <svg class="size-4 text-[#8f8f8f] mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                         <span>Webhooks</span>
                       </button>
                     </div>
                   </div>
 
-                  <!-- Watchers Grid (2 Columns, matching Image 5) -->
+                  <!-- Watchers Grid (2 Columns, matching watchCard in DiscordView.swift, height: 196px) -->
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                     <!-- Watcher Card 1: Rollbux -->
-                    <div class="relative flex flex-col justify-between rounded-2xl bg-[#0e0e11] border border-white/[0.05] p-5 min-h-[175px] shadow-sm">
-                      <!-- Top Row Badges & Actions -->
+                    <div class="dv-card flex flex-col justify-between h-[196px] p-4">
+                      <!-- Top: Badges & icon buttons -->
                       <div class="flex items-center justify-between select-none">
                         <div class="flex items-center gap-2">
-                          <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-[#141417] text-white border border-white/[0.06]">Active</span>
-                          <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#141417] text-zinc-400 border border-white/[0.06]">Giveaway</span>
+                          <span class="dv-badge">Active</span>
+                          <span class="dv-badge">Giveaway</span>
                         </div>
                         <div class="flex items-center gap-1.5">
-                          <button type="button" class="p-2 rounded-lg bg-[#141417] hover:bg-[#1c1c20] text-zinc-400 hover:text-white transition cursor-pointer" title="Edit">
+                          <button type="button" class="dv-icon-btn" title="Edit">
                             <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                           </button>
-                          <button type="button" class="p-2 rounded-lg bg-[#141417] hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition cursor-pointer" title="Delete">
+                          <button type="button" class="dv-icon-btn" title="Delete">
                             <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                           </button>
                         </div>
                       </div>
 
-                      <!-- Center Title & Details -->
-                      <div class="flex flex-col gap-1 my-3">
-                        <h3 class="text-xl font-bold text-white tracking-tight">Rollbux</h3>
-                        <div class="flex flex-col text-xs font-mono text-zinc-500 mt-1 space-y-0.5">
-                          <div class="flex items-center gap-2">
-                            <span class="text-zinc-400 font-sans">Server</span>
-                            <span>1454106247056982130</span>
-                          </div>
-                          <div class="flex items-center gap-2">
-                            <span class="text-zinc-400 font-sans">Channel</span>
-                            <span>1535006568397934612</span>
-                          </div>
+                      <!-- Center: Title & IDs -->
+                      <div class="flex flex-col gap-0.5">
+                        <h3 class="text-[18px] font-bold text-white tracking-tight">Rollbux</h3>
+                        <div class="flex flex-col text-[11px] font-mono text-[#8f8f8f] space-y-0.5 mt-0.5">
+                          <div>Server: 1454106247056982130</div>
+                          <div>Channel: 1535006568397934612</div>
                         </div>
                       </div>
 
-                      <!-- Bottom Row Toggles & Switch -->
-                      <div class="flex items-center justify-between pt-2 border-t border-white/[0.04] select-none">
+                      <!-- Bottom: Chips & MonoToggle -->
+                      <div class="flex items-center justify-between select-none pt-1">
                         <div class="flex items-center gap-2">
-                          <span class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-black shadow-sm">Auto React 🎉</span>
-                          <span class="px-3 py-1 rounded-lg text-xs font-medium bg-[#141417] text-zinc-400 border border-white/[0.05]">Auto Guess</span>
+                          <span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React · Detect</span>
+                          <span class="dv-pill inactive text-[#8f8f8f]" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" checked class="sr-only peer">
-                          <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-white"></div>
+                        <label class="dv-toggle-wrap">
+                          <input type="checkbox" checked class="dv-toggle-input">
+                          <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
                         </label>
                       </div>
                     </div>
 
                     <!-- Watcher Card 2: Lunar -->
-                    <div class="relative flex flex-col justify-between rounded-2xl bg-[#0e0e11] border border-white/[0.05] p-5 min-h-[175px] shadow-sm">
-                      <!-- Top Row Badges & Actions -->
+                    <div class="dv-card flex flex-col justify-between h-[196px] p-4">
+                      <!-- Top: Badges & icon buttons -->
                       <div class="flex items-center justify-between select-none">
                         <div class="flex items-center gap-2">
-                          <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#141417] text-zinc-400 border border-white/[0.06]">Paused</span>
-                          <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#141417] text-zinc-400 border border-white/[0.06]">Normal</span>
+                          <span class="dv-badge">Paused</span>
+                          <span class="dv-badge">Normal</span>
                         </div>
                         <div class="flex items-center gap-1.5">
-                          <button type="button" class="p-2 rounded-lg bg-[#141417] hover:bg-[#1c1c20] text-zinc-400 hover:text-white transition cursor-pointer" title="Edit">
+                          <button type="button" class="dv-icon-btn" title="Edit">
                             <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                           </button>
-                          <button type="button" class="p-2 rounded-lg bg-[#141417] hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition cursor-pointer" title="Delete">
+                          <button type="button" class="dv-icon-btn" title="Delete">
                             <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                           </button>
                         </div>
                       </div>
 
-                      <!-- Center Title & Details -->
-                      <div class="flex flex-col gap-1 my-3">
-                        <h3 class="text-xl font-bold text-white tracking-tight">Lunar</h3>
-                        <div class="flex flex-col text-xs font-mono text-zinc-500 mt-1 space-y-0.5">
-                          <div class="flex items-center gap-2">
-                            <span class="text-zinc-400 font-sans">Server</span>
-                            <span>1454106247056982130</span>
-                          </div>
-                          <div class="flex items-center gap-2">
-                            <span class="text-zinc-400 font-sans">Channel</span>
-                            <span>1535006568397934612</span>
-                          </div>
-                          <div class="flex items-center gap-2">
-                            <span class="text-zinc-400 font-sans">User</span>
-                            <span id="lunarWatcherUserId">1381624213374505161</span>
-                          </div>
+                      <!-- Center: Title & IDs -->
+                      <div class="flex flex-col gap-0.5">
+                        <h3 class="text-[18px] font-bold text-white tracking-tight">Lunar</h3>
+                        <div class="flex flex-col text-[11px] font-mono text-[#8f8f8f] space-y-0.5 mt-0.5">
+                          <div>Server: 1454106247056982130</div>
+                          <div>Channel: 1535006568397934612</div>
+                          <div>User: <span id="lunarWatcherUserId">1381624213374505161</span></div>
                         </div>
                       </div>
 
-                      <!-- Bottom Row Toggles & Switch -->
-                      <div class="flex items-center justify-between pt-2 border-t border-white/[0.04] select-none">
+                      <!-- Bottom: Chips & MonoToggle -->
+                      <div class="flex items-center justify-between select-none pt-1">
                         <div class="flex items-center gap-2">
-                          <span class="px-3 py-1 rounded-lg text-xs font-medium bg-[#141417] text-zinc-400 border border-white/[0.05]">Sound</span>
+                          <span class="dv-pill inactive text-[#8f8f8f]" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Sound</span>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" class="sr-only peer">
-                          <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-white"></div>
+                        <label class="dv-toggle-wrap">
+                          <input type="checkbox" class="dv-toggle-input">
+                          <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
                         </label>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Add Watcher Dashed Card -->
-                  <div class="w-full mt-4 select-none">
-                    <div onclick="openDiscordLoginModal()" class="w-full border border-dashed border-white/15 hover:border-white/30 rounded-2xl p-6 flex items-center justify-center gap-2 text-zinc-400 hover:text-white transition cursor-pointer bg-[#0e0e11]/50 min-h-[80px]">
+                  <!-- Add Watcher Dashed Card (height: 196px matching addTile in DiscordView.swift) -->
+                  <div class="w-full mt-2 select-none">
+                    <div onclick="openDiscordLoginModal()" class="w-full border border-dashed border-[rgba(255,255,255,0.10)] hover:border-[rgba(255,255,255,0.25)] rounded-[18px] h-[196px] flex items-center justify-center gap-2 text-[#8f8f8f] hover:text-white transition cursor-pointer bg-[rgba(11,11,11,0.5)]">
                       <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                      <span class="text-sm font-semibold">Add Watcher</span>
+                      <span class="text-[14px] font-semibold">Add Watcher</span>
                     </div>
                   </div>
 
-                  <!-- Discord Giveaway Notifications Feed (Image 3) -->
-                  <div class="flex flex-col w-full rounded-2xl bg-[#0e0e11] border border-white/[0.05] p-5 mt-6 shadow-sm">
-                    <div class="flex flex-col divide-y divide-white/[0.04]">
-                      <!-- Entry 1 -->
-                      <div class="flex items-center justify-between py-3.5 first:pt-0">
-                        <div class="flex items-center gap-3.5">
-                          <div class="size-9 rounded-full bg-[#18181b] border border-white/[0.06] flex items-center justify-center shrink-0">
-                            <svg class="size-4 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                          </div>
-                          <div class="flex flex-col">
-                            <span class="text-sm font-bold text-white">Giveaway entry detected</span>
-                            <span class="text-xs text-zinc-400">Rollbux: 🎉 Flash giveaway — 5,000 tokens React with 🎉 within <strong>20 seconds</strong> to enter!</span>
-                          </div>
+                  <!-- Activity Feed Card matching activityCard in DiscordView.swift -->
+                  <div class="dv-card flex flex-col gap-3 p-5 mt-4">
+                    <div class="flex items-center justify-between">
+                      <h3 class="text-[17px] font-bold text-white tracking-tight">Activity</h3>
+                      <button type="button" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
+                    </div>
+                    <div class="flex flex-col gap-2 w-full pt-1">
+                      <!-- Activity Item 1 -->
+                      <div class="flex items-center gap-3 p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.04)]">
+                        <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center shrink-0">
+                          <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        </div>
+                        <div class="flex flex-col flex-1 min-w-0">
+                          <span class="text-[13px] font-bold text-white">Giveaway entry detected</span>
+                          <span class="text-[11px] text-[#8f8f8f]">Rollbux: 🎉 Flash giveaway — 5,000 tokens React with 🎉 within <strong>20 seconds</strong> to enter!</span>
                         </div>
                       </div>
 
-                      <!-- Entry 2 -->
-                      <div class="flex items-center justify-between py-3.5">
-                        <div class="flex items-center gap-3.5">
-                          <div class="size-9 rounded-full bg-[#18181b] border border-white/[0.06] flex items-center justify-center shrink-0">
-                            <svg class="size-4 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                          </div>
-                          <div class="flex flex-col">
-                            <span class="text-sm font-bold text-white">Giveaway ended</span>
-                            <span class="text-xs text-zinc-400">Rollbux: the giveaway posted its result.</span>
-                          </div>
+                      <!-- Activity Item 2 -->
+                      <div class="flex items-center gap-3 p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.04)]">
+                        <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center shrink-0">
+                          <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        </div>
+                        <div class="flex flex-col flex-1 min-w-0">
+                          <span class="text-[13px] font-bold text-white">Giveaway ended</span>
+                          <span class="text-[11px] text-[#8f8f8f]">Rollbux: the giveaway posted its result.</span>
                         </div>
                       </div>
 
-                      <!-- Entry 3 -->
-                      <div class="flex items-center justify-between py-3.5">
-                        <div class="flex items-center gap-3.5">
-                          <div class="size-9 rounded-full bg-[#18181b] border border-white/[0.06] flex items-center justify-center shrink-0">
-                            <svg class="size-4 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                          </div>
-                          <div class="flex flex-col">
-                            <span class="text-sm font-bold text-white">Giveaway ended</span>
-                            <span class="text-xs text-zinc-400">Rollbux: the giveaway posted its result.</span>
-                          </div>
+                      <!-- Activity Item 3 -->
+                      <div class="flex items-center gap-3 p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.04)]">
+                        <div class="size-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center shrink-0">
+                          <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                         </div>
-                      </div>
-
-                      <!-- Entry 4 -->
-                      <div class="flex items-center justify-between py-3.5">
-                        <div class="flex items-center gap-3.5">
-                          <div class="size-9 rounded-full bg-[#18181b] border border-white/[0.06] flex items-center justify-center shrink-0">
-                            <svg class="size-4 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                          </div>
-                          <div class="flex flex-col">
-                            <span class="text-sm font-bold text-white">Winner selected</span>
-                            <span class="text-xs text-zinc-400">Someone else was selected in Rollbux.</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Entry 5 -->
-                      <div class="flex items-center justify-between py-3.5 last:pb-0">
-                        <div class="flex items-center gap-3.5">
-                          <div class="size-9 rounded-full bg-[#18181b] border border-white/[0.06] flex items-center justify-center shrink-0">
-                            <svg class="size-4 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                          </div>
-                          <div class="flex flex-col">
-                            <span class="text-sm font-bold text-white">Winner selected</span>
-                            <span class="text-xs text-zinc-400">Someone else was selected in Rollbux.</span>
-                          </div>
+                        <div class="flex flex-col flex-1 min-w-0">
+                          <span class="text-[13px] font-bold text-white">Winner selected</span>
+                          <span class="text-[11px] text-[#8f8f8f]">Someone else was selected in Rollbux.</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Bottom Bar: Profile Pill on left, Stop button on right (Image 3) -->
-                  <div class="flex items-center justify-between w-full mt-4 select-none">
+                  <!-- Bottom Bar matching bottomBar in DiscordView.swift (height: 72px) -->
+                  <div class="w-full mt-4 select-none rounded-[18px] bg-[#121212] border border-[rgba(255,255,255,0.10)] p-3.5 flex items-center justify-between">
                     <!-- Profile Pill: Clicking this OPENS Profile & Accounts Modal! -->
-                    <button id="discordProfilePillBtn" onclick="openDiscordProfileModal()" type="button" class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#141417] hover:bg-[#1a1a20] border border-white/[0.06] transition cursor-pointer shadow-sm">
-                      <img id="discordPillAvatar" src="/discord-3d.png" class="size-6 rounded-full object-cover" alt="Profile" />
-                      <span id="discordPillName" class="text-xs font-bold text-white">Connect Discord</span>
+                    <button id="discordProfilePillBtn" onclick="openDiscordProfileModal()" type="button" class="flex items-center gap-2.5 px-3 py-1.5 rounded-[11px] bg-[#080808] hover:bg-[#1d1d1d] border border-[rgba(255,255,255,0.10)] transition cursor-pointer">
+                      <img id="discordPillAvatar" src="/discord-3d.png" class="size-7 rounded-full object-cover" alt="Profile" />
+                      <span id="discordPillName" class="text-[13px] font-bold text-white">Connect Discord</span>
                     </button>
-                    <!-- Stop Button -->
-                    <button id="discordStopBtn" onclick="toggleDiscordWatcherActive()" type="button" class="px-7 py-2 rounded-xl bg-[#18181b] hover:bg-[#242428] text-white text-xs font-bold transition cursor-pointer shadow-sm">
+                    <!-- Stop / Start Monitoring Button -->
+                    <button id="discordStopBtn" onclick="toggleDiscordWatcherActive()" type="button" class="dv-pill active" style="height:44px; min-width:130px; font-size:14px; font-weight:700;">
                       Stop
                     </button>
                   </div>
@@ -3812,47 +4113,48 @@
     })();
   </script>
 
-    <!-- Discord Profile & Accounts Modal (Image 4) -->
-  <div id="discordProfileModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn select-none">
-    <div class="relative w-full max-w-[420px] rounded-[24px] bg-[#0e0e11] border border-white/[0.08] p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] flex flex-col">
-      <!-- Top Header -->
-      <div class="flex items-center justify-between pb-3">
-        <h3 class="text-base font-bold text-white">Profile & Accounts</h3>
-        <button type="button" onclick="closeDiscordProfileModal()" class="size-8 rounded-full bg-[#18181b] hover:bg-[#242428] text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer">
-          <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      <!-- Discord Profile & Accounts Modal matching ModalCard in Theme.swift (width: 400px, panel bg) -->
+  <div id="discordProfileModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 select-none">
+    <div class="dv-modal-card flex flex-col">
+      <!-- Modal Header (height: 62px, border-bottom) -->
+      <div class="dv-modal-header">
+        <h3 class="text-[18px] font-bold text-white">Profile & Accounts</h3>
+        <button type="button" onclick="closeDiscordProfileModal()" class="dv-icon-btn">
+          <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <!-- Center Profile Info -->
-      <div class="flex flex-col items-center justify-center py-6 text-center">
-        <div class="relative size-20 rounded-full overflow-hidden border border-white/10 shadow-lg mb-3">
-          <img id="modalProfileAvatar" src="/rangers-crest.png" class="size-full object-cover" alt="Profile" />
+      <!-- Modal Content (padding: 20px) -->
+      <div class="flex flex-col p-5 gap-3.5">
+        <!-- Center Profile Info -->
+        <div class="flex flex-col items-center justify-center py-4 text-center">
+          <div class="relative size-[72px] rounded-full overflow-hidden border border-[rgba(255,255,255,0.12)] shadow-md mb-2 bg-[#1d1d1d] flex items-center justify-center">
+            <img id="modalProfileAvatar" src="/discord-3d.png" class="size-full object-cover" alt="Profile" />
+          </div>
+          <h4 id="modalProfileName" class="text-[18px] font-bold text-white leading-tight">Connect Discord</h4>
+          <p id="modalProfileHandle" class="text-[12px] text-[#8f8f8f] mt-0.5">@not_connected</p>
         </div>
-        <h4 id="modalProfileName" class="text-lg font-bold text-white leading-tight">Connect Discord</h4>
-        <p id="modalProfileHandle" class="text-xs text-zinc-400 mt-1">@not_connected</p>
-      </div>
 
-      <!-- User ID Box (Explicitly requested by user: "the user id thigy is for the discord part") -->
-      <div class="flex flex-col gap-2.5 mt-1">
-        <div class="flex items-center justify-between bg-[#141417] border border-white/[0.05] rounded-xl px-4 py-3.5">
-          <span class="text-xs font-bold text-white">User ID</span>
-          <span id="modalProfileUserId" class="text-xs font-mono font-medium text-zinc-400">Not Connected</span>
+        <!-- User ID Row matching field style -->
+        <div class="flex items-center justify-between dv-field">
+          <span class="text-[13px] font-semibold text-white">User ID</span>
+          <span id="modalProfileUserId" class="text-[12px] font-mono font-medium text-[#8f8f8f]">Not Connected</span>
         </div>
 
         <!-- Connected Account Card -->
-        <div class="flex items-center justify-between bg-[#141417] border border-white/[0.05] rounded-xl px-4 py-3">
+        <div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]">
           <div class="flex items-center gap-3">
-            <img id="modalAccountAvatar" src="/discord-3d.png" class="size-7 rounded-full object-cover" />
-            <span id="modalAccountName" class="text-xs font-bold text-white">No Account Linked</span>
+            <img id="modalAccountAvatar" src="/discord-3d.png" class="size-[28px] rounded-full object-cover" />
+            <span id="modalAccountName" class="text-[13px] font-bold text-white">No Account Linked</span>
           </div>
-          <div id="modalAccountCheck" class="flex items-center justify-center text-emerald-400 font-bold text-sm" style="display:none;">
-            <svg class="size-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div id="modalAccountCheck" class="flex items-center justify-center text-[#54d487] font-bold text-sm" style="display:none;">
+            <svg class="size-4 text-[#54d487]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
           </div>
         </div>
 
         <!-- Connect / Change Token Button -->
-        <button type="button" onclick="closeDiscordProfileModal(); openDiscordLoginModal();" class="mt-2 w-full py-2.5 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-white text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 shadow-sm">
-          <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        <button type="button" onclick="closeDiscordProfileModal(); openDiscordLoginModal();" class="dv-pill active w-full mt-2" style="height:44px; font-size:13px; font-weight:700;">
+          <svg class="size-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
           <span id="modalTokenBtnText">Connect Discord Token</span>
         </button>
       </div>
@@ -4022,6 +4324,219 @@
         }).catch(() => {});
       }
     })();
+
+    
+    // Exact DiscordViewer-Dashboard-11 Upgrader & Mines Interactivity
+    window.setUpgraderMultiplier = function(mult) {
+      const valEl = document.getElementById('upgraderMultiplierValue');
+      const inpEl = document.getElementById('upgraderMultiplierInput');
+      if (valEl) valEl.textContent = Number(mult).toFixed(2) + 'x';
+      if (inpEl) inpEl.value = mult;
+
+      // Update chip selection
+      [1.5, 2, 5, 10, 20].forEach(p => {
+        const chip = document.getElementById('chipMult' + String(p).replace('.', ''));
+        if (chip) {
+          if (Math.abs(mult - p) < 0.05) chip.classList.add('selected');
+          else chip.classList.remove('selected');
+        }
+      });
+
+      // Win chance formula from README.txt: chance = 90 / multiplier
+      const chance = Math.min(95, Math.max(1, (90 / mult)));
+      const chanceEl = document.getElementById('upgraderChanceDisplay');
+      const rangeEl = document.getElementById('upgraderRangeDisplay');
+      const arcEl = document.getElementById('upgraderGaugeArc');
+
+      if (chanceEl) chanceEl.textContent = chance.toFixed(0) + '%';
+      const zoneMax = Math.round((chance / 100) * 1000000);
+      if (rangeEl) rangeEl.textContent = '0 - ' + zoneMax.toLocaleString();
+      if (arcEl) {
+        const circumference = 301.6;
+        const dash = (chance / 100) * circumference;
+        arcEl.setAttribute('stroke-dasharray', dash.toFixed(1) + ' ' + circumference);
+      }
+    };
+
+    // Mines 5x5 selection logic matching TileButton
+    let minesSelectedSet = new Set();
+    function setupMinesTiles() {
+      document.querySelectorAll('.dv-tile').forEach((tile) => {
+        tile.addEventListener('click', () => {
+          const idx = parseInt(tile.dataset.index);
+          if (tile.classList.contains('revealed-safe') || tile.classList.contains('revealed-bomb')) return;
+          if (minesSelectedSet.has(idx)) {
+            minesSelectedSet.delete(idx);
+            tile.classList.remove('selected');
+            tile.innerHTML = '';
+          } else {
+            minesSelectedSet.add(idx);
+            tile.classList.add('selected');
+            tile.innerHTML = '<svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+          }
+          const lbl = document.getElementById('minesSelectedCountLabel');
+          if (lbl) lbl.textContent = minesSelectedSet.size + ' Selected';
+        });
+      });
+    }
+
+    window.minesClearTiles = function() {
+      minesSelectedSet.clear();
+      document.querySelectorAll('.dv-tile').forEach(t => {
+        t.className = 'dv-tile';
+        t.innerHTML = '';
+      });
+      const lbl = document.getElementById('minesSelectedCountLabel');
+      if (lbl) lbl.textContent = '0 Selected';
+    };
+
+    window.minesSelectRandom = function() {
+      minesClearTiles();
+      const count = Math.min(5, 25 - (parseInt(document.getElementById('minesBombsRange')?.value) || 3));
+      const indices = [];
+      while (indices.length < count) {
+        const r = Math.floor(Math.random() * 25);
+        if (!indices.includes(r)) indices.push(r);
+      }
+      indices.forEach(idx => {
+        minesSelectedSet.add(idx);
+        const el = document.querySelector('.dv-tile[data-index="' + idx + '"]');
+        if (el) {
+          el.classList.add('selected');
+          el.innerHTML = '<svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+        }
+      });
+      const lbl = document.getElementById('minesSelectedCountLabel');
+      if (lbl) lbl.textContent = minesSelectedSet.size + ' Selected';
+    };
+
+    window.minesSelectMax = function() {
+      minesClearTiles();
+      const bombs = parseInt(document.getElementById('minesBombsRange')?.value) || 3;
+      const maxTiles = Math.max(1, 24 - bombs);
+      for (let i = 0; i < maxTiles; i++) {
+        minesSelectedSet.add(i);
+        const el = document.querySelector('.dv-tile[data-index="' + i + '"]');
+        if (el) {
+          el.classList.add('selected');
+          el.innerHTML = '<svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+        }
+      }
+      const lbl = document.getElementById('minesSelectedCountLabel');
+      if (lbl) lbl.textContent = minesSelectedSet.size + ' Selected';
+    };
+
+    // Play action simulation / triggers
+    window.triggerUpgraderPlay = function() {
+      const btn = document.getElementById('upgraderManualPlayBtn');
+      if (!btn) return;
+      if (btn.textContent.trim() === 'Upgrade') {
+        btn.textContent = 'Stopping';
+        btn.classList.remove('active');
+        btn.classList.add('inactive');
+        setTimeout(() => {
+          btn.textContent = 'Upgrade';
+          btn.classList.remove('inactive');
+          btn.classList.add('active');
+          // Add to results feed
+          addFeedResult('Main Account', 'Upgrader ' + (document.getElementById('upgraderMultiplierValue')?.textContent || '2x'), true, 20);
+        }, 1200);
+      }
+    };
+
+    window.triggerMinesPlay = function() {
+      const btn = document.getElementById('minesManualPlayBtn');
+      if (!btn) return;
+      if (btn.textContent.trim() === 'Play') {
+        btn.textContent = 'Cashout';
+        // Reveal some tiles
+        const tiles = Array.from(minesSelectedSet);
+        tiles.forEach((idx, i) => {
+          setTimeout(() => {
+            const el = document.querySelector('.dv-tile[data-index="' + idx + '"]');
+            if (el) {
+              el.className = 'dv-tile revealed-safe';
+              el.innerHTML = '<svg class="size-4 text-[#54d487]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 9l10 13 10-13-10-7zm0 3.2L18.4 9 12 18.2 5.6 9 12 5.2z"/></svg>';
+            }
+          }, (i + 1) * 200);
+        });
+      } else {
+        btn.textContent = 'Play';
+        addFeedResult('Main Account', 'Mines Cashed Out', true, 15);
+        setTimeout(minesClearTiles, 1000);
+      }
+    };
+
+    window.triggerTipSend = function() {
+      const btn = document.getElementById('tipManualBtn');
+      const user = document.getElementById('tipRecipientInput')?.value;
+      const amt = document.getElementById('tipAmountInput')?.value;
+      if (!btn || !user || !amt) return;
+      btn.textContent = 'Sending';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.textContent = 'Tip';
+        btn.disabled = false;
+        addFeedResult('Main Account', 'Tip to ' + user, false, parseFloat(amt));
+      }, 1000);
+    };
+
+    function addFeedResult(account, title, win, amt) {
+      const list = document.getElementById('resultsFeedList');
+      if (!list) return;
+      const row = document.createElement('div');
+      row.className = 'dv-feed-row';
+      const color = win ? '#54d487' : '#f55e5e';
+      const sign = win ? '+' : '−';
+      row.innerHTML = `
+        <div class="w-[3px] h-[28px] rounded-[2px]" style="background:${color};" shrink-0></div>
+        <div class="flex flex-col flex-1 min-w-0">
+          <span class="text-[13px] font-bold text-white truncate">${account}</span>
+          <span class="text-[11px] text-[#8f8f8f] truncate">${title}</span>
+        </div>
+        <span class="text-[13px] font-bold font-mono" style="color:${color};">${sign}${amt.toFixed(2)} BUX</span>
+        <span class="text-[11px] text-[#8f8f8f] opacity-70">Just now</span>
+      `;
+      list.prepend(row);
+    }
+
+    window.clearResultsFeed = function() {
+      const list = document.getElementById('resultsFeedList');
+      if (list) list.innerHTML = '';
+    };
+
+    // Dragging Upgrader Ring
+    let isDraggingRing = false;
+    function setupRingDragging() {
+      const container = document.getElementById('upgraderWheelContainer');
+      if (!container) return;
+      function handleMove(clientX, clientY) {
+        const rect = container.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        let angle = Math.atan2(clientX - cx, -(clientY - cy));
+        if (angle < 0) angle += 2 * Math.PI;
+        let pct = (angle / (2 * Math.PI)) * 100;
+        pct = Math.min(95, Math.max(1, Math.round(pct)));
+        const mult = (90 / pct).toFixed(2);
+        setUpgraderMultiplier(mult);
+      }
+      container.addEventListener('mousedown', (e) => {
+        isDraggingRing = true;
+        handleMove(e.clientX, e.clientY);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (isDraggingRing) handleMove(e.clientX, e.clientY);
+      });
+      window.addEventListener('mouseup', () => {
+        isDraggingRing = false;
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setupMinesTiles();
+      setupRingDragging();
+    });
 
     // Interactive Mines tiles
     document.addEventListener('DOMContentLoaded', () => {
