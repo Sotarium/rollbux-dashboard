@@ -862,7 +862,7 @@
                   <div class="flex items-center justify-between w-full mb-2">
                     <div class="flex items-center gap-3">
                       <h2 class="text-[28px] font-bold text-white tracking-tight">Watchers</h2>
-                      <span class="dv-badge font-mono font-bold text-[#8f8f8f]">2</span>
+                      <span id="watchersCountBadge" class="dv-badge font-mono font-bold text-[#8f8f8f]">0</span>
                     </div>
                     <div class="flex items-center gap-3 select-none">
                       <!-- Live Status Badge -->
@@ -5077,6 +5077,12 @@
     // --- Real Discord Watchers Implementation ---
     let discordWatchersList = [];
 
+    // One-time clear of legacy starter watchers from localStorage
+    if (!localStorage.getItem('rollbux_watchers_cleared_v2')) {
+      localStorage.removeItem('discord_watchers_list');
+      localStorage.setItem('rollbux_watchers_cleared_v2', 'true');
+    }
+
     // Load persisted watchers from localStorage (starts completely empty so user creates their own)
     try {
       const rawWatchers = localStorage.getItem('discord_watchers_list');
@@ -5205,6 +5211,8 @@
     };
 
     window.renderDiscordWatchers = function() {
+      const countBadge = document.getElementById('watchersCountBadge');
+      if (countBadge) countBadge.textContent = discordWatchersList.length;
       const grid = document.getElementById('discordWatchersGrid');
       if (!grid) return;
       if (discordWatchersList.length === 0) {
