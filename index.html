@@ -4358,13 +4358,26 @@
   <div id="addWatcherModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 select-none">
     <div class="dv-modal-card flex flex-col">
       <div class="dv-modal-header">
-        <h3 class="text-[18px] font-bold text-white">Add Watcher</h3>
+        <h3 class="text-[18px] font-bold text-white">Add Watcher / Claimer</h3>
         <button type="button" onclick="closeAddWatcherModal()" class="dv-icon-btn">
           <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
       <div class="flex flex-col p-5 gap-3.5">
+        <!-- Type Selector: Segmented Pill Slider [ Watcher | Ticket Claimer ] -->
+        <div class="flex flex-col gap-1.5 select-none">
+          <label class="text-[12px] font-semibold text-[#8f8f8f]">Type</label>
+          <div class="flex items-center bg-[#121212] p-1 rounded-[11px] border border-[rgba(255,255,255,0.10)] w-full">
+            <button id="watcherTypeWatcherBtn" type="button" onclick="setWatcherModalType('watcher')" style="flex:1; height:32px; border:none; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; background:#ffffff; color:#000000; transition: 0.15s;">
+              Watcher
+            </button>
+            <button id="watcherTypeClaimerBtn" type="button" onclick="setWatcherModalType('claimer')" style="flex:1; height:32px; border:none; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; background:transparent; color:#8f8f8f; transition: 0.15s;">
+              Ticket Claimer
+            </button>
+          </div>
+        </div>
+
         <div class="flex flex-col gap-1">
           <label class="text-[12px] font-semibold text-[#8f8f8f]">Watcher Name</label>
           <input type="text" id="newWatcherName" placeholder="e.g. My Drops Channel" class="dv-field w-full">
@@ -4385,12 +4398,21 @@
           <input type="text" id="newWatcherTargetId" placeholder="Leave empty for all messages" class="dv-field w-full font-mono">
         </div>
 
+        <div id="watcherTypeHelpText" class="text-[11px] text-[#8f8f8f] bg-[#080808] p-2.5 rounded-[10px] border border-white/5 leading-relaxed">
+          <b>Watcher mode:</b> Listens to channels and reacts to giveaway messages with 🎉.
+        </div>
+
         <div class="flex items-center justify-between pt-1">
-          <span class="text-[13px] font-semibold text-white">Auto React · 🎉</span>
+          <span id="watcherAutoActionLabel" class="text-[13px] font-semibold text-white">Auto React · 🎉</span>
           <label class="dv-toggle-wrap">
             <input type="checkbox" id="newWatcherAutoReact" checked class="dv-toggle-input">
             <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
           </label>
+        </div>
+
+        <div id="claimerKeywordWrap" class="hidden flex-col gap-1">
+          <label class="text-[12px] font-semibold text-[#8f8f8f]">Claim Trigger / Ticket Keyword</label>
+          <input type="text" id="newWatcherClaimKeyword" value="ticket, claim, giveaway" placeholder="e.g. ticket, claim, prize" class="dv-field w-full">
         </div>
 
         <div class="flex items-center justify-between">
@@ -5166,9 +5188,39 @@
       saveWatchers();
     };
 
+    let currentWatcherModalType = 'watcher';
+
+    window.setWatcherModalType = function(type) {
+      currentWatcherModalType = type;
+      const bWatch = document.getElementById('watcherTypeWatcherBtn');
+      const bClaim = document.getElementById('watcherTypeClaimerBtn');
+      const help = document.getElementById('watcherTypeHelpText');
+      const actionLbl = document.getElementById('watcherAutoActionLabel');
+      const keywordWrap = document.getElementById('claimerKeywordWrap');
+
+      if (type === 'claimer') {
+        if (bWatch) { bWatch.style.background = 'transparent'; bWatch.style.color = '#8f8f8f'; }
+        if (bClaim) { bClaim.style.background = '#ffffff'; bClaim.style.color = '#000000'; }
+        if (help) {
+          help.innerHTML = '<b>Ticket Claimer mode (Cue):</b> Detects giveaway win announcements or ticket creation prompts and automatically claims the ticket message.';
+        }
+        if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket';
+        if (keywordWrap) keywordWrap.classList.remove('hidden');
+      } else {
+        if (bWatch) { bWatch.style.background = '#ffffff'; bWatch.style.color = '#000000'; }
+        if (bClaim) { bClaim.style.background = 'transparent'; bClaim.style.color = '#8f8f8f'; }
+        if (help) {
+          help.innerHTML = '<b>Watcher mode:</b> Listens to channels and reacts to giveaway messages with 🎉.';
+        }
+        if (actionLbl) actionLbl.textContent = 'Auto React · 🎉';
+        if (keywordWrap) keywordWrap.classList.add('hidden');
+      }
+    };
+
     window.openAddWatcherModal = function() {
       const m = document.getElementById('addWatcherModal');
       if (m) m.style.display = 'flex';
+      setWatcherModalType('watcher');
       const nameInp = document.getElementById('newWatcherName');
       if (nameInp) { nameInp.value = ''; nameInp.focus(); }
       const sInp = document.getElementById('newWatcherServerId');
@@ -5177,6 +5229,8 @@
       if (cInp) cInp.value = '';
       const tInp = document.getElementById('newWatcherTargetId');
       if (tInp) tInp.value = '';
+      const kInp = document.getElementById('newWatcherClaimKeyword');
+      if (kInp) kInp.value = 'ticket, claim, giveaway';
     };
 
     window.closeAddWatcherModal = function() {
@@ -5191,9 +5245,10 @@
       const targetID = (document.getElementById('newWatcherTargetId')?.value || '').trim();
       const autoReact = !!document.getElementById('newWatcherAutoReact')?.checked;
       const sound = !!document.getElementById('newWatcherSound')?.checked;
+      const keyword = (document.getElementById('newWatcherClaimKeyword')?.value || '').trim();
 
       if (!name) {
-        await vibeAlert('Please enter a watcher name.', 'Watcher Required');
+        await vibeAlert('Please enter a name.', 'Required Field');
         return;
       }
       if (!serverID) {
@@ -5208,10 +5263,12 @@
       discordWatchersList.push({
         id: 'w_' + Date.now(),
         name,
+        type: currentWatcherModalType, // 'watcher' or 'claimer'
         serverID,
         channelID,
         targetID,
-        mode: 'giveaway',
+        mode: currentWatcherModalType === 'claimer' ? 'ticket' : 'giveaway',
+        keyword: currentWatcherModalType === 'claimer' ? keyword : '',
         enabled: true,
         autoReact,
         autoGuess: false,
@@ -5251,7 +5308,10 @@
         const statusBadge = isActive 
           ? '<span class="dv-badge" style="background:#54d487/15; border-color:#54d487/30; color:#54d487;">Active</span>'
           : '<span class="dv-badge" style="color:#8f8f8f;">Paused</span>';
-        const modeBadge = `<span class="dv-badge">${w.mode === 'giveaway' ? 'Giveaway' : 'Normal'}</span>`;
+        const isClaimer = w.type === 'claimer' || w.mode === 'ticket';
+        const modeBadge = isClaimer
+          ? '<span class="dv-badge" style="background:#5865F2/20; border-color:#5865F2/40; color:#8ea1ff;">Ticket Claimer</span>'
+          : '<span class="dv-badge">Watcher · Giveaway</span>';
         return `
           <div class="dv-card flex flex-col justify-between h-[196px] p-4">
             <div class="flex items-center justify-between select-none">
@@ -5280,7 +5340,7 @@
 
             <div class="flex items-center justify-between select-none pt-1">
               <div class="flex items-center gap-2">
-                ${w.autoReact ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React · 🎉</span>' : ''}
+                ${w.autoReact ? (isClaimer ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:#5865F2; color:#ffffff;">Auto Claim 🎟️</span>' : '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React · 🎉</span>') : ''}
                 ${w.autoGuess ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>' : ''}
                 <button type="button" onclick="toggleWatcherSound('${w.id}')" class="dv-pill ${w.sound ? 'active' : 'inactive text-[#8f8f8f]'}" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; cursor:pointer;" title="Toggle sound notification">
                   <svg class="size-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/></svg>
