@@ -4333,7 +4333,63 @@
     })();
   </script>
 
-      <!-- Discord Profile & Accounts Modal matching ModalCard in Theme.swift (width: 400px, panel bg) -->
+      
+  <!-- Dedicated Add Watcher Modal (Clean Vibe-Coded dv-modal-card style) -->
+  <div id="addWatcherModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 select-none">
+    <div class="dv-modal-card flex flex-col">
+      <div class="dv-modal-header">
+        <h3 class="text-[18px] font-bold text-white">Add Watcher</h3>
+        <button type="button" onclick="closeAddWatcherModal()" class="dv-icon-btn">
+          <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="flex flex-col p-5 gap-3.5">
+        <div class="flex flex-col gap-1">
+          <label class="text-[12px] font-semibold text-[#8f8f8f]">Watcher Name</label>
+          <input type="text" id="newWatcherName" placeholder="e.g. My Drops Channel" class="dv-field w-full">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-[12px] font-semibold text-[#8f8f8f]">Server (Guild) ID</label>
+          <input type="text" id="newWatcherServerId" placeholder="e.g. 1454106247056982130" class="dv-field w-full font-mono">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-[12px] font-semibold text-[#8f8f8f]">Channel ID</label>
+          <input type="text" id="newWatcherChannelId" placeholder="e.g. 1535006568397934612" class="dv-field w-full font-mono">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-[12px] font-semibold text-[#8f8f8f]">Target User / Bot ID (optional)</label>
+          <input type="text" id="newWatcherTargetId" placeholder="Leave empty for all messages" class="dv-field w-full font-mono">
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-[13px] font-semibold text-white">Auto React · 🎉</span>
+          <label class="dv-toggle-wrap">
+            <input type="checkbox" id="newWatcherAutoReact" checked class="dv-toggle-input">
+            <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-[13px] font-semibold text-white">Sound Notification</span>
+          <label class="dv-toggle-wrap">
+            <input type="checkbox" id="newWatcherSound" checked class="dv-toggle-input">
+            <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
+          </label>
+        </div>
+
+        <div class="flex items-center gap-2.5 pt-2">
+          <button type="button" onclick="closeAddWatcherModal()" class="dv-pill inactive w-full" style="height:44px; font-size:13px; font-weight:700;">Cancel</button>
+          <button type="button" onclick="submitCreateWatcher()" class="dv-pill active w-full" style="height:44px; font-size:13px; font-weight:700;">Create Watcher</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discord Profile & Accounts Modal matching ModalCard in Theme.swift (width: 400px, panel bg) -->
   <div id="discordProfileModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 select-none">
     <div class="dv-modal-card flex flex-col">
       <!-- Modal Header (height: 62px, border-bottom) -->
@@ -5021,13 +5077,14 @@
     // --- Real Discord Watchers Implementation ---
     let discordWatchersList = [];
 
-    // Load persisted watchers from localStorage
+    // Load persisted watchers from localStorage (starts completely empty so user creates their own)
     try {
       const rawWatchers = localStorage.getItem('discord_watchers_list');
       if (rawWatchers !== null) {
         const savedWatchers = JSON.parse(rawWatchers);
         if (Array.isArray(savedWatchers)) {
-          discordWatchersList = savedWatchers.filter(w => w.id !== 'w_lunar' && w.name !== 'Lunar');
+          // Filter out legacy default rollbux/lunar templates
+          discordWatchersList = savedWatchers.filter(w => w.id !== 'w_lunar' && w.name !== 'Lunar' && w.id !== 'w_rollbux');
         }
       }
     } catch (e) {}
@@ -5082,26 +5139,59 @@
       saveWatchers();
     };
 
-    window.openAddWatcherModal = async function() {
-      const name = await vibePrompt('Enter watcher name:', 'New Watcher', 'Add Watcher');
-      if (!name) return;
-      const sId = await vibePrompt('Enter Discord Server ID:', '1454106247056982130', 'Add Watcher');
-      if (!sId) return;
-      const cId = await vibePrompt('Enter Discord Channel ID:', '1535006568397934612', 'Add Watcher');
-      if (!cId) return;
+    window.openAddWatcherModal = function() {
+      const m = document.getElementById('addWatcherModal');
+      if (m) m.style.display = 'flex';
+      const nameInp = document.getElementById('newWatcherName');
+      if (nameInp) { nameInp.value = ''; nameInp.focus(); }
+      const sInp = document.getElementById('newWatcherServerId');
+      if (sInp) sInp.value = '';
+      const cInp = document.getElementById('newWatcherChannelId');
+      if (cInp) cInp.value = '';
+      const tInp = document.getElementById('newWatcherTargetId');
+      if (tInp) tInp.value = '';
+    };
+
+    window.closeAddWatcherModal = function() {
+      const m = document.getElementById('addWatcherModal');
+      if (m) m.style.display = 'none';
+    };
+
+    window.submitCreateWatcher = async function() {
+      const name = (document.getElementById('newWatcherName')?.value || '').trim();
+      const serverID = (document.getElementById('newWatcherServerId')?.value || '').trim();
+      const channelID = (document.getElementById('newWatcherChannelId')?.value || '').trim();
+      const targetID = (document.getElementById('newWatcherTargetId')?.value || '').trim();
+      const autoReact = !!document.getElementById('newWatcherAutoReact')?.checked;
+      const sound = !!document.getElementById('newWatcherSound')?.checked;
+
+      if (!name) {
+        await vibeAlert('Please enter a watcher name.', 'Watcher Required');
+        return;
+      }
+      if (!serverID) {
+        await vibeAlert('Please enter a Discord Server (Guild) ID.', 'Server ID Required');
+        return;
+      }
+      if (!channelID) {
+        await vibeAlert('Please enter a Discord Channel ID.', 'Channel ID Required');
+        return;
+      }
+
       discordWatchersList.push({
         id: 'w_' + Date.now(),
         name,
-        serverID: sId,
-        channelID: cId,
-        targetID: '',
+        serverID,
+        channelID,
+        targetID,
         mode: 'giveaway',
         enabled: true,
-        autoReact: true,
+        autoReact,
         autoGuess: false,
-        sound: true
+        sound
       });
       saveWatchers();
+      closeAddWatcherModal();
     };
 
     window.editWatcher = async function(id) {
@@ -5117,6 +5207,16 @@
     window.renderDiscordWatchers = function() {
       const grid = document.getElementById('discordWatchersGrid');
       if (!grid) return;
+      if (discordWatchersList.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full flex flex-col items-center justify-center p-8 rounded-[18px] bg-[#0b0b0b] border border-[rgba(255,255,255,0.06)] text-center">
+            <svg class="size-8 text-[#8f8f8f] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <h4 class="text-[15px] font-bold text-white">No Watchers</h4>
+            <p class="text-[12px] text-[#8f8f8f] mt-1">Click "+ Add Watcher" below to create your custom watcher.</p>
+          </div>
+        `;
+        return;
+      }
       grid.innerHTML = discordWatchersList.map(w => {
         const isActive = w.enabled;
         const statusBadge = isActive 
