@@ -948,10 +948,9 @@
       <div class="flex flex-col p-5 gap-3.5">
         <!-- Top Icon and Subtext -->
         <div class="flex flex-col items-center justify-center py-2 text-center">
-          <div class="relative size-[64px] rounded-full overflow-hidden border border-[rgba(255,255,255,0.12)] shadow-md mb-2 bg-[#232328] flex items-center justify-center">
-            <img src="/discord-logo.png" class="size-10 object-contain" alt="Discord" onerror="this.onerror=null; this.src='discord-logo.png';" />
+          <div class="relative size-[68px] rounded-full overflow-hidden border border-[rgba(255,255,255,0.12)] shadow-md mb-2 bg-[#5865F2] flex items-center justify-center">
+            <img src="/discord-logo.png" class="size-full object-cover" alt="Discord" onerror="this.onerror=null; this.src='discord-logo.png';" />
           </div>
-          <p class="text-[12px] text-[#8f8f8f] leading-relaxed max-w-[320px]">Paste your user token to authenticate and enable automatic giveaway joining & claiming</p>
         </div>
 
         <!-- Token Input Field matching dv-field style -->
@@ -5020,26 +5019,16 @@
     }
 
     // --- Real Discord Watchers Implementation ---
-    let discordWatchersList = [
-      {
-        id: 'w_rollbux',
-        name: 'Rollbux',
-        serverID: '1454106247056982130',
-        channelID: '1535006568397934612',
-        targetID: '',
-        mode: 'giveaway',
-        enabled: true,
-        autoReact: true,
-        autoGuess: false,
-        sound: true
-      }
-    ];
+    let discordWatchersList = [];
 
     // Load persisted watchers from localStorage
     try {
-      const savedWatchers = JSON.parse(localStorage.getItem('discord_watchers_list'));
-      if (Array.isArray(savedWatchers) && savedWatchers.length > 0) {
-        discordWatchersList = savedWatchers.filter(w => w.id !== 'w_lunar' && w.name !== 'Lunar');
+      const rawWatchers = localStorage.getItem('discord_watchers_list');
+      if (rawWatchers !== null) {
+        const savedWatchers = JSON.parse(rawWatchers);
+        if (Array.isArray(savedWatchers)) {
+          discordWatchersList = savedWatchers.filter(w => w.id !== 'w_lunar' && w.name !== 'Lunar');
+        }
       }
     } catch (e) {}
 
