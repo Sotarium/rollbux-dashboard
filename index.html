@@ -553,9 +553,9 @@
                         <div id="resultsFeedList" class="flex flex-col gap-2 w-full pt-1"></div>
                         <!-- Pagination -->
                         <div id="resultsPaginationWrap" class="hidden items-center justify-between pt-1">
-                          <button type="button" onclick="resultsPage=Math.max(1,resultsPage-1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 10px;font-size:11px;">‹ Prev</button>
+                          <button type="button" onclick="resultsPage=Math.max(1,resultsPage-1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Prev</button>
                           <span id="resultsPageLabel" class="text-[11px] font-mono text-[#8f8f8f]">1 / 1</span>
-                          <button type="button" onclick="resultsPage=Math.min(resultsTotalPages,resultsPage+1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 10px;font-size:11px;">Next ›</button>
+                          <button type="button" onclick="resultsPage=Math.min(resultsTotalPages,resultsPage+1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Next</button>
                         </div>
                       </div>
 
@@ -577,9 +577,9 @@
                         </div>
                         <!-- Pagination -->
                         <div id="rainPaginationWrap" class="hidden items-center justify-between pt-1">
-                          <button type="button" onclick="rainPage=Math.max(1,rainPage-1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 10px;font-size:11px;">‹ Prev</button>
+                          <button type="button" onclick="rainPage=Math.max(1,rainPage-1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Prev</button>
                           <span id="rainPageLabel" class="text-[11px] font-mono text-[#8f8f8f]">1 / 1</span>
-                          <button type="button" onclick="rainPage=Math.min(rainTotalPages,rainPage+1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 10px;font-size:11px;">Next ›</button>
+                          <button type="button" onclick="rainPage=Math.min(rainTotalPages,rainPage+1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Next</button>
                         </div>
                       </div>
                     </div>
@@ -1254,7 +1254,7 @@
     let liveUserData = null;
     let liveSolPrice = 150.00;
     let currentRainPage = 1;
-    const RAINS_PER_PAGE = 10;
+    const RAINS_PER_PAGE = 5;
 
     function getUsernameFromUrl() {
       const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
@@ -1754,8 +1754,8 @@
 
       let html = '';
 
-      // Prev arrow
-      html += `<button class="${p === 1 ? btnDisabled : btnArrow}" id="pgPrev" ${p === 1 ? 'disabled' : ''}>&#8249;</button>`;
+      // Prev button
+      html += `<button class="${p === 1 ? btnDisabled : btnArrow}" id="pgPrev" ${p === 1 ? 'disabled' : ''}>Prev</button>`;
 
       let prev = 0;
       for (const n of sorted) {
@@ -1767,8 +1767,8 @@
         prev = n;
       }
 
-      // Next arrow
-      html += `<button class="${p === totalPages ? btnDisabled : btnArrow}" id="pgNext" ${p === totalPages ? 'disabled' : ''}>&#8250;</button>`;
+      // Next button
+      html += `<button class="${p === totalPages ? btnDisabled : btnArrow}" id="pgNext" ${p === totalPages ? 'disabled' : ''}>Next</button>`;
 
       rainPagination.innerHTML = html;
 
@@ -4464,7 +4464,18 @@
           </label>
         </div>
 
-<div class="flex items-center justify-between">
+<div id="watcherSafeModeRow" class="flex items-center justify-between">
+          <div class="flex flex-col">
+            <span class="text-[13px] font-semibold text-white">Safe Mode (1 out of 2)</span>
+            <span class="text-[11px] text-[#8f8f8f]">Alternating: joins 1st, skips 2nd, joins 3rd...</span>
+          </div>
+          <label class="dv-toggle-wrap">
+            <input type="checkbox" id="newWatcherSafeMode" class="dv-toggle-input">
+            <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-between">
           <span class="text-[13px] font-semibold text-white">Sound Notification</span>
           <label class="dv-toggle-wrap">
             <input type="checkbox" id="newWatcherSound" checked class="dv-toggle-input">
@@ -4796,31 +4807,66 @@
       const authorId = msg.author?.id;
       const content = msg.content || '';
 
-      // --- Step 1: check if this message is a WINNER announcement for a pending giveaway ---
+      // Aggregate all text including embeds (title, description, fields, footer)
+      let fullText = content;
+      if (Array.isArray(msg.embeds)) {
+        for (const emb of msg.embeds) {
+          if (emb.title) fullText += ' ' + emb.title;
+          if (emb.description) fullText += ' ' + emb.description;
+          if (Array.isArray(emb.fields)) {
+            for (const f of emb.fields) {
+              if (f.name) fullText += ' ' + f.name;
+              if (f.value) fullText += ' ' + f.value;
+            }
+          }
+          if (emb.footer?.text) fullText += ' ' + emb.footer.text;
+        }
+      }
+      const fullTextLower = fullText.toLowerCase();
+
+      // --- Step 1: Check if this message announces that the connected user got picked ---
       if (pendingGiveaways[channelId]) {
         const myUser = (() => { try { return JSON.parse(localStorage.getItem('sotarium_discord_user') || '{}'); } catch(e) { return {}; } })();
         const myId = myUser.id;
+        const myUsername = (myUser.username || '').toLowerCase();
+        const myGlobalName = (myUser.global_name || '').toLowerCase();
+
         if (myId) {
-          const lc = content.toLowerCase();
-          const winnerWords = ['won', 'winner', 'congratulation', 'congrats', 'you won', 'you are the winner', 'gg', 'prize'];
-          const mentionsMe = content.includes('<@' + myId + '>') || content.includes('<@!' + myId + '>');
-          const isWinMsg = mentionsMe && winnerWords.some(w => lc.includes(w));
-          if (isWinMsg) {
+          // Check mention by ID (<@id> or <@!id>) or by username (@username)
+          const mentionsMe = fullText.includes('<@' + myId + '>') ||
+                             fullText.includes('<@!' + myId + '>') ||
+                             (myUsername && fullTextLower.includes('@' + myUsername)) ||
+                             (myGlobalName && fullTextLower.includes('@' + myGlobalName));
+
+          // Look for giveaway end / winner / picked keywords matching the bot screenshot
+          const isWinnerEvent = mentionsMe && (
+            fullTextLower.includes('giveaway ended') ||
+            fullTextLower.includes('picked') ||
+            fullTextLower.includes('winner') ||
+            fullTextLower.includes('won') ||
+            fullTextLower.includes('secret number') ||
+            fullTextLower.includes('guessed') ||
+            fullTextLower.includes('congrat') ||
+            fullTextLower.includes('gg')
+          );
+
+          if (isWinnerEvent) {
             const pending = pendingGiveaways[channelId];
             const guess = Math.floor(Math.random() * 20) + 1;
             logDiscordActivity('You Got Picked! Guessed ' + guess, 'Won', 'green');
             sendDiscordMessage(channelId, String(guess));
             delete pendingGiveaways[channelId];
-            window.playWatcherBeep && window.playWatcherBeep();
+            if (typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
           }
         }
       }
 
-      // --- Step 2: match watchers for this message ---
+      // --- Step 2: Match watchers for giveaway entry ---
       const matchingWatchers = discordWatchersList.filter(w => {
         if (!w.enabled) return false;
         if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
         if (w.serverID && String(w.serverID).trim() !== String(guildId).trim()) return false;
+        // Target ID filtering: MUST match authorId if targetID is set
         if (w.targetID && String(w.targetID).trim() !== String(authorId).trim()) return false;
         return true;
       });
@@ -4828,13 +4874,41 @@
       for (const watcher of matchingWatchers) {
         if (watcher.type === 'claimer' || watcher.mode === 'ticket') {
           triggerTicketClaim(channelId, msg.id, content, watcher);
-        } else {
-          if (watcher.autoReact) {
-            logDiscordActivity('Giveaway message in ' + watcher.name + '! Reacting 🎉...', 'Auto React');
-            // Store this giveaway as pending so we can watch for the winner
-            pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
-            triggerDiscordReaction(channelId, msg.id, '%F0%9F%8E%89');
+        } else if (watcher.autoReact) {
+          // Check if message is actually a giveaway (not an ended message or regular chat)
+          const isEnded = fullTextLower.includes('giveaway ended') || fullTextLower.includes('the secret number was');
+          if (isEnded) continue; // Don't react to ended announcement
+
+          const isGiveaway = fullTextLower.includes('giveaway') ||
+                            fullTextLower.includes('flash giveaway') ||
+                            fullTextLower.includes('react with') ||
+                            fullTextLower.includes('react to enter') ||
+                            fullTextLower.includes('🎉') ||
+                            (Array.isArray(msg.embeds) && msg.embeds.length > 0) ||
+                            (Array.isArray(msg.reactions) && msg.reactions.some(r => r.emoji?.name === '🎉'));
+
+          if (!isGiveaway) continue;
+
+          // Safe Mode check: 1 out of 2 (first one enters count=0, next skips count=1, next enters count=2...)
+          if (watcher.safeMode) {
+            const count = watcher.safeModeCount || 0;
+            watcher.safeModeCount = count + 1;
+            saveWatchers();
+            if (count % 2 !== 0) {
+              logDiscordActivity('Safe Mode: Skipped giveaway (1 out of 2) in ' + watcher.name, 'Skipped');
+              continue;
+            }
           }
+
+          // Remember this channel for winner announcement
+          pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
+
+          // Delay 3 seconds before reacting so user sees the message
+          logDiscordActivity('Giveaway detected in ' + watcher.name + '. Reacting in 3s...', 'Waiting');
+          setTimeout(() => {
+            if (!watcher.enabled) return;
+            triggerDiscordReaction(channelId, msg.id, '%F0%9F%8E%89');
+          }, 3000);
         }
       }
     }
@@ -4852,11 +4926,23 @@
         const matchingWatchers = discordWatchersList.filter(w => {
           if (!w.enabled || !w.autoReact) return false;
           if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
+          // Note: if watcher specifies a targetID, reaction_add won't have message author, so skip reaction_add to prevent false alarms
+          if (w.targetID) return false;
           return true;
         });
 
-        if (matchingWatchers.length > 0) {
-          triggerDiscordReaction(channelId, messageId, '%F0%9F%8E%89');
+        for (const watcher of matchingWatchers) {
+          if (watcher.safeMode) {
+            const count = watcher.safeModeCount || 0;
+            watcher.safeModeCount = count + 1;
+            saveWatchers();
+            if (count % 2 !== 0) continue;
+          }
+          pendingGiveaways[channelId] = { messageId: messageId, watcherName: watcher.name, ts: Date.now() };
+          setTimeout(() => {
+            if (!watcher.enabled) return;
+            triggerDiscordReaction(channelId, messageId, '%F0%9F%8E%89');
+          }, 3000);
         }
       }
     }
@@ -5404,7 +5490,7 @@
     };
 
     // --- Real Results Feed with Pagination & Account Filter ---
-    const RESULTS_PER_PAGE = 8;
+    const RESULTS_PER_PAGE = 5;
     let resultsPage = 1;
     let resultsTotalPages = 1;
 
@@ -5462,7 +5548,7 @@
     };
 
     // --- Rain Rewards Feed ---
-    const RAIN_REWARDS_PER_PAGE = 8;
+    const RAIN_REWARDS_PER_PAGE = 5;
     let rainPage = 1;
     let rainTotalPages = 1;
     let rainRewardsData = {}; // keyed by account name
@@ -5625,6 +5711,9 @@
       const w = discordWatchersList.find(x => x.id === id);
       if (w) {
         w.enabled = !w.enabled;
+        if (w.enabled) {
+          w.safeModeCount = 0; // fresh alternating sequence from toggle
+        }
         saveWatchers();
       }
     };
@@ -5656,16 +5745,20 @@
         }
         if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket · 🎟️';
         if (targetWrap) targetWrap.style.display = 'none';
+        const safeModeRow = document.getElementById('watcherSafeModeRow');
+        if (safeModeRow) safeModeRow.style.display = 'none';
         if (channelLabel) channelLabel.textContent = 'Ticket Channel ID';
         if (createBtn) createBtn.textContent = 'Create Claimer';
       } else {
         if (bWatch) { bWatch.style.background = '#ffffff'; bWatch.style.color = '#000000'; }
         if (bClaim) { bClaim.style.background = 'transparent'; bClaim.style.color = '#8f8f8f'; }
         if (help) {
-          help.innerHTML = '<b>Watcher mode:</b> Listens to channels and reacts to giveaway messages with 🎉.';
+          help.innerHTML = '<b>Watcher mode:</b> Reacts 🎉 after 3s to giveaways. Guesses 1–20 when you get picked.';
         }
         if (actionLbl) actionLbl.textContent = 'Auto React · 🎉';
         if (targetWrap) targetWrap.style.display = '';
+        const safeModeRow = document.getElementById('watcherSafeModeRow');
+        if (safeModeRow) safeModeRow.style.display = 'flex';
         if (channelLabel) channelLabel.textContent = 'Channel ID';
         if (createBtn) createBtn.textContent = 'Create Watcher';
       }
@@ -5683,6 +5776,8 @@
       if (cInp) cInp.value = '';
       const tInp = document.getElementById('newWatcherTargetId');
       if (tInp) tInp.value = '';
+      const smInp = document.getElementById('newWatcherSafeMode');
+      if (smInp) smInp.checked = false;
 
     };
 
@@ -5698,6 +5793,7 @@
       const targetID = (document.getElementById('newWatcherTargetId')?.value || '').trim();
       const autoReact = !!document.getElementById('newWatcherAutoReact')?.checked;
       const sound = !!document.getElementById('newWatcherSound')?.checked;
+      const safeMode = !!document.getElementById('newWatcherSafeMode')?.checked;
       const keyword = '';
 
       if (!name) {
@@ -5725,6 +5821,8 @@
         enabled: true,
         autoReact,
         autoGuess: false,
+        safeMode,
+        safeModeCount: 0,
         sound
       });
       saveWatchers();
@@ -5794,6 +5892,7 @@
             <div class="flex items-center justify-between select-none pt-1">
               <div class="flex items-center gap-2">
                 ${w.autoReact ? (isClaimer ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:#5865F2; color:#ffffff;">Auto Claim 🎟️</span>' : '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React · 🎉</span>') : ''}
+                ${w.safeMode ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:rgba(255,255,255,0.12); color:#ffffff;" title="Safe Mode: 1 out of 2">Safe 1/2</span>' : ''}
                 ${w.autoGuess ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>' : ''}
                 <button type="button" onclick="toggleWatcherSound('${w.id}')" class="dv-pill ${w.sound ? 'active' : 'inactive text-[#8f8f8f]'}" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; cursor:pointer;" title="Toggle sound notification">
                   <svg class="size-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/></svg>
