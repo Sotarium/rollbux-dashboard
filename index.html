@@ -4168,8 +4168,11 @@
     }
 
     window.submitDiscordLogin = async function() {
-      const token = (discordTokenInput?.value || '').trim();
-      if (!token) {
+      let raw = (discordTokenInput?.value || '').trim();
+      // Strip surrounding quotes or "Bot " prefix if accidentally copied
+      raw = raw.replace(/^["']|["']$/g, '').trim();
+      
+      if (!raw) {
         if (discordLoginError) {
           discordLoginError.textContent = 'Please enter your Discord token';
           discordLoginError.classList.remove('hidden');
@@ -4181,26 +4184,43 @@
         discordLoginBtn.disabled = true;
         discordLoginBtn.textContent = 'Connecting...';
       }
+      if (discordLoginError) {
+        discordLoginError.classList.add('hidden');
+      }
 
       try {
-        const resp = await fetch('https://discord.com/api/v10/users/@me', {
-          headers: { Authorization: token }
+        // Try direct user token first, fallback to Bot prefix if applicable
+        let resp = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: { Authorization: raw }
         });
+
+        let finalToken = raw;
+
+        if (!resp.ok && !raw.startsWith('Bot ')) {
+          const botResp = await fetch('https://discord.com/api/v10/users/@me', {
+            headers: { Authorization: 'Bot ' + raw }
+          });
+          if (botResp.ok) {
+            resp = botResp;
+            finalToken = 'Bot ' + raw;
+          }
+        }
 
         if (resp.ok) {
           const d = await resp.json();
           const u = {
             id: d.id,
-            username: d.username,
-            avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '/discord-3d.png'
+            username: d.global_name || d.username,
+            handle: d.username,
+            avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '/discord-logo.png'
           };
-          localStorage.setItem('sotarium_discord_token', token);
+          localStorage.setItem('sotarium_discord_token', finalToken);
           localStorage.setItem('sotarium_discord_user', JSON.stringify(u));
           closeDiscordLoginModal();
           syncDiscordGwUI();
           syncDiscordCustomProfile();
         } else {
-          throw new Error('Invalid Discord Token (check authorization)');
+          throw new Error('Invalid Discord Token: Discord rejected with 401 Unauthorized.');
         }
       } catch (err) {
         if (discordLoginError) {
