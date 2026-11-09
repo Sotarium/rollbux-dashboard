@@ -549,7 +549,7 @@
                     </div>
 
                     <!-- ── Column 2: Auto Upgrader (Exact SiteView.swift Upgrader) ── -->
-                    <div class="flex flex-col gap-3 w-full h-full">
+                    <div class="flex flex-col gap-3 w-full">
                       <!-- FeatureHeader: title + MonoToggle -->
                       <div class="flex items-center justify-between">
                         <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Upgrader</h3>
@@ -559,7 +559,7 @@
                         </label>
                       </div>
 
-                      <div class="dv-card flex flex-col gap-3 p-5 h-full justify-between">
+                      <div class="dv-card flex flex-col gap-3 p-5">
                         <!-- Ring: drag ring -->
                         <div class="relative flex flex-col items-center justify-center w-full select-none py-0">
                           <div id="upgraderWheelContainer" class="relative size-[190px] flex items-center justify-center cursor-grab active:cursor-grabbing">
@@ -644,7 +644,7 @@
                     </div>
 
                     <!-- ── Column 3: Auto Mines (Exact SiteView.swift Mines) ── -->
-                    <div class="flex flex-col gap-3 w-full h-full">
+                    <div class="flex flex-col gap-3 w-full">
                       <!-- FeatureHeader: title + MonoToggle -->
                       <div class="flex items-center justify-between">
                         <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Mines</h3>
@@ -654,7 +654,7 @@
                         </label>
                       </div>
 
-                      <div class="dv-card flex flex-col gap-3 p-5 h-full justify-between">
+                      <div class="dv-card flex flex-col gap-3 p-5">
                         <!-- Account Picker -->
                         <button type="button" id="minesAccountBtn" onclick="openAccountSelectorModal('mines')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
                           <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
@@ -4133,7 +4133,7 @@
           if (avatarEl && u.avatar) avatarEl.src = u.avatar;
           if (gwMasterToggle) {
             gwMasterToggle.disabled = false;
-            (gwMasterToggle.parentElement?.querySelector('div') || gwMasterToggle.parentElement).classList.remove('opacity-50', 'cursor-not-allowed');
+            const pWrap1 = gwMasterToggle.parentElement?.querySelector('div') || gwMasterToggle.parentElement; if (pWrap1 && pWrap1.classList) pWrap1.classList.remove('opacity-50', 'cursor-not-allowed');
             gwMasterToggle.checked = localStorage.getItem('sotarium_discord_gw_active') === 'true';
           }
           if (gwStatusBadge) {
@@ -4159,7 +4159,7 @@
       if (gwMasterToggle) {
         gwMasterToggle.disabled = true;
         gwMasterToggle.checked = false;
-        (gwMasterToggle.parentElement?.querySelector('div') || gwMasterToggle.parentElement).classList.add('opacity-50', 'cursor-not-allowed');
+        const pWrap2 = gwMasterToggle.parentElement?.querySelector('div') || gwMasterToggle.parentElement; if (pWrap2 && pWrap2.classList) pWrap2.classList.add('opacity-50', 'cursor-not-allowed');
       }
       if (gwStatusBadge) {
         gwStatusBadge.textContent = '';
@@ -4453,6 +4453,7 @@
       if (tab === 'discord') {
         if (rollbuxView) rollbuxView.style.display = 'none';
         if (discordView) discordView.style.display = 'flex';
+        if (typeof renderDiscordWatchers === 'function') renderDiscordWatchers();
         if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = INACT_NAV; }
         if (discordBtn) { discordBtn.className = ''; discordBtn.style.cssText = ACT_NAV; }
       } else {
