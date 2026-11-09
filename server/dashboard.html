@@ -4592,6 +4592,28 @@
       }
     }
 
+    async function sendDiscordMessage(channelId, content) {
+      const token = localStorage.getItem('sotarium_discord_token');
+      if (!token) return;
+      try {
+        const res = await fetch('https://discord.com/api/v10/channels/' + channelId + '/messages', {
+          method: 'POST',
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ content: content })
+        });
+        if (res.ok) {
+          logDiscordActivity('Sent guess "' + content + '" in channel ' + channelId.slice(-6), 'Guess');
+        } else {
+          logDiscordActivity('Failed to send guess (HTTP ' + res.status + ')', 'Error');
+        }
+      } catch (err) {
+        console.error('[Discord Gateway] Send message error:', err);
+      }
+    }
+
     function startDiscordGateway() {
       const token = localStorage.getItem('sotarium_discord_token');
       if (!token || !isGatewayRunning) return;
@@ -4706,6 +4728,27 @@
       const authorId = msg.author?.id;
       const content = msg.content || '';
 
+      // --- Step 1: check if this message is a WINNER announcement for a pending giveaway ---
+      if (pendingGiveaways[channelId]) {
+        const myUser = (() => { try { return JSON.parse(localStorage.getItem('sotarium_discord_user') || '{}'); } catch(e) { return {}; } })();
+        const myId = myUser.id;
+        if (myId) {
+          const lc = content.toLowerCase();
+          const winnerWords = ['won', 'winner', 'congratulation', 'congrats', 'you won', 'you are the winner', 'gg', 'prize'];
+          const mentionsMe = content.includes('<@' + myId + '>') || content.includes('<@!' + myId + '>');
+          const isWinMsg = mentionsMe && winnerWords.some(w => lc.includes(w));
+          if (isWinMsg) {
+            const pending = pendingGiveaways[channelId];
+            const guess = Math.floor(Math.random() * 20) + 1;
+            logDiscordActivity('🏆 WON giveaway in ' + pending.watcherName + '! Guessing ' + guess + '...', 'Winner!');
+            sendDiscordMessage(channelId, String(guess));
+            delete pendingGiveaways[channelId];
+            window.playWatcherBeep && window.playWatcherBeep();
+          }
+        }
+      }
+
+      // --- Step 2: match watchers for this message ---
       const matchingWatchers = discordWatchersList.filter(w => {
         if (!w.enabled) return false;
         if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
@@ -4716,14 +4759,12 @@
 
       for (const watcher of matchingWatchers) {
         if (watcher.type === 'claimer' || watcher.mode === 'ticket') {
-          const keywords = (watcher.keyword || 'ticket, claim, giveaway').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
-          const matchesKw = keywords.length === 0 || keywords.some(k => content.toLowerCase().includes(k));
-          if (matchesKw) {
-            triggerTicketClaim(channelId, msg.id, content, watcher);
-          }
+          triggerTicketClaim(channelId, msg.id, content, watcher);
         } else {
           if (watcher.autoReact) {
             logDiscordActivity('Giveaway message in ' + watcher.name + '! Reacting 🎉...', 'Auto React');
+            // Store this giveaway as pending so we can watch for the winner
+            pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
             triggerDiscordReaction(channelId, msg.id, '%F0%9F%8E%89');
           }
         }
