@@ -537,13 +537,45 @@
                         </div>
                       </div>
 
-                      <!-- Results Feed Card matching resultsCard in SiteView -->
+                      <!-- Results Feed Card -->
                       <div class="dv-card flex flex-col gap-3 p-5">
                         <div class="flex items-center justify-between">
                           <h3 class="text-[17px] font-bold text-white tracking-tight">Results</h3>
-                          <button type="button" onclick="clearResultsFeed()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
+                          <div class="flex items-center gap-2">
+                            <select id="resultsAccFilter" onchange="resultsPage=1;renderResultsFeed()" class="dv-field" style="height:28px;padding:0 8px;font-size:11px;font-weight:600;min-width:90px;">
+                              <option value="all">All Accounts</option>
+                            </select>
+                            <button type="button" onclick="clearResultsFeed()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
+                          </div>
                         </div>
-                        <div id="resultsFeedList" class="flex flex-col gap-2 w-full pt-1">
+                        <div id="resultsFeedList" class="flex flex-col gap-2 w-full pt-1"></div>
+                        <!-- Pagination -->
+                        <div id="resultsPaginationWrap" class="hidden items-center justify-between pt-1">
+                          <button type="button" onclick="resultsPage=Math.max(1,resultsPage-1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 10px;font-size:11px;">‹ Prev</button>
+                          <span id="resultsPageLabel" class="text-[11px] font-mono text-[#8f8f8f]">1 / 1</span>
+                          <button type="button" onclick="resultsPage=Math.min(resultsTotalPages,resultsPage+1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 10px;font-size:11px;">Next ›</button>
+                        </div>
+                      </div>
+
+                      <!-- Rain Rewards Card -->
+                      <div class="dv-card flex flex-col gap-3 p-5">
+                        <div class="flex items-center justify-between">
+                          <h3 class="text-[17px] font-bold text-white tracking-tight">Rain Rewards</h3>
+                          <div class="flex items-center gap-2">
+                            <select id="rainAccFilter" onchange="rainPage=1;renderRainRewards()" class="dv-field" style="height:28px;padding:0 8px;font-size:11px;font-weight:600;min-width:90px;">
+                              <option value="all">All Accounts</option>
+                            </select>
+                            <button type="button" onclick="fetchRainRewards()" class="dv-pill inactive" style="height:28px;padding:0 12px;font-size:12px;">Refresh</button>
+                          </div>
+                        </div>
+                        <div id="rainRewardsList" class="flex flex-col gap-2 w-full pt-1">
+                          <div class="flex h-[60px] items-center justify-center text-xs text-[#8f8f8f]">Loading rain rewards...</div>
+                        </div>
+                        <!-- Pagination -->
+                        <div id="rainPaginationWrap" class="hidden items-center justify-between pt-1">
+                          <button type="button" onclick="rainPage=Math.max(1,rainPage-1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 10px;font-size:11px;">‹ Prev</button>
+                          <span id="rainPageLabel" class="text-[11px] font-mono text-[#8f8f8f]">1 / 1</span>
+                          <button type="button" onclick="rainPage=Math.min(rainTotalPages,rainPage+1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 10px;font-size:11px;">Next ›</button>
                         </div>
                       </div>
                     </div>
@@ -5349,24 +5381,52 @@
       }
     };
 
-    // --- Real Results Feed with Clean Fonts & Real Game Events ---
+    // --- Real Results Feed with Pagination & Account Filter ---
+    const RESULTS_PER_PAGE = 8;
+    let resultsPage = 1;
+    let resultsTotalPages = 1;
+
+    // Populate results account filter
+    function populateResultsAccFilter() {
+      const sel = document.getElementById('resultsAccFilter');
+      if (!sel) return;
+      const history = (typeof loadGameHistory === 'function') ? loadGameHistory() : [];
+      const accounts = [...new Set(history.map(h => h.account || 'Main').filter(Boolean))];
+      const cur = sel.value;
+      sel.innerHTML = '<option value="all">All Accounts</option>' +
+        accounts.map(a => `<option value="${a}" ${cur===a?'selected':''}>${a}</option>`).join('');
+    }
+
     window.renderResultsFeed = function() {
       const listEl = document.getElementById('resultsFeedList');
+      const paginationWrap = document.getElementById('resultsPaginationWrap');
+      const pageLabel = document.getElementById('resultsPageLabel');
       if (!listEl) return;
+
+      populateResultsAccFilter();
+
       const clearedAt = parseInt(localStorage.getItem('rollbux_results_cleared_at') || '0', 10);
       let history = (typeof loadGameHistory === 'function') ? loadGameHistory() : [];
-      // Filter out entries that existed before user clicked Clear
       if (clearedAt > 0) history = history.filter(item => (item.ts || 0) > clearedAt / 1000);
+
+      // Account filter
+      const selAcc = (document.getElementById('resultsAccFilter')?.value || 'all');
+      if (selAcc !== 'all') history = history.filter(h => (h.account || 'Main') === selAcc);
+
       if (!history || history.length === 0) {
-        listEl.innerHTML = `
-          <div class="flex h-[80px] items-center justify-center text-xs text-[#8f8f8f] text-center">
-            No game rounds recorded yet. Start a game to see real results here.
-          </div>
-        `;
+        listEl.innerHTML = `<div class="flex h-[80px] items-center justify-center text-xs text-[#8f8f8f] text-center">No game rounds recorded yet. Start a game to see real results here.</div>`;
+        if (paginationWrap) paginationWrap.style.display = 'none';
         return;
       }
 
-      listEl.innerHTML = history.slice(0, 15).map(item => {
+      resultsTotalPages = Math.max(1, Math.ceil(history.length / RESULTS_PER_PAGE));
+      if (resultsPage > resultsTotalPages) resultsPage = resultsTotalPages;
+      if (resultsPage < 1) resultsPage = 1;
+
+      const pageStart = (resultsPage - 1) * RESULTS_PER_PAGE;
+      const pageItems = history.slice(pageStart, pageStart + RESULTS_PER_PAGE);
+
+      listEl.innerHTML = pageItems.map(item => {
         const win = Boolean(item.success);
         const color = win ? '#54d487' : '#f55e5e';
         const sign = win ? '+' : '−';
@@ -5381,9 +5441,115 @@
             </div>
             <span class="text-[13px] font-bold font-mono" style="color:${color};">${sign}${Math.abs(amt).toFixed(2)} BUX</span>
             <span class="text-[11px] text-[#8f8f8f] opacity-70 shrink-0 font-medium">${timeAgo}</span>
-          </div>
-        `;
+          </div>`;
       }).join('');
+
+      if (paginationWrap) {
+        paginationWrap.style.display = resultsTotalPages > 1 ? 'flex' : 'none';
+        if (pageLabel) pageLabel.textContent = resultsPage + ' / ' + resultsTotalPages;
+      }
+    };
+
+    // --- Rain Rewards Feed ---
+    const RAIN_REWARDS_PER_PAGE = 8;
+    let rainPage = 1;
+    let rainTotalPages = 1;
+    let rainRewardsData = {}; // keyed by account name
+
+    function populateRainAccFilter(accounts) {
+      const sel = document.getElementById('rainAccFilter');
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="all">All Accounts</option>' +
+        accounts.map(a => `<option value="${a}" ${cur===a?'selected':''}>${a}</option>`).join('');
+    }
+
+    window.renderRainRewards = function() {
+      const listEl = document.getElementById('rainRewardsList');
+      const paginationWrap = document.getElementById('rainPaginationWrap');
+      const pageLabel = document.getElementById('rainPageLabel');
+      if (!listEl) return;
+
+      const selAcc = document.getElementById('rainAccFilter')?.value || 'all';
+      let allRains = [];
+      for (const [acc, txs] of Object.entries(rainRewardsData)) {
+        if (selAcc !== 'all' && acc !== selAcc) continue;
+        txs.forEach(tx => allRains.push({ ...tx, _account: acc }));
+      }
+      // Sort newest first
+      allRains.sort((a, b) => (b.createdAt || b.timestamp || 0) - (a.createdAt || a.timestamp || 0));
+
+      if (allRains.length === 0) {
+        listEl.innerHTML = `<div class="flex h-[60px] items-center justify-center text-xs text-[#8f8f8f]">No rain rewards found.</div>`;
+        if (paginationWrap) paginationWrap.style.display = 'none';
+        return;
+      }
+
+      rainTotalPages = Math.max(1, Math.ceil(allRains.length / RAIN_REWARDS_PER_PAGE));
+      if (rainPage > rainTotalPages) rainPage = rainTotalPages;
+      if (rainPage < 1) rainPage = 1;
+
+      const pageStart = (rainPage - 1) * RAIN_REWARDS_PER_PAGE;
+      const pageItems = allRains.slice(pageStart, pageStart + RAIN_REWARDS_PER_PAGE);
+
+      listEl.innerHTML = pageItems.map(tx => {
+        const amt = (tx.amount || tx.amount_bux || 0);
+        const amtFmt = typeof amt === 'number' ? amt.toFixed(2) : amt;
+        const acc = tx._account || 'Account';
+        const dateStr = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : (tx.time || '—');
+        return `
+          <div class="dv-feed-row">
+            <div class="w-[3px] h-[28px] rounded-[2px] shrink-0" style="background:#5865f2;"></div>
+            <div class="flex flex-col flex-1 min-w-0">
+              <span class="text-[13px] font-bold text-white truncate tracking-tight">${acc}</span>
+              <span class="text-[11px] text-[#8f8f8f] truncate font-medium">Rain Reward</span>
+            </div>
+            <span class="text-[13px] font-bold font-mono" style="color:#54d487;">+${amtFmt} BUX</span>
+            <span class="text-[11px] text-[#8f8f8f] opacity-70 shrink-0 font-medium">${dateStr}</span>
+          </div>`;
+      }).join('');
+
+      if (paginationWrap) {
+        paginationWrap.style.display = rainTotalPages > 1 ? 'flex' : 'none';
+        if (pageLabel) pageLabel.textContent = rainPage + ' / ' + rainTotalPages;
+      }
+    };
+
+    window.fetchRainRewards = async function() {
+      const listEl = document.getElementById('rainRewardsList');
+      if (listEl) listEl.innerHTML = '<div class="flex h-[60px] items-center justify-center text-xs text-[#8f8f8f]">Fetching rain rewards...</div>';
+
+      let accounts = [];
+      try { accounts = await getRegisteredAccountsList(); } catch(e) {}
+      if (!accounts || accounts.length === 0) accounts = [{ name: targetUsername || 'Main' }];
+
+      // Update account filter dropdown
+      populateRainAccFilter(accounts.map(a => a.name));
+
+      rainRewardsData = {};
+
+      await Promise.allSettled(accounts.map(async acc => {
+        const accName = acc.name || 'Account';
+        try {
+          const res = await fetch('/api/roach/proxy-get?url=' + encodeURIComponent('https://rollbux.com/profile/transactions') + '&account=' + encodeURIComponent(accName));
+          let txs = [];
+          if (res.ok) {
+            const data = await res.json();
+            // Handle various response shapes
+            const list = Array.isArray(data) ? data : (data.transactions || data.data || data.results || []);
+            txs = list.filter(t => {
+              const type = (t.type || t.transaction_type || '').toLowerCase();
+              return type.includes('rain') || type.includes('rain reward');
+            });
+          }
+          rainRewardsData[accName] = txs;
+        } catch(e) {
+          rainRewardsData[accName] = [];
+        }
+      }));
+
+      rainPage = 1;
+      renderRainRewards();
     };
 
     function formatSecondsAgo(ts) {
@@ -5650,6 +5816,7 @@
     setupMinesTiles();
       refreshAccountsList();
       renderResultsFeed();
+      fetchRainRewards();
       renderDiscordWatchers();
     });
 
