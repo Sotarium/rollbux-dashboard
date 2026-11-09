@@ -386,7 +386,7 @@
 
   <!-- Main Container -->
   <div class="flex w-full justify-center pb-[40px] pt-[35px]" bis_skin_checked="1">
-    <div data-node-id="671:32993" class="flex w-full max-w-[1536px] flex-col items-start gap-[28px] px-4 md:px-8" bis_skin_checked="1">
+    <div data-node-id="671:32993" class="flex w-full max-w-[1536px] flex-col items-stretch gap-[28px] px-4 md:px-8" bis_skin_checked="1">
       <div data-node-id="671:32994" class="flex w-full flex-col items-start gap-[28px]" bis_skin_checked="1">
         
 
@@ -549,7 +549,7 @@
                     </div>
 
                     <!-- ── Column 2: Auto Upgrader (Exact SiteView.swift Upgrader) ── -->
-                    <div class="flex flex-col gap-3 w-full">
+                    <div class="flex flex-col gap-3 w-full h-full">
                       <!-- FeatureHeader: title + MonoToggle -->
                       <div class="flex items-center justify-between">
                         <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Upgrader</h3>
@@ -559,7 +559,7 @@
                         </label>
                       </div>
 
-                      <div class="dv-card flex flex-col gap-3 p-5">
+                      <div class="dv-card flex flex-col gap-3 p-5 h-full justify-between">
                         <!-- Ring: drag ring -->
                         <div class="relative flex flex-col items-center justify-center w-full select-none py-0">
                           <div id="upgraderWheelContainer" class="relative size-[190px] flex items-center justify-center cursor-grab active:cursor-grabbing">
@@ -592,9 +592,7 @@
 
                             <!-- Center Info: Big Bold Percentage and Chance Label -->
                             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-                              <span class="text-[12px] font-semibold text-[#8f8f8f] leading-none">Upgrade Chance</span>
-                              <span id="upgraderChanceDisplay" class="text-[28px] font-black text-white tracking-tight mt-1 leading-none font-mono">45.00%</span>
-                              <span id="upgraderRangeDisplay" class="text-[11px] font-mono text-[#8f8f8f] mt-1">0 - 450,000</span>
+                              <span id="upgraderChanceDisplay" class="text-[34px] font-black text-white tracking-tight leading-none font-mono">45.00%</span>
                             </div>
                           </div>
                         </div>
@@ -646,7 +644,7 @@
                     </div>
 
                     <!-- ── Column 3: Auto Mines (Exact SiteView.swift Mines) ── -->
-                    <div class="flex flex-col gap-3 w-full">
+                    <div class="flex flex-col gap-3 w-full h-full">
                       <!-- FeatureHeader: title + MonoToggle -->
                       <div class="flex items-center justify-between">
                         <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Mines</h3>
@@ -656,7 +654,7 @@
                         </label>
                       </div>
 
-                      <div class="dv-card flex flex-col gap-3 p-5">
+                      <div class="dv-card flex flex-col gap-3 p-5 h-full justify-between">
                         <!-- Account Picker -->
                         <button type="button" id="minesAccountBtn" onclick="openAccountSelectorModal('mines')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
                           <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
