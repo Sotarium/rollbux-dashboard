@@ -541,13 +541,15 @@
                       <div class="dv-card flex flex-col gap-3 p-5">
                         <div class="flex items-center justify-between">
                           <h3 class="text-[17px] font-bold text-white tracking-tight">Results</h3>
-                          <div class="flex items-center gap-2">
-                            <select id="resultsAccFilter" onchange="resultsPage=1;renderResultsFeed()" class="dv-field" style="height:28px;padding:0 8px;font-size:11px;font-weight:600;min-width:90px;">
-                              <option value="all">All Accounts</option>
-                            </select>
-                            <button type="button" onclick="clearResultsFeed()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
-                          </div>
+                          <button type="button" onclick="clearResultsFeed()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
                         </div>
+
+                        <!-- Account Picker matching Auto Upgrader style -->
+                        <button type="button" id="resultsAccountBtn" onclick="openAccountSelectorModal('results')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                          <span id="resultsAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
+                        </button>
+
                         <div id="resultsFeedList" class="flex flex-col gap-2 w-full pt-1"></div>
                         <!-- Pagination -->
                         <div id="resultsPaginationWrap" class="hidden items-center justify-between pt-1">
@@ -561,13 +563,15 @@
                       <div class="dv-card flex flex-col gap-3 p-5">
                         <div class="flex items-center justify-between">
                           <h3 class="text-[17px] font-bold text-white tracking-tight">Rain Rewards</h3>
-                          <div class="flex items-center gap-2">
-                            <select id="rainAccFilter" onchange="rainPage=1;renderRainRewards()" class="dv-field" style="height:28px;padding:0 8px;font-size:11px;font-weight:600;min-width:90px;">
-                              <option value="all">All Accounts</option>
-                            </select>
-                            <button type="button" onclick="fetchRainRewards()" class="dv-pill inactive" style="height:28px;padding:0 12px;font-size:12px;">Refresh</button>
-                          </div>
+                          <button type="button" onclick="fetchRainRewards()" class="dv-pill inactive" style="height:28px;padding:0 12px;font-size:12px;">Refresh</button>
                         </div>
+
+                        <!-- Account Picker matching Auto Upgrader style -->
+                        <button type="button" id="rainAccountBtn" onclick="openAccountSelectorModal('rain')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
+                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                          <span id="rainAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
+                        </button>
+
                         <div id="rainRewardsList" class="flex flex-col gap-2 w-full pt-1">
                           <div class="flex h-[60px] items-center justify-center text-xs text-[#8f8f8f]">Loading rain rewards...</div>
                         </div>
@@ -3077,6 +3081,16 @@
         get labelEl() { return document.getElementById('rainsAccountLabel'); },
         key: 'rollbux_rains_account',
         title: 'Watch Rains Account'
+      },
+      results: {
+        get labelEl() { return document.getElementById('resultsAccountLabel'); },
+        key: 'rollbux_results_account',
+        title: 'Results Filter'
+      },
+      rain: {
+        get labelEl() { return document.getElementById('rainAccountLabel'); },
+        key: 'rollbux_rain_rewards_account',
+        title: 'Rain Rewards Filter'
       }
     };
 
@@ -3132,7 +3146,7 @@
     }
 
     function initAccountButtons() {
-      ['upgrader', 'chicken', 'battle', 'mines', 'tip', 'sell', 'rains'].forEach(mode => {
+      ['upgrader', 'chicken', 'battle', 'mines', 'tip', 'sell', 'rains', 'results', 'rain'].forEach(mode => {
         const current = getSelectedAccountsForMode(mode);
         updateAccountButtonLabel(mode, current);
 
@@ -3228,6 +3242,14 @@
         if (typeof fetchUserData === 'function') {
           fetchUserData();
         }
+      }
+      if (currentAccountSelectorMode === 'results') {
+        resultsPage = 1;
+        if (typeof renderResultsFeed === 'function') renderResultsFeed();
+      }
+      if (currentAccountSelectorMode === 'rain') {
+        rainPage = 1;
+        if (typeof renderRainRewards === 'function') renderRainRewards();
       }
     };
 
@@ -5386,32 +5408,21 @@
     let resultsPage = 1;
     let resultsTotalPages = 1;
 
-    // Populate results account filter
-    function populateResultsAccFilter() {
-      const sel = document.getElementById('resultsAccFilter');
-      if (!sel) return;
-      const history = (typeof loadGameHistory === 'function') ? loadGameHistory() : [];
-      const accounts = [...new Set(history.map(h => h.account || 'Main').filter(Boolean))];
-      const cur = sel.value;
-      sel.innerHTML = '<option value="all">All Accounts</option>' +
-        accounts.map(a => `<option value="${a}" ${cur===a?'selected':''}>${a}</option>`).join('');
-    }
-
     window.renderResultsFeed = function() {
       const listEl = document.getElementById('resultsFeedList');
       const paginationWrap = document.getElementById('resultsPaginationWrap');
       const pageLabel = document.getElementById('resultsPageLabel');
       if (!listEl) return;
 
-      populateResultsAccFilter();
-
       const clearedAt = parseInt(localStorage.getItem('rollbux_results_cleared_at') || '0', 10);
       let history = (typeof loadGameHistory === 'function') ? loadGameHistory() : [];
       if (clearedAt > 0) history = history.filter(item => (item.ts || 0) > clearedAt / 1000);
 
-      // Account filter
-      const selAcc = (document.getElementById('resultsAccFilter')?.value || 'all');
-      if (selAcc !== 'all') history = history.filter(h => (h.account || 'Main') === selAcc);
+      // Account filter from account selector overlay
+      const selAccs = getSelectedAccountsForMode('results').map(a => (a || '').toLowerCase().trim());
+      if (selAccs.length > 0 && !selAccs.includes('all')) {
+        history = history.filter(h => selAccs.includes((h.account || 'Main').toLowerCase().trim()));
+      }
 
       if (!history || history.length === 0) {
         listEl.innerHTML = `<div class="flex h-[80px] items-center justify-center text-xs text-[#8f8f8f] text-center">No game rounds recorded yet. Start a game to see real results here.</div>`;
@@ -5456,24 +5467,18 @@
     let rainTotalPages = 1;
     let rainRewardsData = {}; // keyed by account name
 
-    function populateRainAccFilter(accounts) {
-      const sel = document.getElementById('rainAccFilter');
-      if (!sel) return;
-      const cur = sel.value;
-      sel.innerHTML = '<option value="all">All Accounts</option>' +
-        accounts.map(a => `<option value="${a}" ${cur===a?'selected':''}>${a}</option>`).join('');
-    }
-
     window.renderRainRewards = function() {
       const listEl = document.getElementById('rainRewardsList');
       const paginationWrap = document.getElementById('rainPaginationWrap');
       const pageLabel = document.getElementById('rainPageLabel');
       if (!listEl) return;
 
-      const selAcc = document.getElementById('rainAccFilter')?.value || 'all';
+      const selAccs = getSelectedAccountsForMode('rain').map(a => (a || '').toLowerCase().trim());
+      const isAll = selAccs.length === 0 || selAccs.includes('all');
+
       let allRains = [];
       for (const [acc, txs] of Object.entries(rainRewardsData)) {
-        if (selAcc !== 'all' && acc !== selAcc) continue;
+        if (!isAll && !selAccs.includes(acc.toLowerCase().trim())) continue;
         txs.forEach(tx => allRains.push({ ...tx, _account: acc }));
       }
       // Sort newest first
@@ -5522,9 +5527,6 @@
       let accounts = [];
       try { accounts = await getRegisteredAccountsList(); } catch(e) {}
       if (!accounts || accounts.length === 0) accounts = [{ name: targetUsername || 'Main' }];
-
-      // Update account filter dropdown
-      populateRainAccFilter(accounts.map(a => a.name));
 
       rainRewardsData = {};
 
