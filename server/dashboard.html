@@ -5155,7 +5155,7 @@
         const el = document.querySelector('.dv-tile[data-index="' + idx + '"]');
         if (el) {
           el.classList.add('selected');
-          el.innerHTML = '<svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+          el.innerHTML = '';
         }
       });
       const lbl = document.getElementById('minesSelectedCountLabel');
@@ -5166,14 +5166,23 @@
       minesClearTiles();
       const bombs = parseInt(document.getElementById('minesBombsRange')?.value) || 3;
       const maxTiles = Math.max(1, 24 - bombs);
-      for (let i = 0; i < maxTiles; i++) {
-        minesSelectedSet.add(i);
-        const el = document.querySelector('.dv-tile[data-index="' + i + '"]');
+
+      // Fisher-Yates full shuffle of all 25 tiles so max tiles are scattered completely randomly
+      const pool = Array.from({ length: 25 }, (_, i) => i);
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+
+      const selected = pool.slice(0, maxTiles);
+      selected.forEach(idx => {
+        minesSelectedSet.add(idx);
+        const el = document.querySelector('.dv-tile[data-index="' + idx + '"]');
         if (el) {
           el.classList.add('selected');
-          el.innerHTML = '<svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+          el.innerHTML = '';
         }
-      }
+      });
       const lbl = document.getElementById('minesSelectedCountLabel');
       if (lbl) lbl.textContent = minesSelectedSet.size + ' Selected';
     };
