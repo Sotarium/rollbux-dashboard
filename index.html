@@ -3548,11 +3548,17 @@
           return;
         }
 
-        // 2. Pick 3 distinct random tiles across the 5x5 grid (indices 0..24)
-        const randomTiles = [];
-        while (randomTiles.length < 3) {
-          const r = Math.floor(Math.random() * 25);
-          if (!randomTiles.includes(r)) randomTiles.push(r);
+        // 2. Pick tiles: use user selected tiles if set, otherwise shuffle 3 random tiles
+        let randomTiles = [];
+        if (typeof minesSelectedSet !== 'undefined' && minesSelectedSet && minesSelectedSet.size > 0) {
+          randomTiles = Array.from(minesSelectedSet);
+        } else {
+          const pool = Array.from({ length: 25 }, (_, i) => i);
+          for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+          }
+          randomTiles = pool.slice(0, 3);
         }
 
         // 3. Start round: all-in, 1 mine
@@ -5131,13 +5137,20 @@
 
     window.minesSelectRandom = function() {
       minesClearTiles();
-      const count = Math.min(5, 25 - (parseInt(document.getElementById('minesBombsRange')?.value) || 3));
-      const indices = [];
-      while (indices.length < count) {
-        const r = Math.floor(Math.random() * 25);
-        if (!indices.includes(r)) indices.push(r);
+      const bombs = parseInt(document.getElementById('minesBombsRange')?.value) || 3;
+      const maxAllowed = Math.max(1, 24 - bombs);
+      // Randomly pick a dynamic count of tiles between 1 and 5 (or up to max allowed)
+      const count = Math.min(maxAllowed, Math.floor(Math.random() * 4) + 2); // 2 to 5 truly random tiles
+
+      // Fisher-Yates full shuffle of all 25 grid indices
+      const pool = Array.from({ length: 25 }, (_, i) => i);
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
       }
-      indices.forEach(idx => {
+
+      const selected = pool.slice(0, count);
+      selected.forEach(idx => {
         minesSelectedSet.add(idx);
         const el = document.querySelector('.dv-tile[data-index="' + idx + '"]');
         if (el) {
