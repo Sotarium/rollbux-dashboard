@@ -426,15 +426,15 @@
                       <!-- Segmented Currency Switcher: BUX | USD | SOL -->
                       <div class="flex items-center bg-[#121212] p-1 rounded-[11px] border border-[rgba(255,255,255,0.10)] shadow-sm gap-0.5">
                         <button id="unitBuxBtn" type="button" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:#ffffff;color:#000000;display:inline-flex;align-items:center;gap:6px;">
-                          <img src="https://rollbux.com/icons/token.png" class="size-3.5 object-contain" alt="BUX" onerror="this.onerror=null;this.src='/figma/af-coin-24.svg';"/>
+                          <img alt="BUX" src="./figma/token-bux.png" style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;" />
                           <span>BUX</span>
                         </button>
                         <button id="unitUsdBtn" type="button" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:transparent;color:#8f8f8f;display:inline-flex;align-items:center;gap:6px;">
-                          <svg class="size-3.5 text-[#54d487]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M15 9.5a2.5 2.5 0 0 0-5 0c0 3 5 2 5 5a2.5 2.5 0 0 1-5 0"/></svg>
+                          <img alt="USD" src="./figma/token-usd.svg" style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;" />
                           <span>USD</span>
                         </button>
                         <button id="unitSolBtn" type="button" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:transparent;color:#8f8f8f;display:inline-flex;align-items:center;gap:6px;">
-                          <svg class="size-3.5 text-[#14F195]" viewBox="0 0 397 311" fill="currentColor"><path d="M64.6 237.9c2.4-2.4 5.7-3.8 9.2-3.8h317.4c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1l62.7-62.7zM64.6 3.8C67 1.4 70.3 0 73.8 0h317.4c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1L64.6 3.8zm267.8 115.1c-2.4-2.4-5.7-3.8-9.2-3.8H5.8c-5.8 0-8.7 7-4.6 11.1l62.7 62.7c2.4 2.4 5.7 3.8 9.2 3.8h317.4c5.8 0 8.7-7 4.6-11.1l-62.7-62.7z"/></svg>
+                          <img alt="SOL" src="./figma/af-coin-24.svg" style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;" />
                           <span>SOL</span>
                         </button>
                       </div>
@@ -1329,15 +1329,16 @@
     const unitUsdBtn = document.getElementById('unitUsdBtn');
     const unitBuxBtn = document.getElementById('unitBuxBtn');
 
+    function getCurrencyIcon() {
+      if (currentUnit === 'BUX') return './figma/token-bux.png';
+      if (currentUnit === 'USD') return './figma/token-usd.svg';
+      return './figma/af-coin-24.svg';
+    }
+
     function updateCurrencyIcons() {
+      const iconUrl = getCurrencyIcon();
       const earningsIcon = document.querySelector('#earningsCoinIcon img');
       const balanceIcon = document.querySelector('#balanceCoinIcon img');
-      let iconUrl = '/figma/af-coin-24.svg';
-      if (currentUnit === 'BUX') {
-        iconUrl = 'https://rollbux.com/icons/token.png';
-      } else if (currentUnit === 'USD') {
-        iconUrl = 'https://betdice.net/currency/USD.svg';
-      }
       if (earningsIcon) earningsIcon.src = iconUrl;
       if (balanceIcon) balanceIcon.src = iconUrl;
       if (chartTooltipCoinIcon) chartTooltipCoinIcon.src = iconUrl;
@@ -1524,18 +1525,16 @@
     // Initial render on load
     renderGameHistory();
 
-    function formatValue(bux) {
-      const buxVal = parseFloat(bux) || 0;
-      const usdVal = buxVal * 0.002;
-      const solVal = liveSolPrice > 0 ? (usdVal / liveSolPrice) : 0;
+    // Universal format value based on currentUnit (BUX, USD, SOL) matching Cue
+    function formatBuxValue(buxVal) {
+      const bux = parseFloat(buxVal) || 0;
+      if (currentUnit === 'USD') return `$${(bux * 0.002).toFixed(2)}`;
+      if (currentUnit === 'SOL') return `${((bux * 0.002) / (liveSolPrice || 150)).toFixed(4)}`;
+      return bux.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
-      if (currentUnit === 'SOL') {
-        return solVal.toFixed(4).replace(/\.?0+$/, '') || '0.00';
-      }
-      if (currentUnit === 'USD') {
-        return '$' + usdVal.toFixed(2);
-      }
-      return (Number.isInteger(buxVal) ? buxVal.toLocaleString() : buxVal.toFixed(2));
+    function formatValue(bux) {
+      return formatBuxValue(bux);
     }
 
     function formatHowMuchTime(user) {

@@ -1,0 +1,8 @@
+<svg width="23" height="18" viewBox="0 0 23 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Binoculars / Overview Icon matching Rollbux / Figma af-overview.svg -->
+  <path d="M5.5 3.5C3.29086 3.5 1.5 5.29086 1.5 7.5V10.5C1.5 12.7091 3.29086 14.5 5.5 14.5C7.70914 14.5 9.5 12.7091 9.5 10.5V7.5C9.5 5.29086 7.70914 3.5 5.5 3.5Z" stroke="#7974FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M17.5 3.5C15.2909 3.5 13.5 5.29086 13.5 7.5V10.5C13.5 12.7091 15.2909 14.5 17.5 14.5C19.7091 14.5 21.5 12.7091 21.5 10.5V7.5C21.5 5.29086 19.7091 3.5 17.5 3.5Z" stroke="#7974FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M9.5 8.5H13.5" stroke="#7974FF" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="5.5" cy="9" r="1.5" fill="#7974FF"/>
+  <circle cx="17.5" cy="9" r="1.5" fill="#7974FF"/>
+</svg>
