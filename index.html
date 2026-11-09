@@ -2175,6 +2175,9 @@
 
           liveUserData = data;
           renderDashboard(data);
+          if (typeof fetchRainRewards === 'function') {
+            fetchRainRewards();
+          }
 
           // Check Auto Upgrader Automated Triggers
           if (typeof checkAutoUpgraderConditions === 'function') {
@@ -5608,35 +5611,69 @@
 
     window.fetchRainRewards = async function() {
       const listEl = document.getElementById('rainRewardsList');
-      if (listEl) listEl.innerHTML = '<div class="flex h-[60px] items-center justify-center text-xs text-[#8f8f8f]">Fetching rain rewards...</div>';
+      if (listEl && Object.keys(rainRewardsData).length === 0) {
+        listEl.innerHTML = '<div class="flex h-[60px] items-center justify-center text-xs text-[#8f8f8f]">Loading rain rewards...</div>';
+      }
 
       let accounts = [];
       try { accounts = await getRegisteredAccountsList(); } catch(e) {}
       if (!accounts || accounts.length === 0) accounts = [{ name: targetUsername || 'Main' }];
 
-      rainRewardsData = {};
-
+      // Sync rain rewards from liveUserData and each account's endpoint
       await Promise.allSettled(accounts.map(async acc => {
         const accName = acc.name || 'Account';
+        let txs = [];
+
+        // 1. Check liveUserData for current user
+        if (liveUserData?.user?.transactions && Array.isArray(liveUserData.user.transactions)) {
+          const matching = liveUserData.user.transactions.filter(t => {
+            const tAcc = (t.account || targetUsername || '').toLowerCase();
+            return tAcc === accName.toLowerCase();
+          });
+          if (matching.length > 0) txs.push(...matching);
+        }
+
+        // 2. Fetch latest profile data for account from /api/user/:accName
         try {
-          const res = await fetch('/api/roach/proxy-get?url=' + encodeURIComponent('https://rollbux.com/profile/transactions') + '&account=' + encodeURIComponent(accName));
-          let txs = [];
+          const res = await fetch('/api/user/' + encodeURIComponent(accName));
           if (res.ok) {
             const data = await res.json();
-            // Handle various response shapes
-            const list = Array.isArray(data) ? data : (data.transactions || data.data || data.results || []);
-            txs = list.filter(t => {
-              const type = (t.type || t.transaction_type || '').toLowerCase();
-              return type.includes('rain') || type.includes('rain reward');
-            });
+            if (data?.user?.transactions && Array.isArray(data.user.transactions)) {
+              for (const t of data.user.transactions) {
+                if (!txs.some(existing => existing.timestamp === t.timestamp || (existing.cycle_id && existing.cycle_id === t.cycle_id))) {
+                  txs.push(t);
+                }
+              }
+            }
           }
-          rainRewardsData[accName] = txs;
-        } catch(e) {
-          rainRewardsData[accName] = [];
+        } catch(e) {}
+
+        // Fallback: check localStorage cached transactions for this account
+        try {
+          const cached = JSON.parse(localStorage.getItem('rollbux_cached_txs_' + accName.toLowerCase()) || '[]');
+          if (Array.isArray(cached)) {
+            for (const t of cached) {
+              if (!txs.some(existing => existing.timestamp === t.timestamp || (existing.cycle_id && existing.cycle_id === t.cycle_id))) {
+                txs.push(t);
+              }
+            }
+          }
+        } catch(e) {}
+
+        // Deduplicate and sort newest first
+        const unique = [];
+        const seen = new Set();
+        for (const t of txs) {
+          const key = t.cycle_id || (t.timestamp + '_' + t.amount_bux);
+          if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(t);
+          }
         }
+        unique.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        rainRewardsData[accName] = unique;
       }));
 
-      rainPage = 1;
       renderRainRewards();
     };
 
