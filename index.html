@@ -298,6 +298,12 @@
       box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95);
       overflow: hidden;
     }
+    .dv-modal {
+      background-color: var(--dv-panel);
+      border-radius: 20px;
+      border: 1px solid var(--dv-line);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95);
+    }
     .dv-modal-header {
       height: 62px;
       padding: 0 20px;
@@ -306,7 +312,7 @@
       align-items: center;
       justify-content: space-between;
     }
-    .dv-icon-btn {
+    .dv-icon-btn, .dv-close-btn {
       width: 34px;
       height: 34px;
       border-radius: 50%;
@@ -319,7 +325,7 @@
       cursor: pointer;
       transition: color 0.15s, background-color 0.15s;
     }
-    .dv-icon-btn:hover {
+    .dv-icon-btn:hover, .dv-close-btn:hover {
       color: #ffffff;
       background-color: rgba(255, 255, 255, 0.18);
     }
@@ -4804,7 +4810,7 @@
 
             // Op 0: Dispatch events
             if (op === 0) {
-              if (t === 'MESSAGE_CREATE') {
+              if (t === 'MESSAGE_CREATE' || t === 'MESSAGE_UPDATE') {
                 handleGatewayMessage(d);
               }
               if (t === 'MESSAGE_REACTION_ADD') {
@@ -4903,19 +4909,43 @@
 
         if (isSelectionPrompt) {
           const guess = Math.floor(Math.random() * 20) + 1;
-          logDiscordActivity("You're Selected! Guessed " + guess, 'Won', 'green');
+          logDiscordActivity("You're Selected! Guessed " + guess, 'Selected', 'green');
           sendDiscordMessage(channelId, String(guess));
-          delete pendingGiveaways[channelId];
+          if (!pendingGiveaways[channelId]) {
+            pendingGiveaways[channelId] = {};
+          }
+          pendingGiveaways[channelId].myGuess = guess;
+          pendingGiveaways[channelId].selectedAt = Date.now();
           if (typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
-        } else if (pendingGiveaways[channelId]) {
+        } else {
           // Final announcement: "Flash giveaway ended ... The secret number was 14. @User guessed 3."
-          const isFinalAnnouncement = mentionsMe && (
+          const isFinalAnnouncement = (
             fullTextLower.includes('giveaway ended') ||
-            fullTextLower.includes('the secret number was') ||
-            fullTextLower.includes('winner')
+            fullTextLower.includes('the secret number was')
           );
           if (isFinalAnnouncement) {
-            delete pendingGiveaways[channelId];
+            const secretMatch = fullText.match(/secret number was\s*(\d+)/i);
+            const secretNum = secretMatch ? secretMatch[1] : null;
+
+            // Check if user was the one who guessed or won
+            const isMyResult = mentionsMe || (pendingGiveaways[channelId] && pendingGiveaways[channelId].myGuess);
+
+            if (isMyResult) {
+              const myGuess = pendingGiveaways[channelId]?.myGuess;
+              const guessedMatch = fullText.match(/guessed\s*(\d+)/i);
+              const reportedGuess = guessedMatch ? guessedMatch[1] : (myGuess ? String(myGuess) : null);
+
+              const hasNoPrize = fullTextLower.includes('no prize');
+              const hasWon = fullTextLower.includes('won') || (!hasNoPrize && secretNum && reportedGuess && secretNum === reportedGuess);
+
+              if (hasWon) {
+                logDiscordActivity('I got it right! Secret was ' + (secretNum || 'matched') + ' (Guessed ' + (reportedGuess || secretNum) + ')', 'Won', 'green');
+                if (typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
+              } else {
+                logDiscordActivity('Missed! Secret was ' + (secretNum || '?') + ', guessed ' + (reportedGuess || '?'), 'Ended', 'red');
+              }
+              delete pendingGiveaways[channelId];
+            }
           }
         }
       }
