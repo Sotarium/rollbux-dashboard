@@ -4534,7 +4534,8 @@
     let discordHeartbeatInterval = null;
     let isGatewayRunning = true;
 
-    function logDiscordActivity(text, tag) {
+    function logDiscordActivity(text, tag, color) {
+      // color: undefined = default white, 'green' = won, 'red' = error/miss
       tag = tag || 'Auto React';
       const list = document.getElementById('discordActivityList');
       if (!list) return;
@@ -4544,12 +4545,25 @@
       }
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const item = document.createElement('div');
-      item.className = 'flex items-center justify-between p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]';
-      item.innerHTML = '<div class="flex items-center gap-2.5 min-w-0">' +
-        '<span class="dv-pill active shrink-0" style="height:22px; padding:0 8px; font-size:10px; font-weight:700;">' + tag + '</span>' +
-        '<span class="text-[13px] font-semibold text-white truncate">' + text + '</span>' +
+      // Row background & border by color
+      let rowStyle = 'background:#080808; border:1px solid rgba(255,255,255,0.06);';
+      let tagStyle  = 'height:22px; padding:0 8px; font-size:10px; font-weight:700; background:#ffffff; color:#000000; border:none; border-radius:6px;';
+      let textColor = '#ffffff';
+      if (color === 'green') {
+        rowStyle  = 'background:rgba(84,212,135,0.08); border:1px solid rgba(84,212,135,0.25);';
+        tagStyle  = 'height:22px; padding:0 8px; font-size:10px; font-weight:700; background:#54d487; color:#000000; border:none; border-radius:6px;';
+        textColor = '#54d487';
+      } else if (color === 'red') {
+        rowStyle  = 'background:rgba(255,80,80,0.08); border:1px solid rgba(255,80,80,0.25);';
+        tagStyle  = 'height:22px; padding:0 8px; font-size:10px; font-weight:700; background:#ff5050; color:#ffffff; border:none; border-radius:6px;';
+        textColor = '#ff5050';
+      }
+      item.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:10px; border-radius:12px; ' + rowStyle;
+      item.innerHTML = '<div style="display:flex; align-items:center; gap:10px; min-width:0;">' +
+        '<span style="' + tagStyle + ' display:inline-flex; align-items:center; white-space:nowrap; flex-shrink:0;">' + tag + '</span>' +
+        '<span style="font-size:13px; font-weight:600; color:' + textColor + '; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + text + '</span>' +
         '</div>' +
-        '<span class="text-[11px] font-mono text-[#8f8f8f] shrink-0 ml-2">' + timeStr + '</span>';
+        '<span style="font-size:11px; font-family:monospace; color:#8f8f8f; flex-shrink:0; margin-left:8px;">' + timeStr + '</span>';
       list.prepend(item);
       while (list.children.length > 20) {
         list.removeChild(list.lastChild);
@@ -4573,7 +4587,7 @@
           logDiscordActivity('Successfully reacted 🎉 on message ' + messageId.slice(-6), 'Auto React');
           window.playWatcherBeep();
         } else {
-          logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error');
+          logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error', 'red');
         }
       } catch (err) {
         console.error('[Discord Gateway] Reaction error:', err);
@@ -4605,9 +4619,9 @@
           body: JSON.stringify({ content: content })
         });
         if (res.ok) {
-          logDiscordActivity('Sent guess "' + content + '" in channel ' + channelId.slice(-6), 'Guess');
+          logDiscordActivity('Sent guess "' + content + '" in channel ' + channelId.slice(-6), 'Guess', 'green');
         } else {
-          logDiscordActivity('Failed to send guess (HTTP ' + res.status + ')', 'Error');
+          logDiscordActivity('Failed to send guess (HTTP ' + res.status + ')', 'Error', 'red');
         }
       } catch (err) {
         console.error('[Discord Gateway] Send message error:', err);
@@ -4740,7 +4754,7 @@
           if (isWinMsg) {
             const pending = pendingGiveaways[channelId];
             const guess = Math.floor(Math.random() * 20) + 1;
-            logDiscordActivity('🏆 WON giveaway in ' + pending.watcherName + '! Guessing ' + guess + '...', 'Winner!');
+            logDiscordActivity('You Got Picked! Guessed ' + guess, 'Won', 'green');
             sendDiscordMessage(channelId, String(guess));
             delete pendingGiveaways[channelId];
             window.playWatcherBeep && window.playWatcherBeep();
