@@ -447,7 +447,8 @@
                     <!-- Total Earnings -->
                     <div class="dv-card flex flex-col justify-between min-h-[120px] p-5">
                       <span class="text-[14px] font-semibold text-[#8f8f8f]">Total Earnings</span>
-                      <div class="flex items-baseline gap-2 mt-2">
+                      <div class="flex items-center gap-2 mt-2">
+                        <img id="earningsCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
                         <span id="statTotalEarnings" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">0</span>
                       </div>
                       <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono" style="display:none;">$0.00 · 0.00 SOL</span>
@@ -456,7 +457,8 @@
                     <!-- Current Balance (strong border rgba(255,255,255,0.22)) -->
                     <div class="dv-card flex flex-col justify-between min-h-[120px] p-5" style="border-color: rgba(255, 255, 255, 0.22);">
                       <span class="text-[14px] font-semibold text-white">Current Balance</span>
-                      <div class="flex items-baseline gap-2 mt-2">
+                      <div class="flex items-center gap-2 mt-2">
+                        <img id="balanceCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
                         <span id="statCurrentBalance" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">5</span>
                       </div>
                       <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono" style="display:none;">$0.01 · 0.0001 SOL</span>
@@ -1337,8 +1339,8 @@
 
     function updateCurrencyIcons() {
       const iconUrl = getCurrencyIcon();
-      const earningsIcon = document.querySelector('#earningsCoinIcon img');
-      const balanceIcon = document.querySelector('#balanceCoinIcon img');
+      const earningsIcon = document.getElementById('earningsCoinIconImg');
+      const balanceIcon = document.getElementById('balanceCoinIconImg');
       if (earningsIcon) earningsIcon.src = iconUrl;
       if (balanceIcon) balanceIcon.src = iconUrl;
       if (chartTooltipCoinIcon) chartTooltipCoinIcon.src = iconUrl;
@@ -1356,6 +1358,9 @@
       if (unit === 'BUX' && unitBuxBtn) unitBuxBtn.style.cssText = ACT_U;
       updateCurrencyIcons();
       if (liveUserData) renderDashboard(liveUserData);
+      if (typeof renderGameHistory === 'function') renderGameHistory();
+      if (typeof renderResultsFeed === 'function') renderResultsFeed();
+      if (typeof renderRainRewards === 'function') renderRainRewards();
     }
 
     // Live CoinGecko SOL Price Fetcher (exact Cue logic)
@@ -1482,23 +1487,33 @@
           ? `<span class="px-2 py-0.5 rounded bg-[#acff46]/10 border border-[#acff46]/20 text-[11px] font-extrabold text-[#acff46] tracking-wider uppercase">Success</span>`
           : `<span class="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-[11px] font-extrabold text-red-400 tracking-wider uppercase">Loss</span>`;
 
-        // Format bet and win/loss amount
-        const betAmt = entry.betBux ? parseFloat(entry.betBux).toFixed(2) : null;
-        const outAmt = entry.amountBux ? parseFloat(entry.amountBux).toFixed(2) : '0.00';
+        // Format bet and win/loss amount with current currency icon
+        const iconSrc = getCurrencyIcon();
+        const betFmt = entry.betBux ? formatBuxValue(entry.betBux) : null;
+        const outFmt = formatBuxValue(entry.amountBux || 0);
         
         let amtDisplayHtml = '';
-        if (betAmt && entry.success) {
+        if (betFmt && entry.success) {
           amtDisplayHtml = `<div class="flex flex-col items-center leading-tight">
-            <span class="text-[13px] font-bold text-[#50f07b]">+${outAmt} BUX</span>
-            <span class="text-[10px] text-[#9aa3a8]">Bet: ${betAmt}</span>
+            <span class="flex items-center gap-1 text-[13px] font-bold text-[#50f07b]">
+              <img src="${iconSrc}" class="size-3.5 object-contain" alt="" />
+              +${outFmt}
+            </span>
+            <span class="text-[10px] text-[#9aa3a8]">Bet: ${betFmt}</span>
           </div>`;
-        } else if (betAmt && !entry.success) {
+        } else if (betFmt && !entry.success) {
           amtDisplayHtml = `<div class="flex flex-col items-center leading-tight">
-            <span class="text-[13px] font-bold text-[#ff6b6b]">-${betAmt} BUX</span>
-            <span class="text-[10px] text-[#9aa3a8]">Bet: ${betAmt}</span>
+            <span class="flex items-center gap-1 text-[13px] font-bold text-[#ff6b6b]">
+              <img src="${iconSrc}" class="size-3.5 object-contain" alt="" />
+              -${betFmt}
+            </span>
+            <span class="text-[10px] text-[#9aa3a8]">Bet: ${betFmt}</span>
           </div>`;
         } else {
-          amtDisplayHtml = `<span class="text-[13px] font-bold text-[#c2c6db]">${outAmt} BUX</span>`;
+          amtDisplayHtml = `<span class="flex items-center gap-1 text-[13px] font-bold text-[#c2c6db]">
+            <img src="${iconSrc}" class="size-3.5 object-contain" alt="" />
+            ${outFmt}
+          </span>`;
         }
 
         const timeDisplay = entry.ts ? new Date(entry.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
@@ -1718,6 +1733,7 @@
         rowsHtml += pageTxs.map((tx, localIdx) => {
           const globalIdx = pageStart + localIdx;
           const formattedAmt = formatValue(tx.amount_bux);
+          const iconSrc = getCurrencyIcon();
           const timeDisplay = formatTransactionTime(tx);
           const txTimestamp = tx.timestamp || 0;
           const accountName = tx.account || targetUsername;
@@ -1729,7 +1745,8 @@
                   <span class="truncate text-[15px] font-bold italic tracking-[0.3px] text-white">${accountName}</span>
                 </span>
               </span>
-              <span class="flex items-center justify-center gap-[6px]">
+              <span class="flex items-center justify-center gap-1.5">
+                <img src="${iconSrc}" class="size-3.5 object-contain" alt="" />
                 <span class="whitespace-nowrap text-[15px] font-bold italic tracking-[0.3px] text-[#c2c6db]">${formattedAmt}</span>
               </span>
               <span class="flex items-center justify-end pr-2">
@@ -5643,6 +5660,8 @@
         const color = win ? '#54d487' : '#f55e5e';
         const sign = win ? '+' : '−';
         const amt = item.amountBux || item.betBux || 0;
+        const formattedAmt = formatBuxValue(Math.abs(amt));
+        const iconSrc = getCurrencyIcon();
         const timeAgo = formatSecondsAgo(item.ts);
         return `
           <div class="dv-feed-row">
@@ -5651,7 +5670,10 @@
               <span class="text-[13px] font-bold text-white truncate tracking-tight">${item.account || 'Main'}</span>
               <span class="text-[11px] text-[#8f8f8f] truncate font-medium">${item.mode || 'Game'}</span>
             </div>
-            <span class="text-[13px] font-bold font-mono" style="color:${color};">${sign}${Math.abs(amt).toFixed(2)} BUX</span>
+            <div class="flex items-center gap-1 font-mono font-bold text-[13px]" style="color:${color};">
+              <img src="${iconSrc}" class="size-3.5 object-contain" alt="" />
+              <span>${sign}${formattedAmt}</span>
+            </div>
             <span class="text-[11px] text-[#8f8f8f] opacity-70 shrink-0 font-medium">${timeAgo}</span>
           </div>`;
       }).join('');
@@ -5711,7 +5733,8 @@
 
       listEl.innerHTML = pageItems.map(tx => {
         const amt = (tx.amount || tx.amount_bux || 0);
-        const amtFmt = typeof amt === 'number' ? amt.toFixed(2) : amt;
+        const amtFmt = formatBuxValue(amt);
+        const iconSrc = getCurrencyIcon();
         const acc = tx._account || 'Account';
         const dateStr = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : (tx.time || '—');
         return `
@@ -5721,7 +5744,10 @@
               <span class="text-[13px] font-bold text-white truncate tracking-tight">${acc}</span>
               <span class="text-[11px] text-[#8f8f8f] truncate font-medium">Rain Reward</span>
             </div>
-            <span class="text-[13px] font-bold font-mono" style="color:#54d487;">+${amtFmt} BUX</span>
+            <div class="flex items-center gap-1 font-mono font-bold text-[13px]" style="color:#54d487;">
+              <img src="${iconSrc}" class="size-3.5 object-contain" alt="" />
+              <span>+${amtFmt}</span>
+            </div>
             <span class="text-[11px] text-[#8f8f8f] opacity-70 shrink-0 font-medium">${dateStr}</span>
           </div>`;
       }).join('');
