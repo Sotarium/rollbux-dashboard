@@ -562,7 +562,7 @@
                       <div class="dv-card flex flex-col gap-3 p-5">
                         <!-- Ring: drag ring -->
                         <div class="relative flex flex-col items-center justify-center w-full select-none py-0">
-                          <div id="upgraderWheelContainer" class="relative size-[150px] flex items-center justify-center cursor-grab active:cursor-grabbing">
+                          <div id="upgraderWheelContainer" class="relative size-[190px] flex items-center justify-center cursor-grab active:cursor-grabbing">
                             <svg id="upgraderWheelSvg" class="size-full overflow-visible" viewBox="0 0 200 200">
                               <defs>
                                 <radialGradient id="wheelInnerDisc" cx="50%" cy="50%" r="50%">
@@ -593,7 +593,7 @@
                             <!-- Center Info: Big Bold Percentage and Chance Label -->
                             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
                               <span class="text-[12px] font-semibold text-[#8f8f8f] leading-none">Upgrade Chance</span>
-                              <span id="upgraderChanceDisplay" class="text-[24px] font-black text-white tracking-tight mt-1 leading-none font-mono">45.00%</span>
+                              <span id="upgraderChanceDisplay" class="text-[28px] font-black text-white tracking-tight mt-1 leading-none font-mono">45.00%</span>
                               <span id="upgraderRangeDisplay" class="text-[11px] font-mono text-[#8f8f8f] mt-1">0 - 450,000</span>
                             </div>
                           </div>
@@ -1275,6 +1275,7 @@
       if (chartTooltipCoinIcon) chartTooltipCoinIcon.src = iconUrl;
     }
 
+    window.setUnit = setUnit;
     function setUnit(unit) {
       currentUnit = unit;
       const BASE_U = 'padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all 0.15s;';
@@ -2947,7 +2948,6 @@
     let lastAccountsFetchTime = 0;
 
     let registeredAccountsCache = [];
-    let lastAccountsFetchTime = 0;
 
     async function getRegisteredAccountsList(forceRefresh = false) {
       if (!forceRefresh && registeredAccountsCache && registeredAccountsCache.length > 0) {
@@ -4373,16 +4373,20 @@
       const rollbuxView = document.getElementById('viewRollbux');
       const discordView = document.getElementById('viewDiscord');
 
+      const BASE_NAV = 'padding:6px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all 0.15s;';
+      const ACT_NAV  = BASE_NAV + 'background:#ffffff;color:#000000;box-shadow:0 1px 3px rgba(0,0,0,0.3);';
+      const INACT_NAV = BASE_NAV + 'background:transparent;color:#8f8f8f;';
+
       if (tab === 'discord') {
         if (rollbuxView) rollbuxView.style.display = 'none';
         if (discordView) discordView.style.display = 'flex';
-        if (rollbuxBtn) rollbuxBtn.className = 'px-5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer';
-        if (discordBtn) discordBtn.className = 'px-5 py-1.5 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm cursor-pointer';
+        if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = INACT_NAV; }
+        if (discordBtn) { discordBtn.className = ''; discordBtn.style.cssText = ACT_NAV; }
       } else {
         if (rollbuxView) rollbuxView.style.display = 'flex';
         if (discordView) discordView.style.display = 'none';
-        if (rollbuxBtn) rollbuxBtn.className = 'px-5 py-1.5 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm cursor-pointer';
-        if (discordBtn) discordBtn.className = 'px-5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer';
+        if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = ACT_NAV; }
+        if (discordBtn) { discordBtn.className = ''; discordBtn.style.cssText = INACT_NAV; }
       }
     };
 
@@ -4408,16 +4412,8 @@
       }
     };
 
-    window.setStatsRange = function(range) {
-      const b24h = document.getElementById('statsRange24h');
-      const bWeek = document.getElementById('statsRangeWeek');
-      const bMonth = document.getElementById('statsRangeMonth');
-      [b24h, bWeek, bMonth].forEach(b => {
-        if (b) b.className = 'px-3 py-1 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer';
-      });
-      const active = range === '24H' ? b24h : range === 'Week' ? bWeek : bMonth;
-      if (active) active.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-black shadow-sm cursor-pointer';
-    };
+    // Duplicate setStatsRange removed
+
 
     window.setUpgraderMode = function(mode) {
       const bFixed = document.getElementById('upgraderModeFixed');
@@ -5169,7 +5165,8 @@
 
 
     document.addEventListener('DOMContentLoaded', () => {
-      setupMinesTiles();
+      setupMinesTiles(); // direct call
+    setupMinesTiles();
       refreshAccountsList();
       renderResultsFeed();
       renderDiscordWatchers();
