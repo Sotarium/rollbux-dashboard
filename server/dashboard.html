@@ -563,7 +563,7 @@
                       <div class="dv-card flex flex-col gap-3 p-5">
                         <div class="flex items-center justify-between">
                           <h3 class="text-[17px] font-bold text-white tracking-tight">Rain Rewards</h3>
-                          <button type="button" onclick="fetchRainRewards()" class="dv-pill inactive" style="height:28px;padding:0 12px;font-size:12px;">Refresh</button>
+                          <button type="button" onclick="clearRainRewards()" class="dv-pill inactive" style="height:28px;padding:0 12px;font-size:12px;">Clear</button>
                         </div>
 
                         <!-- Account Picker matching Auto Upgrader style -->
@@ -5556,19 +5556,30 @@
     let rainTotalPages = 1;
     let rainRewardsData = {}; // keyed by account name
 
+    window.clearRainRewards = function() {
+      localStorage.setItem('rollbux_rain_rewards_cleared_at', Date.now().toString());
+      rainPage = 1;
+      renderRainRewards();
+    };
+
     window.renderRainRewards = function() {
       const listEl = document.getElementById('rainRewardsList');
       const paginationWrap = document.getElementById('rainPaginationWrap');
       const pageLabel = document.getElementById('rainPageLabel');
       if (!listEl) return;
 
+      const clearedAt = parseInt(localStorage.getItem('rollbux_rain_rewards_cleared_at') || '0', 10);
       const selAccs = getSelectedAccountsForMode('rain').map(a => (a || '').toLowerCase().trim());
       const isAll = selAccs.length === 0 || selAccs.includes('all');
 
       let allRains = [];
       for (const [acc, txs] of Object.entries(rainRewardsData)) {
         if (!isAll && !selAccs.includes(acc.toLowerCase().trim())) continue;
-        txs.forEach(tx => allRains.push({ ...tx, _account: acc }));
+        txs.forEach(tx => {
+          const tTime = tx.timestamp || (tx.createdAt ? new Date(tx.createdAt).getTime() : 0);
+          if (clearedAt > 0 && tTime > 0 && tTime <= clearedAt) return;
+          allRains.push({ ...tx, _account: acc });
+        });
       }
       // Sort newest first
       allRains.sort((a, b) => (b.createdAt || b.timestamp || 0) - (a.createdAt || a.timestamp || 0));
