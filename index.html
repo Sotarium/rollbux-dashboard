@@ -3548,11 +3548,30 @@
           return;
         }
 
-        // 2. Pick tiles: use user selected tiles if set, otherwise shuffle 3 random tiles
+        // 2. Pick tiles: if Auto play is ON, randomize fresh tiles on EVERY round & EVERY account
         let randomTiles = [];
-        if (typeof minesSelectedSet !== 'undefined' && minesSelectedSet && minesSelectedSet.size > 0) {
+        const isAutoRunning = minesMasterToggle && minesMasterToggle.checked;
+
+        if (isAutoRunning) {
+          // Trigger visual randomization on the 5x5 board for this account's turn
+          if (typeof minesSelectRandom === 'function') {
+            minesSelectRandom();
+          }
+          randomTiles = Array.from(minesSelectedSet);
+          // Fallback if set was empty for some reason
+          if (randomTiles.length === 0) {
+            const pool = Array.from({ length: 25 }, (_, i) => i);
+            for (let i = pool.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            randomTiles = pool.slice(0, 3);
+          }
+        } else if (typeof minesSelectedSet !== 'undefined' && minesSelectedSet && minesSelectedSet.size > 0) {
+          // Manual play with custom picked tiles
           randomTiles = Array.from(minesSelectedSet);
         } else {
+          // Manual play without picks: shuffle 3 random
           const pool = Array.from({ length: 25 }, (_, i) => i);
           for (let i = pool.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
