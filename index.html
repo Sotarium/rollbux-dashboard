@@ -418,10 +418,19 @@
                     </div>
                     <div class="flex items-center gap-3 select-none">
                       <!-- Segmented Currency Switcher: BUX | USD | SOL -->
-                      <div class="flex items-center bg-[#121212] p-1 rounded-[11px] border border-[rgba(255,255,255,0.10)] shadow-sm">
-                        <button id="unitBuxBtn" type="button" style="height:32px;padding:0 14px;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;background:#ffffff;color:#000000;">BUX</button>
-                        <button id="unitUsdBtn" type="button" style="height:32px;padding:0 14px;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;background:transparent;color:#8f8f8f;">USD</button>
-                        <button id="unitSolBtn" type="button" class="dv-pill inactive text-[#8f8f8f] hover:text-white" style="height:32px; padding:0 14px; border:none; background:transparent;">SOL</button>
+                      <div class="flex items-center bg-[#121212] p-1 rounded-[11px] border border-[rgba(255,255,255,0.10)] shadow-sm gap-0.5">
+                        <button id="unitBuxBtn" type="button" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:#ffffff;color:#000000;display:inline-flex;align-items:center;gap:6px;">
+                          <img src="https://rollbux.com/icons/token.png" class="size-3.5 object-contain" alt="BUX" onerror="this.onerror=null;this.src='/figma/af-coin-24.svg';"/>
+                          <span>BUX</span>
+                        </button>
+                        <button id="unitUsdBtn" type="button" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:transparent;color:#8f8f8f;display:inline-flex;align-items:center;gap:6px;">
+                          <svg class="size-3.5 text-[#54d487]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M15 9.5a2.5 2.5 0 0 0-5 0c0 3 5 2 5 5a2.5 2.5 0 0 1-5 0"/></svg>
+                          <span>USD</span>
+                        </button>
+                        <button id="unitSolBtn" type="button" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:transparent;color:#8f8f8f;display:inline-flex;align-items:center;gap:6px;">
+                          <svg class="size-3.5 text-[#14F195]" viewBox="0 0 397 311" fill="currentColor"><path d="M64.6 237.9c2.4-2.4 5.7-3.8 9.2-3.8h317.4c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1l62.7-62.7zM64.6 3.8C67 1.4 70.3 0 73.8 0h317.4c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1L64.6 3.8zm267.8 115.1c-2.4-2.4-5.7-3.8-9.2-3.8H5.8c-5.8 0-8.7 7-4.6 11.1l62.7 62.7c2.4 2.4 5.7 3.8 9.2 3.8h317.4c5.8 0 8.7-7 4.6-11.1l-62.7-62.7z"/></svg>
+                          <span>SOL</span>
+                        </button>
                       </div>
                       <button id="clearOverviewBtn" type="button" class="hidden">Clear</button>
                     </div>
@@ -1331,7 +1340,7 @@
     window.setUnit = setUnit;
     function setUnit(unit) {
       currentUnit = unit;
-      const BASE_U = 'padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all 0.15s;';
+      const BASE_U = 'height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;';
       const ACT_U  = BASE_U + 'background:#ffffff;color:#000000;';
       const INACT_U = BASE_U + 'background:transparent;color:#8f8f8f;';
       [unitSolBtn, unitUsdBtn, unitBuxBtn].forEach(b => { if(b){ b.className=''; b.style.cssText=INACT_U; } });
@@ -1341,6 +1350,22 @@
       updateCurrencyIcons();
       if (liveUserData) renderDashboard(liveUserData);
     }
+
+    // Live CoinGecko SOL Price Fetcher (exact Cue logic)
+    async function updateClientSolPrice() {
+      try {
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.solana?.usd) {
+            liveSolPrice = json.solana.usd;
+            if (currentUnit === 'SOL' && liveUserData) renderDashboard(liveUserData);
+          }
+        }
+      } catch(e) {}
+    }
+    updateClientSolPrice();
+    setInterval(updateClientSolPrice, 60000);
 
     updateCurrencyIcons();
 
@@ -1389,9 +1414,9 @@
     const clearRainsBtn = document.getElementById('clearRainsBtn');
     if (clearRainsBtn) clearRainsBtn.addEventListener('click', handleClearStats);
 
-    unitSolBtn.addEventListener('click', () => setUnit('SOL'));
-    unitUsdBtn.addEventListener('click', () => setUnit('USD'));
-    unitBuxBtn.addEventListener('click', () => setUnit('BUX'));
+    if (unitSolBtn) unitSolBtn.addEventListener('click', () => setUnit('SOL'));
+    if (unitUsdBtn) unitUsdBtn.addEventListener('click', () => setUnit('USD'));
+    if (unitBuxBtn) unitBuxBtn.addEventListener('click', () => setUnit('BUX'));
 
     // ──────────────────────────────────────────
     // GAME HISTORY — localStorage-backed log
@@ -4852,39 +4877,45 @@
       }
       const fullTextLower = fullText.toLowerCase();
 
-      // --- Step 1: Check if this message announces that the connected user got picked ---
-      if (pendingGiveaways[channelId]) {
-        const myUser = (() => { try { return JSON.parse(localStorage.getItem('sotarium_discord_user') || '{}'); } catch(e) { return {}; } })();
-        const myId = myUser.id;
-        const myUsername = (myUser.username || '').toLowerCase();
-        const myGlobalName = (myUser.global_name || '').toLowerCase();
+      // --- Step 1: Check if this message announces that the connected user got picked / needs to guess ---
+      const myUser = (() => { try { return JSON.parse(localStorage.getItem('sotarium_discord_user') || '{}'); } catch(e) { return {}; } })();
+      const myId = myUser.id;
+      const myUsername = (myUser.username || '').toLowerCase();
+      const myGlobalName = (myUser.global_name || '').toLowerCase();
 
-        if (myId) {
-          // Check mention by ID (<@id> or <@!id>) or by username (@username)
-          const mentionsMe = fullText.includes('<@' + myId + '>') ||
-                             fullText.includes('<@!' + myId + '>') ||
-                             (myUsername && fullTextLower.includes('@' + myUsername)) ||
-                             (myGlobalName && fullTextLower.includes('@' + myGlobalName));
+      if (myId) {
+        const mentionsMe = (Array.isArray(msg.mentions) && msg.mentions.some(m => m.id === myId)) ||
+                           fullText.includes('<@' + myId + '>') ||
+                           fullText.includes('<@!' + myId + '>') ||
+                           (myUsername && fullTextLower.includes('@' + myUsername)) ||
+                           (myGlobalName && fullTextLower.includes('@' + myGlobalName));
 
-          // Look for giveaway end / winner / picked keywords matching the bot screenshot
-          const isWinnerEvent = mentionsMe && (
+        // Prompt from Rollbux bot: "@User, you're selected! Pick a number from 1–20"
+        const isSelectionPrompt = mentionsMe && (
+          fullTextLower.includes("you're selected") ||
+          fullTextLower.includes("you are selected") ||
+          fullTextLower.includes("pick a number") ||
+          fullTextLower.includes("type one number from 1–20") ||
+          fullTextLower.includes("type one number from 1-20") ||
+          fullTextLower.includes("1-20") ||
+          fullTextLower.includes("1–20")
+        );
+
+        if (isSelectionPrompt) {
+          const guess = Math.floor(Math.random() * 20) + 1;
+          logDiscordActivity("You're Selected! Guessed " + guess, 'Won', 'green');
+          sendDiscordMessage(channelId, String(guess));
+          delete pendingGiveaways[channelId];
+          if (typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
+        } else if (pendingGiveaways[channelId]) {
+          // Final announcement: "Flash giveaway ended ... The secret number was 14. @User guessed 3."
+          const isFinalAnnouncement = mentionsMe && (
             fullTextLower.includes('giveaway ended') ||
-            fullTextLower.includes('picked') ||
-            fullTextLower.includes('winner') ||
-            fullTextLower.includes('won') ||
-            fullTextLower.includes('secret number') ||
-            fullTextLower.includes('guessed') ||
-            fullTextLower.includes('congrat') ||
-            fullTextLower.includes('gg')
+            fullTextLower.includes('the secret number was') ||
+            fullTextLower.includes('winner')
           );
-
-          if (isWinnerEvent) {
-            const pending = pendingGiveaways[channelId];
-            const guess = Math.floor(Math.random() * 20) + 1;
-            logDiscordActivity('You Got Picked! Guessed ' + guess, 'Won', 'green');
-            sendDiscordMessage(channelId, String(guess));
+          if (isFinalAnnouncement) {
             delete pendingGiveaways[channelId];
-            if (typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
           }
         }
       }
@@ -4894,7 +4925,7 @@
         if (!w.enabled) return false;
         if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
         if (w.serverID && String(w.serverID).trim() !== String(guildId).trim()) return false;
-        // Target ID filtering: MUST match authorId if targetID is set
+        // Target ID filtering: match authorId if targetID is set
         if (w.targetID && String(w.targetID).trim() !== String(authorId).trim()) return false;
         return true;
       });
@@ -4903,21 +4934,31 @@
         if (watcher.type === 'claimer' || watcher.mode === 'ticket') {
           triggerTicketClaim(channelId, msg.id, content, watcher);
         } else if (watcher.autoReact) {
-          // Check if message is actually a giveaway (not an ended message or regular chat)
-          const isEnded = fullTextLower.includes('giveaway ended') || fullTextLower.includes('the secret number was');
-          if (isEnded) continue; // Don't react to ended announcement
+          // Do not react to selection prompt or ended announcement
+          const isEndedOrSelected = fullTextLower.includes('giveaway ended') ||
+                                    fullTextLower.includes("you're selected") ||
+                                    fullTextLower.includes('pick a number from');
+          if (isEndedOrSelected) continue;
 
+          // Check if message is a flash giveaway / giveaway announcement (matches Rollbux bot)
           const isGiveaway = fullTextLower.includes('giveaway') ||
                             fullTextLower.includes('flash giveaway') ||
                             fullTextLower.includes('react with') ||
                             fullTextLower.includes('react to enter') ||
                             fullTextLower.includes('🎉') ||
+                            fullTextLower.includes('🎊') ||
                             (Array.isArray(msg.embeds) && msg.embeds.length > 0) ||
-                            (Array.isArray(msg.reactions) && msg.reactions.some(r => r.emoji?.name === '🎉'));
+                            (Array.isArray(msg.reactions) && msg.reactions.some(r => r.emoji?.name === '🎉' || r.emoji?.name === '🎊'));
 
           if (!isGiveaway) continue;
 
-          // Safe Mode check: 1 out of 2 (first one enters count=0, next skips count=1, next enters count=2...)
+          // Determine reaction emoji from message reactions or default to 🎉
+          let reactionEmoji = '%F0%9F%8E%89'; // 🎉
+          if (Array.isArray(msg.reactions) && msg.reactions.some(r => r.emoji?.name === '🎊')) {
+            reactionEmoji = '%F0%9F%8E%8A'; // 🎊
+          }
+
+          // Safe Mode check: 1 out of 2 (first enters, next skips, next enters...)
           if (watcher.safeMode) {
             const count = watcher.safeModeCount || 0;
             watcher.safeModeCount = count + 1;
@@ -4931,11 +4972,11 @@
           // Remember this channel for winner announcement
           pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
 
-          // Delay 3 seconds before reacting so user sees the message
+          // React after 3s delay
           logDiscordActivity('Giveaway detected in ' + watcher.name + '. Reacting in 3s...', 'Waiting');
           setTimeout(() => {
             if (!watcher.enabled) return;
-            triggerDiscordReaction(channelId, msg.id, '%F0%9F%8E%89');
+            triggerDiscordReaction(channelId, msg.id, reactionEmoji);
           }, 3000);
         }
       }
@@ -4950,11 +4991,12 @@
       const messageId = event.message_id;
       const emojiName = event.emoji?.name;
 
-      if (emojiName === '🎉') {
+      if (emojiName === '🎉' || emojiName === '🎊') {
+        const reactionEmoji = emojiName === '🎊' ? '%F0%9F%8E%8A' : '%F0%9F%8E%89';
         const matchingWatchers = discordWatchersList.filter(w => {
           if (!w.enabled || !w.autoReact) return false;
           if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
-          // Note: if watcher specifies a targetID, reaction_add won't have message author, so skip reaction_add to prevent false alarms
+          // Skip if targetID is set because MESSAGE_REACTION_ADD doesn't have message author
           if (w.targetID) return false;
           return true;
         });
@@ -4969,7 +5011,7 @@
           pendingGiveaways[channelId] = { messageId: messageId, watcherName: watcher.name, ts: Date.now() };
           setTimeout(() => {
             if (!watcher.enabled) return;
-            triggerDiscordReaction(channelId, messageId, '%F0%9F%8E%89');
+            triggerDiscordReaction(channelId, messageId, reactionEmoji);
           }, 3000);
         }
       }
