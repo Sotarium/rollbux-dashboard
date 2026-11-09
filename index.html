@@ -2946,12 +2946,18 @@
     let cachedRegisteredAccounts = [];
     let lastAccountsFetchTime = 0;
 
+    let registeredAccountsCache = [];
+    let lastAccountsFetchTime = 0;
+
     async function getRegisteredAccountsList(forceRefresh = false) {
+      if (!forceRefresh && registeredAccountsCache && registeredAccountsCache.length > 0) {
+        return registeredAccountsCache;
+      }
       try {
         const res = await fetch('/api/roach/accounts');
         if (res.ok) {
           const data = await res.json();
-          if (data && Array.isArray(data.accounts)) {
+          if (data && Array.isArray(data.accounts) && data.accounts.length > 0) {
             registeredAccountsCache = data.accounts.map(a => ({
               name: a.name,
               balance: a.live_balance !== undefined && a.live_balance !== null ? a.live_balance : (a.balance_bux || 0)
@@ -2961,7 +2967,21 @@
         }
       } catch (e) {}
 
-      // Fallback to local accounts if API fails
+      // Fallback: check farmerAccounts from window or localStorage
+      try {
+        const local = localStorage.getItem('rollbux_farmer_accounts');
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            registeredAccountsCache = parsed.map(a => ({
+              name: a.name || a.username || 'Account',
+              balance: a.balance_bux || a.balance || 0
+            }));
+            return registeredAccountsCache;
+          }
+        }
+      } catch (e) {}
+
       if (!registeredAccountsCache || registeredAccountsCache.length === 0) {
         registeredAccountsCache = [{ name: targetUsername || 'Main Account', balance: 5.00 }];
       }
@@ -2975,39 +2995,45 @@
 
     const accountSettings = {
       upgrader: {
-        labelEl: document.getElementById('upgraderAccountLabel'),
+        get labelEl() { return document.getElementById('upgraderAccountLabel'); },
         key: 'rollbux_upgrader_account',
         title: 'Auto Upgrader'
       },
       battle: {
-        labelEl: document.getElementById('battleAccountLabel'),
+        get labelEl() { return document.getElementById('battleAccountLabel'); },
         key: 'rollbux_battle_account',
         title: 'Auto Battle'
       },
       mines: {
-        labelEl: document.getElementById('minesAccountLabel'),
+        get labelEl() { return document.getElementById('minesAccountLabel'); },
         key: 'rollbux_mines_account',
         title: 'Auto Mines'
       },
       chicken: {
-        labelEl: document.getElementById('chickenAccountLabel'),
+        get labelEl() { return document.getElementById('chickenAccountLabel'); },
         key: 'rollbux_chicken_account',
         title: 'Auto Chicken'
       },
       tip: {
-        labelEl: document.getElementById('tipAccountLabel'),
+        get labelEl() { return document.getElementById('tipAccountLabel'); },
         key: 'rollbux_tip_recipient',
         title: 'Tip Recipient (Main Account)'
       },
+      sell: {
+        get labelEl() { return document.getElementById('sellAccountLabel'); },
+        key: 'rollbux_sell_account',
+        title: 'Auto Sell'
+      },
       rains: {
-        labelEl: document.getElementById('rainsAccountLabel'),
+        get labelEl() { return document.getElementById('rainsAccountLabel'); },
         key: 'rollbux_rains_account',
         title: 'Watch Rains Account'
       }
     };
 
     function getSelectedAccountsForMode(mode) {
-      const raw = localStorage.getItem(accountSettings[mode]?.key);
+      const cfg = accountSettings[mode];
+      const raw = cfg ? localStorage.getItem(cfg.key) : null;
       if (mode === 'tip' || mode === 'rains') {
         if (raw) {
           try {
@@ -3039,29 +3065,31 @@
 
     function updateAccountButtonLabel(mode, accList) {
       const cfg = accountSettings[mode];
-      if (!cfg?.labelEl) return;
+      const el = cfg?.labelEl || document.getElementById(`${mode}AccountLabel`);
+      if (!el) return;
       if (mode === 'tip' || mode === 'rains') {
         const fallback = mode === 'tip' ? 'Select Main' : (targetUsername || 'Account');
         const target = (accList && accList.length > 0 && accList[0] !== 'ALL') ? accList[0] : fallback;
-        cfg.labelEl.textContent = target;
+        el.textContent = target;
         return;
       }
       if (!accList || accList.length === 0 || accList.includes('ALL')) {
-        cfg.labelEl.textContent = 'All Accounts';
+        el.textContent = 'All Accounts';
       } else if (accList.length === 1) {
-        cfg.labelEl.textContent = accList[0];
+        el.textContent = accList[0];
       } else {
-        cfg.labelEl.textContent = `${accList.length} Accs`;
+        el.textContent = `${accList.length} Accs (${accList.join(', ')})`;
       }
     }
 
     function initAccountButtons() {
-      ['upgrader', 'chicken', 'battle', 'mines', 'tip', 'rains'].forEach(mode => {
+      ['upgrader', 'chicken', 'battle', 'mines', 'tip', 'sell', 'rains'].forEach(mode => {
         const current = getSelectedAccountsForMode(mode);
         updateAccountButtonLabel(mode, current);
 
         const btn = document.getElementById(`${mode}AccountBtn`);
-        if (btn) {
+        if (btn && !btn._hasAccountListener) {
+          btn._hasAccountListener = true;
           btn.addEventListener('click', () => openAccountSelectorModal(mode));
         }
       });
@@ -3139,8 +3167,7 @@
           tempSelectedAccounts.push(accName);
         }
       }
-      const accounts = await getRegisteredAccountsList(true);
-      renderAccountSelectorList(accounts);
+      renderAccountSelectorList(registeredAccountsCache);
     };
 
     window.saveAccountsFromOverlay = function() {
