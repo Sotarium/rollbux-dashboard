@@ -4379,7 +4379,7 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-[12px] font-semibold text-[#8f8f8f]">Watcher Name</label>
+          <label id="newWatcherNameLabel" class="text-[12px] font-semibold text-[#8f8f8f]">Name</label>
           <input type="text" id="newWatcherName" placeholder="e.g. My Drops Channel" class="dv-field w-full">
         </div>
 
@@ -4389,11 +4389,11 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-[12px] font-semibold text-[#8f8f8f]">Channel ID</label>
+          <label id="newWatcherChannelLabel" class="text-[12px] font-semibold text-[#8f8f8f]">Channel ID</label>
           <input type="text" id="newWatcherChannelId" placeholder="e.g. 1535006568397934612" class="dv-field w-full font-mono">
         </div>
 
-        <div class="flex flex-col gap-1">
+        <div id="watcherTargetIdWrap" class="flex flex-col gap-1">
           <label class="text-[12px] font-semibold text-[#8f8f8f]">Target User / Bot ID (optional)</label>
           <input type="text" id="newWatcherTargetId" placeholder="Leave empty for all messages" class="dv-field w-full font-mono">
         </div>
@@ -4410,12 +4410,7 @@
           </label>
         </div>
 
-        <div id="claimerKeywordWrap" class="hidden flex-col gap-1">
-          <label class="text-[12px] font-semibold text-[#8f8f8f]">Claim Trigger / Ticket Keyword</label>
-          <input type="text" id="newWatcherClaimKeyword" value="ticket, claim, giveaway" placeholder="e.g. ticket, claim, prize" class="dv-field w-full">
-        </div>
-
-        <div class="flex items-center justify-between">
+<div class="flex items-center justify-between">
           <span class="text-[13px] font-semibold text-white">Sound Notification</span>
           <label class="dv-toggle-wrap">
             <input type="checkbox" id="newWatcherSound" checked class="dv-toggle-input">
@@ -4425,7 +4420,7 @@
 
         <div class="flex items-center gap-2.5 pt-2">
           <button type="button" onclick="closeAddWatcherModal()" class="dv-pill inactive w-full" style="height:44px; font-size:13px; font-weight:700;">Cancel</button>
-          <button type="button" onclick="submitCreateWatcher()" class="dv-pill active w-full" style="height:44px; font-size:13px; font-weight:700;">Create Watcher</button>
+          <button type="button" onclick="submitCreateWatcher()" id="createWatcherBtn" class="dv-pill active w-full" style="height:44px; font-size:13px; font-weight:700;">Create Watcher</button>
         </div>
       </div>
     </div>
@@ -4496,6 +4491,7 @@
         if (rollbuxView) rollbuxView.style.display = 'none';
         if (discordView) discordView.style.display = 'flex';
         if (typeof renderDiscordWatchers === 'function') renderDiscordWatchers();
+        if (typeof startDiscordGateway === 'function') startDiscordGateway();
         if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = INACT_NAV; }
         if (discordBtn) { discordBtn.className = ''; discordBtn.style.cssText = ACT_NAV; }
       } else {
@@ -4521,12 +4517,240 @@
       if (!btn) return;
       if (btn.textContent.trim() === 'Stop') {
         btn.textContent = 'Start';
-        btn.className = 'px-7 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold transition cursor-pointer shadow-sm';
+        btn.className = 'dv-pill inactive';
+        btn.style.cssText = 'height:44px; min-width:130px; font-size:14px; font-weight:700;';
+        stopDiscordGateway();
       } else {
         btn.textContent = 'Stop';
-        btn.className = 'px-7 py-2 rounded-xl bg-[#18181b] hover:bg-[#242428] text-white text-xs font-bold transition cursor-pointer shadow-sm';
+        btn.className = 'dv-pill active';
+        btn.style.cssText = 'height:44px; min-width:130px; font-size:14px; font-weight:700;';
+        isGatewayRunning = true;
+        startDiscordGateway();
       }
     };
+
+    // --- Live Discord Gateway WebSocket & Auto-React Engine ---
+    let discordWs = null;
+    let discordHeartbeatInterval = null;
+    let isGatewayRunning = true;
+
+    function logDiscordActivity(text, tag) {
+      tag = tag || 'Auto React';
+      const list = document.getElementById('discordActivityList');
+      if (!list) return;
+      const emptyMsg = list.querySelector('.text-\\[\\#8f8f8f\\]');
+      if (emptyMsg && list.children.length === 1) {
+        list.innerHTML = '';
+      }
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const item = document.createElement('div');
+      item.className = 'flex items-center justify-between p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]';
+      item.innerHTML = '<div class="flex items-center gap-2.5 min-w-0">' +
+        '<span class="dv-pill active shrink-0" style="height:22px; padding:0 8px; font-size:10px; font-weight:700;">' + tag + '</span>' +
+        '<span class="text-[13px] font-semibold text-white truncate">' + text + '</span>' +
+        '</div>' +
+        '<span class="text-[11px] font-mono text-[#8f8f8f] shrink-0 ml-2">' + timeStr + '</span>';
+      list.prepend(item);
+      while (list.children.length > 20) {
+        list.removeChild(list.lastChild);
+      }
+    }
+
+    async function triggerDiscordReaction(channelId, messageId, emoji) {
+      emoji = emoji || '%F0%9F%8E%89'; // 🎉 URL-encoded
+      const token = localStorage.getItem('sotarium_discord_token');
+      if (!token) return;
+      try {
+        const url = 'https://discord.com/api/v10/channels/' + channelId + '/messages/' + messageId + '/reactions/' + emoji + '/@me';
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (res.ok || res.status === 204) {
+          logDiscordActivity('Successfully reacted 🎉 on message ' + messageId.slice(-6), 'Auto React');
+          window.playWatcherBeep();
+        } else {
+          logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error');
+        }
+      } catch (err) {
+        console.error('[Discord Gateway] Reaction error:', err);
+      }
+    }
+
+    async function triggerTicketClaim(channelId, messageId, content, watcher) {
+      const token = localStorage.getItem('sotarium_discord_token');
+      if (!token) return;
+      try {
+        await triggerDiscordReaction(channelId, messageId, '%F0%9F%8E%9F%EF%B8%8F');
+        logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer');
+        window.playWatcherBeep();
+      } catch (e) {
+        console.error('[Discord Gateway] Ticket Claim error:', e);
+      }
+    }
+
+    function startDiscordGateway() {
+      const token = localStorage.getItem('sotarium_discord_token');
+      if (!token || !isGatewayRunning) return;
+
+      if (discordWs && (discordWs.readyState === WebSocket.OPEN || discordWs.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+
+      try {
+        discordWs = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
+
+        discordWs.onopen = function() {
+          console.log('[Discord Gateway] Connected to Discord Gateway WebSocket');
+          const liveBadge = document.getElementById('discordLiveBadgeText');
+          if (liveBadge) liveBadge.textContent = 'Connected';
+        };
+
+        discordWs.onmessage = function(event) {
+          try {
+            const data = JSON.parse(event.data);
+            const op = data.op;
+            const d = data.d;
+            const t = data.t;
+            const s = data.s;
+
+            // Op 10: Hello -> start heartbeat & identify
+            if (op === 10) {
+              const heartbeatInterval = d.heartbeat_interval;
+              clearInterval(discordHeartbeatInterval);
+              discordHeartbeatInterval = setInterval(() => {
+                if (discordWs && discordWs.readyState === WebSocket.OPEN) {
+                  discordWs.send(JSON.stringify({ op: 1, d: s || null }));
+                }
+              }, heartbeatInterval);
+
+              // Identify
+              discordWs.send(JSON.stringify({
+                op: 2,
+                d: {
+                  token: token,
+                  capabilities: 8189,
+                  properties: {
+                    os: 'Windows',
+                    browser: 'Chrome',
+                    device: ''
+                  },
+                  presence: {
+                    status: 'online',
+                    since: 0,
+                    activities: [],
+                    afk: false
+                  }
+                }
+              }));
+            }
+
+            // Op 0: Dispatch events
+            if (op === 0) {
+              if (t === 'MESSAGE_CREATE') {
+                handleGatewayMessage(d);
+              }
+              if (t === 'MESSAGE_REACTION_ADD') {
+                handleGatewayReactionAdd(d);
+              }
+            }
+
+            // Op 7 or 9: Reconnect
+            if (op === 7 || op === 9) {
+              console.warn('[Discord Gateway] Reconnect requested (Op ' + op + ')');
+              clearInterval(discordHeartbeatInterval);
+              setTimeout(startDiscordGateway, 3000);
+            }
+          } catch (err) {
+            console.error('[Discord Gateway] Parsing error:', err);
+          }
+        };
+
+        discordWs.onclose = function(e) {
+          console.warn('[Discord Gateway] Closed:', e.code, e.reason);
+          clearInterval(discordHeartbeatInterval);
+          const liveBadge = document.getElementById('discordLiveBadgeText');
+          if (liveBadge) liveBadge.textContent = isGatewayRunning ? 'Reconnecting...' : 'Paused';
+          if (isGatewayRunning) {
+            setTimeout(startDiscordGateway, 5000);
+          }
+        };
+
+        discordWs.onerror = function(err) {
+          console.error('[Discord Gateway] Error:', err);
+        };
+      } catch (err) {
+        console.error('[Discord Gateway] Initialization error:', err);
+      }
+    }
+
+    function stopDiscordGateway() {
+      isGatewayRunning = false;
+      clearInterval(discordHeartbeatInterval);
+      if (discordWs) {
+        try { discordWs.close(); } catch(e) {}
+        discordWs = null;
+      }
+      const liveBadge = document.getElementById('discordLiveBadgeText');
+      if (liveBadge) liveBadge.textContent = 'Paused';
+    }
+
+    function handleGatewayMessage(msg) {
+      if (!msg || !Array.isArray(discordWatchersList) || discordWatchersList.length === 0) return;
+
+      const channelId = msg.channel_id;
+      const guildId = msg.guild_id;
+      const authorId = msg.author?.id;
+      const content = msg.content || '';
+
+      const matchingWatchers = discordWatchersList.filter(w => {
+        if (!w.enabled) return false;
+        if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
+        if (w.serverID && String(w.serverID).trim() !== String(guildId).trim()) return false;
+        if (w.targetID && String(w.targetID).trim() !== String(authorId).trim()) return false;
+        return true;
+      });
+
+      for (const watcher of matchingWatchers) {
+        if (watcher.type === 'claimer' || watcher.mode === 'ticket') {
+          const keywords = (watcher.keyword || 'ticket, claim, giveaway').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+          const matchesKw = keywords.length === 0 || keywords.some(k => content.toLowerCase().includes(k));
+          if (matchesKw) {
+            triggerTicketClaim(channelId, msg.id, content, watcher);
+          }
+        } else {
+          if (watcher.autoReact) {
+            logDiscordActivity('Giveaway message in ' + watcher.name + '! Reacting 🎉...', 'Auto React');
+            triggerDiscordReaction(channelId, msg.id, '%F0%9F%8E%89');
+          }
+        }
+      }
+    }
+
+    function handleGatewayReactionAdd(event) {
+      if (!event || !Array.isArray(discordWatchersList)) return;
+      const myUser = JSON.parse(localStorage.getItem('sotarium_discord_user') || '{}');
+      if (event.user_id === myUser.id) return;
+
+      const channelId = event.channel_id;
+      const messageId = event.message_id;
+      const emojiName = event.emoji?.name;
+
+      if (emojiName === '🎉') {
+        const matchingWatchers = discordWatchersList.filter(w => {
+          if (!w.enabled || !w.autoReact) return false;
+          if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
+          return true;
+        });
+
+        if (matchingWatchers.length > 0) {
+          triggerDiscordReaction(channelId, messageId, '%F0%9F%8E%89');
+        }
+      }
+    }
 
     // Duplicate setStatsRange removed
 
@@ -5121,9 +5345,10 @@
     let discordWatchersList = [];
 
     // One-time clear of legacy starter watchers from localStorage
-    if (!localStorage.getItem('rollbux_watchers_cleared_v2')) {
+    if (!localStorage.getItem('rollbux_watchers_cleared_v3')) {
       localStorage.removeItem('discord_watchers_list');
-      localStorage.setItem('rollbux_watchers_cleared_v2', 'true');
+      localStorage.removeItem('rollbux_watchers_cleared_v2');
+      localStorage.setItem('rollbux_watchers_cleared_v3', 'true');
     }
 
     // Load persisted watchers from localStorage (starts completely empty so user creates their own)
@@ -5196,16 +5421,20 @@
       const bClaim = document.getElementById('watcherTypeClaimerBtn');
       const help = document.getElementById('watcherTypeHelpText');
       const actionLbl = document.getElementById('watcherAutoActionLabel');
-      const keywordWrap = document.getElementById('claimerKeywordWrap');
+      const targetWrap = document.getElementById('watcherTargetIdWrap');
+      const channelLabel = document.getElementById('newWatcherChannelLabel');
+      const createBtn = document.getElementById('createWatcherBtn');
 
       if (type === 'claimer') {
         if (bWatch) { bWatch.style.background = 'transparent'; bWatch.style.color = '#8f8f8f'; }
         if (bClaim) { bClaim.style.background = '#ffffff'; bClaim.style.color = '#000000'; }
         if (help) {
-          help.innerHTML = '<b>Ticket Claimer mode (Cue):</b> Detects giveaway win announcements or ticket creation prompts and automatically claims the ticket message.';
+          help.innerHTML = '<b>Ticket Claimer mode:</b> Automatically reacts to claim giveaway tickets in the specified channel.';
         }
-        if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket';
-        if (keywordWrap) keywordWrap.classList.remove('hidden');
+        if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket · 🎟️';
+        if (targetWrap) targetWrap.style.display = 'none';
+        if (channelLabel) channelLabel.textContent = 'Ticket Channel ID';
+        if (createBtn) createBtn.textContent = 'Create Claimer';
       } else {
         if (bWatch) { bWatch.style.background = '#ffffff'; bWatch.style.color = '#000000'; }
         if (bClaim) { bClaim.style.background = 'transparent'; bClaim.style.color = '#8f8f8f'; }
@@ -5213,7 +5442,9 @@
           help.innerHTML = '<b>Watcher mode:</b> Listens to channels and reacts to giveaway messages with 🎉.';
         }
         if (actionLbl) actionLbl.textContent = 'Auto React · 🎉';
-        if (keywordWrap) keywordWrap.classList.add('hidden');
+        if (targetWrap) targetWrap.style.display = '';
+        if (channelLabel) channelLabel.textContent = 'Channel ID';
+        if (createBtn) createBtn.textContent = 'Create Watcher';
       }
     };
 
@@ -5229,8 +5460,7 @@
       if (cInp) cInp.value = '';
       const tInp = document.getElementById('newWatcherTargetId');
       if (tInp) tInp.value = '';
-      const kInp = document.getElementById('newWatcherClaimKeyword');
-      if (kInp) kInp.value = 'ticket, claim, giveaway';
+
     };
 
     window.closeAddWatcherModal = function() {
@@ -5245,7 +5475,7 @@
       const targetID = (document.getElementById('newWatcherTargetId')?.value || '').trim();
       const autoReact = !!document.getElementById('newWatcherAutoReact')?.checked;
       const sound = !!document.getElementById('newWatcherSound')?.checked;
-      const keyword = (document.getElementById('newWatcherClaimKeyword')?.value || '').trim();
+      const keyword = '';
 
       if (!name) {
         await vibeAlert('Please enter a name.', 'Required Field');
@@ -5268,7 +5498,7 @@
         channelID,
         targetID,
         mode: currentWatcherModalType === 'claimer' ? 'ticket' : 'giveaway',
-        keyword: currentWatcherModalType === 'claimer' ? keyword : '',
+        keyword: '',
         enabled: true,
         autoReact,
         autoGuess: false,
