@@ -176,13 +176,24 @@ export default async function handler(req, res) {
         sendJson(res, 400, { success: false, error: 'Please enter your Discord user token.' });
         return;
       }
-      const discordRes = await fetch('https://discord.com/api/v10/users/@me', {
-        headers: { Authorization: token }
+      const discordHeaders = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+        'Accept': 'application/json'
+      };
+      // User tokens normally use the raw Authorization value. Also support
+      // OAuth access tokens without ever adding a Bot prefix.
+      let discordRes = await fetch('https://discord.com/api/v10/users/@me', {
+        headers: { ...discordHeaders, Authorization: token }
       });
+      if (!discordRes.ok && !/^Bearer\s+/i.test(token)) {
+        discordRes = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: { ...discordHeaders, Authorization: `Bearer ${token}` }
+        });
+      }
       if (!discordRes.ok) {
         // Return a handled application result instead of HTTP 401 so the
         // browser console does not report a failed network resource.
-        sendJson(res, 200, { success: false, error: 'Discord rejected this user token.' });
+        sendJson(res, 200, { success: false, error: 'Discord rejected this user token. Check that it is current and complete.' });
         return;
       }
       const d = await discordRes.json();
