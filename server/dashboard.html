@@ -4905,6 +4905,36 @@
       return true;
     }
 
+    // Keep guesses unique across giveaways. Once all 20 numbers have been used,
+    // start a fresh cycle and allow the numbers to be reused.
+    const DISCORD_USED_GUESSES_KEY = 'sotarium_giveaway_used_guesses:';
+    function reserveUniqueGiveawayGuess(userId) {
+      const key = DISCORD_USED_GUESSES_KEY + String(userId || 'me');
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const stored = JSON.parse(localStorage.getItem(key) || 'null');
+          let used = Array.isArray(stored) ? stored.filter(n => Number.isInteger(n) && n >= 1 && n <= 20) : [];
+          used = [...new Set(used)];
+          if (used.length >= 20) used = [];
+          const available = Array.from({ length: 20 }, (_, index) => index + 1).filter(n => !used.includes(n));
+          const guess = available[Math.floor(Math.random() * available.length)];
+          const next = [...used, guess];
+          localStorage.setItem(key, JSON.stringify(next));
+          // Confirm the reservation so another open tab cannot silently replace it.
+          const confirmed = JSON.parse(localStorage.getItem(key) || '[]');
+          if (Array.isArray(confirmed) && confirmed.includes(guess)) return guess;
+        } catch (e) {
+          const fallbackKey = key + ':memory';
+          if (!inMemoryGuessLocks.has(fallbackKey)) {
+            inMemoryGuessLocks.add(fallbackKey);
+            setTimeout(() => inMemoryGuessLocks.delete(fallbackKey), DISCORD_GUESS_LOCK_TTL);
+            return Math.floor(Math.random() * 20) + 1;
+          }
+        }
+      }
+      return null;
+    }
+
     function logDiscordActivity(text, tag, color, shouldPersist = true) {
       // color: undefined = default white, 'green' = won, 'red' = error/miss
       tag = tag || 'Auto React';
@@ -5245,7 +5275,8 @@
           if (canGuessThisGiveaway) {
             processedSelectionPrompts.add(selectionKey);
             setTimeout(() => processedSelectionPrompts.delete(selectionKey), 10 * 60 * 1000);
-            const guess = Math.floor(Math.random() * 20) + 1;
+            const guess = reserveUniqueGiveawayGuess(myId);
+            if (!guess) return;
             logDiscordActivity('Guessed ' + guess, 'Guess', 'green');
             void sendDiscordMessage(channelId, String(guess));
             if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
