@@ -4672,7 +4672,11 @@
     // --- Live Discord Gateway WebSocket & Auto-React Engine ---
     let discordWs = null;
     let discordHeartbeatInterval = null;
+    let discordReconnectTimeout = null;
+    let discordLastSequence = null;
     let isGatewayRunning = true;
+    // GUILDS + GUILD_MESSAGES + GUILD_MESSAGE_REACTIONS + MESSAGE_CONTENT.
+    const DISCORD_GATEWAY_INTENTS = 1 | 512 | 1024 | 32768;
 
     function logDiscordActivity(text, tag, color) {
       // color: undefined = default white, 'green' = won, 'red' = error/miss
@@ -4710,27 +4714,37 @@
       }
     }
 
+    const discordReactionKeys = new Set();
+
     async function triggerDiscordReaction(channelId, messageId, emoji) {
-      emoji = emoji || '%F0%9F%8E%89'; // 🎉 URL-encoded
       const token = localStorage.getItem('sotarium_discord_token');
-      if (!token) return;
+      if (!token || !channelId || !messageId) return false;
+      const rawEmoji = String(emoji || '🎉');
+      const emojiKey = channelId + ':' + messageId + ':' + rawEmoji;
+      // MESSAGE_CREATE, MESSAGE_UPDATE, and reaction events can all describe the same giveaway.
+      if (discordReactionKeys.has(emojiKey)) return true;
+      discordReactionKeys.add(emojiKey);
+      const encodedEmoji = rawEmoji.includes('%') ? rawEmoji : encodeURIComponent(rawEmoji);
       try {
-        const url = 'https://discord.com/api/v10/channels/' + channelId + '/messages/' + messageId + '/reactions/' + emoji + '/@me';
+        const url = 'https://discord.com/api/v10/channels/' + encodeURIComponent(channelId) + '/messages/' + encodeURIComponent(messageId) + '/reactions/' + encodedEmoji + '/@me';
         const res = await fetch(url, {
           method: 'PUT',
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Authorization': token }
         });
         if (res.ok || res.status === 204) {
-          logDiscordActivity('Successfully reacted 🎉 on message ' + messageId.slice(-6), 'Auto React');
+          logDiscordActivity('Successfully reacted ' + rawEmoji + ' on message ' + messageId.slice(-6), 'Auto React', 'green');
           window.playWatcherBeep();
-        } else {
-          logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error', 'red');
+          return true;
         }
+        // Do not permanently suppress a transient failure or an expired token response.
+        discordReactionKeys.delete(emojiKey);
+        logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error', 'red');
+        return false;
       } catch (err) {
+        discordReactionKeys.delete(emojiKey);
         console.error('[Discord Gateway] Reaction error:', err);
+        logDiscordActivity('Reaction request failed on ' + messageId.slice(-6), 'Error', 'red');
+        return false;
       }
     }
 
@@ -4738,7 +4752,7 @@
       const token = localStorage.getItem('sotarium_discord_token');
       if (!token) return;
       try {
-        await triggerDiscordReaction(channelId, messageId, '%F0%9F%8E%9F%EF%B8%8F');
+        await triggerDiscordReaction(channelId, messageId, '🎟️');
         logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer');
         window.playWatcherBeep();
       } catch (e) {
@@ -4791,7 +4805,7 @@
             const op = data.op;
             const d = data.d;
             const t = data.t;
-            const s = data.s;
+            if (data.s !== null && data.s !== undefined) discordLastSequence = data.s;
 
             // Op 10: Hello -> start heartbeat & identify
             if (op === 10) {
@@ -4799,7 +4813,7 @@
               clearInterval(discordHeartbeatInterval);
               discordHeartbeatInterval = setInterval(() => {
                 if (discordWs && discordWs.readyState === WebSocket.OPEN) {
-                  discordWs.send(JSON.stringify({ op: 1, d: s || null }));
+                  discordWs.send(JSON.stringify({ op: 1, d: discordLastSequence }));
                 }
               }, heartbeatInterval);
 
@@ -4808,6 +4822,7 @@
                 op: 2,
                 d: {
                   token: token,
+                  intents: DISCORD_GATEWAY_INTENTS,
                   capabilities: 8189,
                   properties: {
                     os: 'Windows',
@@ -4838,7 +4853,12 @@
             if (op === 7 || op === 9) {
               console.warn('[Discord Gateway] Reconnect requested (Op ' + op + ')');
               clearInterval(discordHeartbeatInterval);
-              setTimeout(startDiscordGateway, 3000);
+              if (discordWs) {
+                try { discordWs.close(); } catch (e) {}
+                discordWs = null;
+              }
+              clearTimeout(discordReconnectTimeout);
+              discordReconnectTimeout = setTimeout(startDiscordGateway, 3000);
             }
           } catch (err) {
             console.error('[Discord Gateway] Parsing error:', err);
@@ -4851,7 +4871,8 @@
           const liveBadge = document.getElementById('discordLiveBadgeText');
           if (liveBadge) liveBadge.textContent = isGatewayRunning ? 'Reconnecting...' : 'Paused';
           if (isGatewayRunning) {
-            setTimeout(startDiscordGateway, 5000);
+            clearTimeout(discordReconnectTimeout);
+            discordReconnectTimeout = setTimeout(startDiscordGateway, 5000);
           }
         };
 
@@ -5042,6 +5063,7 @@
         const matchingWatchers = discordWatchersList.filter(w => {
           if (!w.enabled || !w.autoReact) return false;
           if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
+          if (w.serverID && String(w.serverID).trim() !== String(event.guild_id || '').trim()) return false;
           // Skip if targetID is set because MESSAGE_REACTION_ADD doesn't have message author
           if (w.targetID) return false;
           return true;
@@ -5350,22 +5372,34 @@
     };
 
     function addFeedResult(account, title, win, amt) {
+      const amountBux = Number.isFinite(Number(amt)) ? Number(amt) : 0;
+      // Use the same persisted BUX source as the paginated renderer so changing
+      // BUX/USD/SOL updates this result's icon and converted value too.
+      if (typeof window.pushGameHistory === 'function') {
+        window.pushGameHistory({
+          account: account || targetUsername,
+          mode: title || 'Game',
+          success: !!win,
+          betBux: win ? 0 : amountBux,
+          amountBux
+        });
+        return;
+      }
       const list = document.getElementById('resultsFeedList');
       if (!list) return;
-      const row = document.createElement('div');
-      row.className = 'dv-feed-row';
       const color = win ? '#54d487' : '#f55e5e';
       const sign = win ? '+' : '−';
-      row.innerHTML = `
-        <div class="w-[3px] h-[28px] rounded-[2px]" style="background:${color};" shrink-0></div>
-        <div class="flex flex-col flex-1 min-w-0">
-          <span class="text-[13px] font-bold text-white truncate">${account}</span>
-          <span class="text-[11px] text-[#8f8f8f] truncate">${title}</span>
-        </div>
-        <span class="text-[13px] font-bold font-mono" style="color:${color};">${sign}${amt.toFixed(2)} BUX</span>
-        <span class="text-[11px] text-[#8f8f8f] opacity-70">Just now</span>
-      `;
-      list.prepend(row);
+      const iconSrc = getCurrencyIcon();
+      list.insertAdjacentHTML('afterbegin', `
+        <div class="dv-feed-row">
+          <div class="w-[3px] h-[28px] rounded-[2px]" style="background:${color};"></div>
+          <div class="flex flex-col flex-1 min-w-0">
+            <span class="text-[13px] font-bold text-white truncate">${account || 'Main'}</span>
+            <span class="text-[11px] text-[#8f8f8f] truncate">${title || 'Game'}</span>
+          </div>
+          <div class="flex items-center gap-1 text-[13px] font-bold font-mono" style="color:${color};"><img src="${iconSrc}" class="size-3.5 object-contain" alt=""><span>${sign}${formatBuxValue(amountBux)}</span></div>
+          <span class="text-[11px] text-[#8f8f8f] opacity-70">Just now</span>
+        </div>`);
     }
 
     window.clearResultsFeed = function() {
