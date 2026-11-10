@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { handleAction, getUser, getUserForAuth, clearUserStats, getAllUsers, getSolPrice, buxToUsd, buxToSol } from '../server/db.js';
 import roachTickHandler from './roach/tick.js';
+import crypto from 'crypto';
 import { signUp, signIn, sessionCookie, clearSessionCookie, currentSession } from '../server/auth.js';
 
 const ALLOWED_IP = '24.49.252.230';
@@ -57,23 +58,33 @@ async function deleteSupabaseAccount(id) {
 }
 
 function getClientIp(req) {
-  return (
-    req.headers['x-vercel-forwarded-for'] ||
-    req.headers['x-real-ip'] ||
-    req.socket?.remoteAddress ||
-    ''
-  ).split(',')[0].trim();
+  return (req.headers['x-vercel-forwarded-for'] || req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '').split(',')[0].trim();
 }
-
 function isAllowedIp(req) {
-  // Allow requests from Sotarium Desktop App or localhost or matching IP
-  const userAgent = req.headers['user-agent'] || '';
-  if (userAgent.includes('Sotarium') || userAgent.includes('Chrome/120.0.0.0')) return true;
-  const ip = getClientIp(req);
-  if (!ip || ip === '127.0.0.1' || ip === '::1' || ip === 'localhost') return true;
-  return ip === ALLOWED_IP || true; // Allow client requests to sync stats
+  // Legacy endpoints remain available to authenticated users. Dashboard
+  // isolation is enforced by lockSessionTokenToIp for each session token.
+  return true;
 }
-
+function tokenLockKey(token) {
+  return `rollbux:session-ip:${crypto.createHash('sha256').update(token).digest('hex')}`;
+}
+async function lockSessionTokenToIp(token, ip) {
+  if (!UPSTASH_TOKEN || !ip) return true;
+  const key = encodeURIComponent(tokenLockKey(token));
+  const headers = { headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` } };
+  const read = async () => {
+    const r = await fetch(`${UPSTASH_URL}/get/${key}`, headers);
+    return r.ok ? (await r.json()).result : null;
+  };
+  const existing = await read();
+  if (existing && existing !== ip) return false;
+  if (!existing) {
+    const r = await fetch(`${UPSTASH_URL}/set/${key}/${encodeURIComponent(ip)}/EX/2592000/NX`, headers);
+    if (r.ok && (await r.json()).result === 'OK') return true;
+  }
+  const finalIp = await read();
+  return !finalIp || finalIp === ip;
+}
 function parseBody(req) {
   return new Promise((resolve) => {
     let body = '';
@@ -138,6 +149,10 @@ export default async function handler(req, res) {
         return;
       }
 
+      if (!(await lockSessionTokenToIp(token, getClientIp(req)))) {
+        sendJson(res, 403, { success: false, error: 'This session is locked to another network. Log in with your own session token.' });
+        return;
+      }
       const rollHeaders = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*',

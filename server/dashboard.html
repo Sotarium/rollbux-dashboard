@@ -4609,8 +4609,16 @@
         }).then(r => r.ok ? r.json() : null).then(d => {
           if (d && d.success && d.user) {
             localStorage.setItem('sotarium_user_profile', JSON.stringify(d.user));
+          } else {
+            localStorage.removeItem('sotarium_session_token');
+            localStorage.removeItem('sotarium_registered_token');
+            showLogin();
           }
-        }).catch(() => {});
+        }).catch(() => {
+          localStorage.removeItem('sotarium_session_token');
+          localStorage.removeItem('sotarium_registered_token');
+          showLogin();
+        });
       } else {
         showLogin();
       }
