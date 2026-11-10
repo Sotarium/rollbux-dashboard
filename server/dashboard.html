@@ -977,7 +977,7 @@
                   <div class="dv-card flex flex-col gap-3 p-5 mt-4">
                     <div class="flex items-center justify-between">
                       <h3 class="text-[17px] font-bold text-white tracking-tight">Activity</h3>
-                      <button type="button" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
+                      <button id="clearDiscordActivityBtn" type="button" onclick="clearDiscordActivity()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
                     </div>
                     <div id="discordActivityList" class="flex flex-col gap-2 w-full pt-1">
                       <div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]">
@@ -4243,6 +4243,108 @@
     const discordLoginBtn = document.getElementById('discordLoginBtn');
     const discordLoginError = document.getElementById('discordLoginError');
 
+    const DISCORD_ACCOUNTS_KEY = 'sotarium_discord_accounts';
+    const DISCORD_ACTIVE_ACCOUNT_KEY = 'sotarium_discord_active_account';
+    const DISCORD_ACTIVITY_KEY = 'sotarium_discord_activity';
+
+    function readDiscordAccounts() {
+      let accounts = [];
+      try {
+        const parsed = JSON.parse(localStorage.getItem(DISCORD_ACCOUNTS_KEY) || '[]');
+        if (Array.isArray(parsed)) accounts = parsed.filter(a => a && a.id && a.token && a.user);
+      } catch (e) {}
+      if (accounts.length === 0) {
+        const token = localStorage.getItem('sotarium_discord_token');
+        const rawUser = localStorage.getItem('sotarium_discord_user');
+        if (token && rawUser) {
+          try {
+            const user = JSON.parse(rawUser);
+            accounts = [{ id: String(user.id || 'account_' + Date.now()), token, user }];
+            localStorage.setItem(DISCORD_ACCOUNTS_KEY, JSON.stringify(accounts));
+            localStorage.setItem(DISCORD_ACTIVE_ACCOUNT_KEY, accounts[0].id);
+          } catch (e) {}
+        }
+      }
+      return accounts;
+    }
+
+    function getActiveDiscordAccount() {
+      const accounts = readDiscordAccounts();
+      const activeId = localStorage.getItem(DISCORD_ACTIVE_ACCOUNT_KEY);
+      return accounts.find(a => String(a.id) === String(activeId)) || accounts[0] || null;
+    }
+
+    function getActiveDiscordToken() {
+      const account = getActiveDiscordAccount();
+      return account?.token || localStorage.getItem('sotarium_discord_token') || '';
+    }
+
+    function getActiveDiscordUser() {
+      const account = getActiveDiscordAccount();
+      if (account?.user) return account.user;
+      try { return JSON.parse(localStorage.getItem('sotarium_discord_user') || '{}'); } catch (e) { return {}; }
+    }
+
+    function persistDiscordAccounts(accounts, activeId) {
+      localStorage.setItem(DISCORD_ACCOUNTS_KEY, JSON.stringify(accounts));
+      const active = accounts.find(a => String(a.id) === String(activeId)) || accounts[0];
+      if (active) {
+        localStorage.setItem(DISCORD_ACTIVE_ACCOUNT_KEY, String(active.id));
+        localStorage.setItem('sotarium_discord_token', active.token);
+        localStorage.setItem('sotarium_discord_user', JSON.stringify(active.user));
+      } else {
+        localStorage.removeItem(DISCORD_ACTIVE_ACCOUNT_KEY);
+        localStorage.removeItem('sotarium_discord_token');
+        localStorage.removeItem('sotarium_discord_user');
+      }
+    }
+
+    window.selectDiscordAccount = function(id) {
+      const accounts = readDiscordAccounts();
+      const account = accounts.find(a => String(a.id) === String(id));
+      if (!account) return;
+      const wasRunning = isGatewayRunning;
+      if (wasRunning && typeof stopDiscordGateway === 'function') stopDiscordGateway();
+      persistDiscordAccounts(accounts, account.id);
+      syncDiscordGwUI();
+      syncDiscordCustomProfile();
+      if (wasRunning) { isGatewayRunning = true; startDiscordGateway(); }
+    };
+
+    window.removeDiscordAccount = function(id) {
+      const accounts = readDiscordAccounts().filter(a => String(a.id) !== String(id));
+      persistDiscordAccounts(accounts, accounts[0]?.id || null);
+      syncDiscordGwUI();
+      syncDiscordCustomProfile();
+    };
+
+    function renderDiscordAccountsList() {
+      const list = document.getElementById('discordAccountsList');
+      const count = document.getElementById('discordAccountsCount');
+      if (!list) return;
+      const accounts = readDiscordAccounts();
+      const active = getActiveDiscordAccount();
+      if (count) count.textContent = String(accounts.length);
+      if (!accounts.length) {
+        list.innerHTML = '<div class="text-[11px] text-[#8f8f8f] p-2 rounded-[9px] bg-[#080808]">No Discord accounts linked.</div>';
+        return;
+      }
+      list.innerHTML = accounts.map(a => {
+        const name = String(a.user?.username || a.user?.handle || 'Discord account').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const selected = active && String(active.id) === String(a.id);
+        const id = String(a.id).replace(/[^a-zA-Z0-9_-]/g, '');
+        return '<div class="flex items-center gap-2 p-2 rounded-[9px] ' + (selected ? 'bg-[#5865F2]/15 border border-[#5865F2]/35' : 'bg-[#080808] border border-white/5') + '">' +
+          '<button type="button" class="flex-1 min-w-0 text-left text-[12px] font-semibold text-white truncate" onclick="selectDiscordAccount(\'' + id + '\')">' + name + (selected ? ' <span class="text-[#54d487]">(active)</span>' : '') + '</button>' +
+          '<button type="button" class="text-[11px] text-[#8f8f8f] hover:text-red-400" onclick="removeDiscordAccount(\'' + id + '\')">Remove</button></div>';
+      }).join('');
+    }
+
+    window.clearDiscordActivity = function() {
+      localStorage.removeItem(DISCORD_ACTIVITY_KEY);
+      const list = document.getElementById('discordActivityList');
+      if (list) list.innerHTML = '<div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]"><span>No recent activity. Active watchers will log events here.</span></div>';
+    };
+
     window.toggleDiscordTokenVisibility = function() {
       const inp = document.getElementById('discordTokenInput');
       const showIcon = document.getElementById('eyeIconShow');
@@ -4284,7 +4386,7 @@
     };
 
     function syncDiscordGwUI() {
-      const savedToken = localStorage.getItem('sotarium_discord_token');
+      const savedToken = getActiveDiscordToken();
       const savedUser = localStorage.getItem('sotarium_discord_user');
       if (savedToken && savedUser) {
         try {
@@ -4381,8 +4483,9 @@
             handle: d.username,
             avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '/discord-logo.png'
           };
-          localStorage.setItem('sotarium_discord_token', finalToken);
-          localStorage.setItem('sotarium_discord_user', JSON.stringify(u));
+          const accounts = readDiscordAccounts().filter(a => String(a.id) !== String(u.id));
+          accounts.push({ id: String(u.id || 'account_' + Date.now()), token: finalToken, user: u });
+          persistDiscordAccounts(accounts, u.id);
           closeDiscordLoginModal();
           syncDiscordGwUI();
           syncDiscordCustomProfile();
@@ -4403,8 +4506,9 @@
     };
 
     window.disconnectDiscordGw = function() {
-      localStorage.removeItem('sotarium_discord_token');
-      localStorage.removeItem('sotarium_discord_user');
+      const active = getActiveDiscordAccount();
+      const accounts = readDiscordAccounts().filter(a => !active || String(a.id) !== String(active.id));
+      persistDiscordAccounts(accounts, accounts[0]?.id || null);
       localStorage.removeItem('sotarium_discord_gw_active');
       syncDiscordGwUI();
       syncDiscordCustomProfile();
@@ -4645,6 +4749,14 @@
           </div>
         </div>
 
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[12px] font-semibold text-[#8f8f8f]">Discord Accounts</span>
+            <span id="discordAccountsCount" class="text-[11px] text-[#8f8f8f]">0</span>
+          </div>
+          <div id="discordAccountsList" class="flex flex-col gap-2 max-h-[150px] overflow-y-auto"></div>
+        </div>
+
         <!-- White Sleek Link Button -->
         <button type="button" onclick="closeDiscordProfileModal(); openDiscordLoginModal();" class="dv-pill active w-full mt-2" style="height:44px; font-size:14px; font-weight:700;">
           <span id="modalTokenBtnText">Link</span>
@@ -4718,7 +4830,7 @@
     const pendingGiveaways = Object.create(null);
     const processedGuessResults = new Set();
 
-    function logDiscordActivity(text, tag, color) {
+    function logDiscordActivity(text, tag, color, shouldPersist = true) {
       // color: undefined = default white, 'green' = won, 'red' = error/miss
       tag = tag || 'Auto React';
       const list = document.getElementById('discordActivityList');
@@ -4752,13 +4864,28 @@
       while (list.children.length > 20) {
         list.removeChild(list.lastChild);
       }
+      if (shouldPersist) {
+        try {
+          const saved = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
+          saved.unshift({ text: String(text), tag: String(tag), color: color || '' });
+          localStorage.setItem(DISCORD_ACTIVITY_KEY, JSON.stringify(saved.slice(0, 20)));
+        } catch (e) {}
+      }
     }
+
+    function restoreDiscordActivity() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
+        if (Array.isArray(saved)) saved.slice().reverse().forEach(entry => logDiscordActivity(entry.text, entry.tag, entry.color, false));
+      } catch (e) {}
+    }
+    restoreDiscordActivity();
 
     const discordReactionKeys = new Set();
     const discordReactionSchedules = new Set();
 
     async function triggerDiscordReaction(channelId, messageId, emoji, soundEnabled = true) {
-      const token = localStorage.getItem('sotarium_discord_token');
+      const token = getActiveDiscordToken();
       if (!token || !channelId || !messageId) return false;
       const rawEmoji = String(emoji || '🎉');
       const emojiKey = channelId + ':' + messageId + ':' + rawEmoji;
@@ -4828,7 +4955,7 @@
     }
 
     async function triggerTicketClaim(channelId, messageId, content, watcher) {
-      const token = localStorage.getItem('sotarium_discord_token');
+      const token = getActiveDiscordToken();
       if (!token) return;
       try {
         await triggerDiscordReaction(channelId, messageId, '🎟️', watcher.sound !== false);
@@ -4839,7 +4966,7 @@
     }
 
     async function sendDiscordMessage(channelId, content) {
-      const token = localStorage.getItem('sotarium_discord_token');
+      const token = getActiveDiscordToken();
       if (!token) return;
       try {
         const res = await fetch('https://discord.com/api/v10/channels/' + channelId + '/messages', {
@@ -4861,7 +4988,7 @@
     }
 
     function startDiscordGateway() {
-      const token = localStorage.getItem('sotarium_discord_token');
+      const token = getActiveDiscordToken();
       if (!token || !isGatewayRunning) return;
 
       if (discordWs && (discordWs.readyState === WebSocket.OPEN || discordWs.readyState === WebSocket.CONNECTING)) {
@@ -5194,6 +5321,7 @@
 
     // Sync Discord data fetched from user token
     function syncDiscordCustomProfile() {
+      renderDiscordAccountsList();
       const savedUser = localStorage.getItem('sotarium_discord_user');
       const savedToken = localStorage.getItem('sotarium_discord_token');
 
@@ -5237,7 +5365,7 @@
           if (_ar) { _ar.style.display = 'flex'; _ar.classList.remove('hidden'); }
           if (modalName) { modalName.textContent = displayName; modalName.classList.remove('hidden'); }
           if (modalAccCheck) modalAccCheck.style.display = 'flex';
-          if (modalTokenBtnText) modalTokenBtnText.textContent = 'Linked';
+          if (modalTokenBtnText) modalTokenBtnText.textContent = 'Add Account';
           return;
         } catch(e) {}
       }
