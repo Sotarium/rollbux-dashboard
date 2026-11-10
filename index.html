@@ -5214,18 +5214,16 @@
       });
 
       // --- Step 1: Check if this message announces that the connected user got picked / needs to guess ---
-      const myUser = (() => { try { return JSON.parse(localStorage.getItem('sotarium_discord_user') || '{}'); } catch(e) { return {}; } })();
-      const myId = myUser.id;
-      const myUsername = (myUser.username || '').toLowerCase();
-      const myGlobalName = (myUser.global_name || '').toLowerCase();
-
+      // Always resolve the active account so multi-account switching cannot
+      // make the bot guess for a different account.
+      const myUser = getActiveDiscordUser() || {};
+      const myId = String(myUser.id || '');
       if (myId) {
-        const mentionsMe = (Array.isArray(msg.mentions) && msg.mentions.some(m => m.id === myId)) ||
+        // Only a real Discord mention counts. Plain @names in message text can
+        // match another winner and must never trigger a guess or guess log.
+        const mentionsMe = (Array.isArray(msg.mentions) && msg.mentions.some(m => String(m?.id || '') === myId)) ||
                            fullText.includes('<@' + myId + '>') ||
-                           fullText.includes('<@!' + myId + '>') ||
-                           (myUsername && fullTextLower.includes('@' + myUsername)) ||
-                           (myGlobalName && fullTextLower.includes('@' + myGlobalName));
-
+                           fullText.includes('<@!' + myId + '>');
         // Prompt from Rollbux bot: "@User, you're selected! Pick a number from 1–20"
         const isSelectionPrompt = mentionsMe && (
           fullTextLower.includes("you're selected") ||
