@@ -1011,12 +1011,14 @@
                   <!-- Bottom Bar matching bottomBar in DiscordView.swift (height: 72px) -->
                   <div class="w-full mt-4 select-none rounded-[18px] bg-[#121212] border border-[rgba(255,255,255,0.10)] p-3.5 flex flex-col gap-3">
                     <div class="w-full flex items-center justify-between gap-3">
-                      <!-- Profile Pill: Clicking this OPENS Profile & Accounts Modal! -->
-                      <button id="discordProfilePillBtn" onclick="openDiscordProfileModal()" type="button" class="flex items-center gap-2.5 px-3 py-1.5 rounded-[11px] bg-[#080808] hover:bg-[#1d1d1d] border border-[rgba(255,255,255,0.10)] transition cursor-pointer">
-                        <img id="discordPillAvatar" src="" class="size-7 rounded-full object-cover hidden" alt="Profile" />
-                        <img id="discordPillAvatarPlaceholder" src="/discord-logo.png" class="size-7 rounded-full object-cover shrink-0" alt="Discord" onerror="this.onerror=null; this.src='discord-logo.png';" />
-                        <span id="discordPillName" class="text-[13px] font-bold text-white">Connect Discord</span>
-                      </button>
+                      <!-- Every linked account is shown left-to-right; clicking one makes it active. -->
+                      <div id="discordAccountsPills" class="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-0.5" role="group" aria-label="Linked Discord accounts">
+                        <button id="discordProfilePillBtn" onclick="openDiscordProfileModal()" type="button" class="flex shrink-0 items-center gap-2.5 px-3 py-1.5 rounded-[11px] bg-[#080808] hover:bg-[#1d1d1d] border border-[rgba(255,255,255,0.10)] transition cursor-pointer">
+                          <img id="discordPillAvatar" src="" class="size-7 rounded-full object-cover hidden" alt="Profile" />
+                          <img id="discordPillAvatarPlaceholder" src="/discord-logo.png" class="size-7 rounded-full object-cover shrink-0" alt="Discord" onerror="this.onerror=null; this.src='discord-logo.png';" />
+                          <span id="discordPillName" class="text-[13px] font-bold text-white">Connect Discord</span>
+                        </button>
+                      </div>
                       <!-- Stop / Start Monitoring Button -->
                       <button id="discordStopBtn" onclick="toggleDiscordWatcherActive()" type="button" class="dv-pill active" style="height:44px; min-width:130px; font-size:14px; font-weight:700;">
                         Stop
@@ -4351,6 +4353,24 @@
       syncDiscordCustomProfile();
     };
 
+    function renderDiscordAccountPills() {
+      const container = document.getElementById('discordAccountsPills');
+      if (!container) return;
+      const accounts = readDiscordAccounts();
+      const active = getActiveDiscordAccount();
+      if (!accounts.length) return;
+      container.innerHTML = accounts.map(a => {
+        const id = String(a.id);
+        const name = String(a.user?.username || a.user?.handle || 'Discord account').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const avatar = String(a.user?.avatar || '/discord-logo.png').replace(/"/g, '&quot;');
+        const selected = active && String(active.id) === id;
+        return '<button type="button" aria-pressed="' + selected + '" title="' + name + (selected ? ' (active)' : '') + '" onclick="selectDiscordAccount(\'' + id.replace(/[^a-zA-Z0-9_-]/g, '') + '\')" class="flex shrink-0 items-center gap-2 px-2.5 py-1.5 rounded-[11px] border transition ' + (selected ? 'bg-[#5865F2]/20 border-[#5865F2]/70 text-white' : 'bg-[#080808] hover:bg-[#1d1d1d] border-[rgba(255,255,255,0.10)] text-[#cfcfcf]') + '">' +
+          '<img src="' + avatar + '" class="size-7 rounded-full object-cover" alt="' + name + '" onerror="this.onerror=null; this.src=\'/discord-logo.png\';" />' +
+          '<span class="max-w-[140px] truncate text-[13px] font-bold">' + name + '</span>' + (selected ? '<span class="size-1.5 rounded-full bg-[#54d487]" aria-label="Active"></span>' : '') +
+          '</button>';
+      }).join('');
+    }
+
     function renderDiscordAccountsList() {
       const list = document.getElementById('discordAccountsList');
       const count = document.getElementById('discordAccountsCount');
@@ -5441,8 +5461,10 @@
     // Sync Discord data fetched from user token
     function syncDiscordCustomProfile() {
       renderDiscordAccountsList();
-      const savedUser = localStorage.getItem('sotarium_discord_user');
-      const savedToken = localStorage.getItem('sotarium_discord_token');
+      renderDiscordAccountPills();
+      const activeAccount = getActiveDiscordAccount();
+      const savedUser = activeAccount?.user ? JSON.stringify(activeAccount.user) : localStorage.getItem('sotarium_discord_user');
+      const savedToken = activeAccount?.token || localStorage.getItem('sotarium_discord_token');
 
       const pillAvatar = document.getElementById('discordPillAvatar');
       const pillName = document.getElementById('discordPillName');
