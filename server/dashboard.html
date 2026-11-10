@@ -455,15 +455,15 @@
                     <div class="flex items-center gap-3 select-none">
                       <!-- Segmented Currency Switcher: BUX | USD | SOL -->
                       <div class="flex items-center bg-[#121212] p-1 rounded-[11px] border border-[rgba(255,255,255,0.10)] shadow-sm gap-0.5">
-                        <button id="unitBuxBtn" type="button" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:#ffffff;color:#000000;display:inline-flex;align-items:center;gap:6px;">
+                        <button id="unitBuxBtn" type="button" onclick="setUnit('BUX')" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:#ffffff;color:#000000;display:inline-flex;align-items:center;gap:6px;">
                           <img alt="BUX" src="./figma/token-bux.png" style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;" />
                           <span>BUX</span>
                         </button>
-                        <button id="unitUsdBtn" type="button" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:transparent;color:#8f8f8f;display:inline-flex;align-items:center;gap:6px;">
+                        <button id="unitUsdBtn" type="button" onclick="setUnit('USD')" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:transparent;color:#8f8f8f;display:inline-flex;align-items:center;gap:6px;">
                           <img alt="USD" src="./figma/token-usd.svg" style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;" />
                           <span>USD</span>
                         </button>
-                        <button id="unitSolBtn" type="button" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:transparent;color:#8f8f8f;display:inline-flex;align-items:center;gap:6px;">
+                        <button id="unitSolBtn" type="button" onclick="setUnit('SOL')" style="height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:transparent;color:#8f8f8f;display:inline-flex;align-items:center;gap:6px;">
                           <img alt="SOL" src="./figma/af-coin-24.svg" style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;" />
                           <span>SOL</span>
                         </button>
@@ -1297,7 +1297,12 @@
       };
     })();
 
-    let currentUnit = 'BUX';
+    let currentUnit = (() => {
+      try {
+        const saved = localStorage.getItem('rollbux_currency_unit');
+        return ['BUX', 'USD', 'SOL'].includes(saved) ? saved : 'BUX';
+      } catch (e) { return 'BUX'; }
+    })();
     let liveUserData = null;
     let liveSolPrice = 150.00;
     let currentRainPage = 1;
@@ -1371,14 +1376,25 @@
       const iconUrl = getCurrencyIcon();
       const earningsIcon = document.getElementById('earningsCoinIconImg');
       const balanceIcon = document.getElementById('balanceCoinIconImg');
-      if (earningsIcon) earningsIcon.src = iconUrl;
-      if (balanceIcon) balanceIcon.src = iconUrl;
-      if (chartTooltipCoinIcon) chartTooltipCoinIcon.src = iconUrl;
+      if (earningsIcon) {
+        earningsIcon.src = iconUrl;
+        earningsIcon.alt = currentUnit;
+      }
+      if (balanceIcon) {
+        balanceIcon.src = iconUrl;
+        balanceIcon.alt = currentUnit;
+      }
+      if (chartTooltipCoinIcon) {
+        chartTooltipCoinIcon.src = iconUrl;
+        chartTooltipCoinIcon.alt = currentUnit;
+      }
     }
 
     window.setUnit = setUnit;
     function setUnit(unit) {
+      if (!['BUX', 'USD', 'SOL'].includes(unit)) return;
       currentUnit = unit;
+      try { localStorage.setItem('rollbux_currency_unit', currentUnit); } catch (e) {}
       const BASE_U = 'height:32px;padding:0 12px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;';
       const ACT_U  = BASE_U + 'background:#ffffff;color:#000000;';
       const INACT_U = BASE_U + 'background:transparent;color:#8f8f8f;';
@@ -1409,7 +1425,7 @@
     updateClientSolPrice();
     setInterval(updateClientSolPrice, 60000);
 
-    updateCurrencyIcons();
+    setUnit(currentUnit);
 
     // Clear Function (no window confirmation prompt, executes instantly)
     async function handleClearStats() {
