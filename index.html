@@ -975,9 +975,15 @@
 
                   <!-- Activity Feed Card matching activityCard in DiscordView.swift -->
                   <div class="dv-card flex flex-col gap-3 p-5 mt-4">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between gap-3">
                       <h3 class="text-[17px] font-bold text-white tracking-tight">Activity</h3>
                       <button id="clearDiscordActivityBtn" type="button" onclick="clearDiscordActivity()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Activity filters">
+                      <button type="button" data-activity-filter="all" onclick="setDiscordActivityFilter('all')" class="dv-pill active" style="height:28px; padding:0 10px; font-size:11px;">All</button>
+                      <button type="button" data-activity-filter="joined" onclick="setDiscordActivityFilter('joined')" class="dv-pill inactive" style="height:28px; padding:0 10px; font-size:11px;">Joins</button>
+                      <button type="button" data-activity-filter="guess" onclick="setDiscordActivityFilter('guess')" class="dv-pill inactive" style="height:28px; padding:0 10px; font-size:11px;">Guesses</button>
+                      <button type="button" data-activity-filter="won" onclick="setDiscordActivityFilter('won')" class="dv-pill inactive" style="height:28px; padding:0 10px; font-size:11px;">Won</button>
                     </div>
                     <div id="discordActivityList" class="flex flex-col gap-2 w-full pt-1">
                       <div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]">
@@ -4348,10 +4354,41 @@
         '<button type="button" class="shrink-0 px-3 py-1.5 rounded-[8px] bg-white text-black text-[12px] font-bold hover:bg-[#e8e8e8] transition" onclick="closeDiscordProfileModal(); openDiscordLoginModal();">+ Add</button></div>';
     }
 
+    let discordActivityFilter = 'all';
+
+    function getDiscordActivityCategory(text, tag, color) {
+      const value = String(text || '').toLowerCase();
+      const label = String(tag || '').toLowerCase();
+      if (value === 'joined' || label === 'auto react' && value.startsWith('joined')) return 'joined';
+      if (label === 'guess result' && color === 'green') return 'won';
+      if (label === 'guess' || label === 'guess result' || value.startsWith('guessed')) return 'guess';
+      return 'other';
+    }
+
+    function applyDiscordActivityFilter() {
+      const list = document.getElementById('discordActivityList');
+      if (!list) return;
+      Array.from(list.children).forEach(item => {
+        const category = item.dataset.activityCategory || 'other';
+        item.style.display = discordActivityFilter === 'all' || category === discordActivityFilter ? '' : 'none';
+      });
+      document.querySelectorAll('[data-activity-filter]').forEach(button => {
+        const active = button.dataset.activityFilter === discordActivityFilter;
+        button.classList.toggle('active', active);
+        button.classList.toggle('inactive', !active);
+      });
+    }
+
+    window.setDiscordActivityFilter = function(filter) {
+      discordActivityFilter = ['all', 'joined', 'guess', 'won'].includes(filter) ? filter : 'all';
+      applyDiscordActivityFilter();
+    };
+
     window.clearDiscordActivity = function() {
       localStorage.removeItem(DISCORD_ACTIVITY_KEY);
       const list = document.getElementById('discordActivityList');
       if (list) list.innerHTML = '<div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]"><span>No recent activity. Active watchers will log events here.</span></div>';
+      applyDiscordActivityFilter();
     };
 
     window.toggleDiscordTokenVisibility = function() {
@@ -4863,6 +4900,7 @@
         tagStyle  = 'height:22px; padding:0 8px; font-size:10px; font-weight:700; background:#ff5050; color:#ffffff; border:none; border-radius:6px;';
         textColor = '#ff5050';
       }
+      item.dataset.activityCategory = getDiscordActivityCategory(text, tag, color);
       item.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:10px; border-radius:12px; ' + rowStyle;
       item.innerHTML = '<div style="display:flex; align-items:center; gap:10px; min-width:0;">' +
         '<span style="' + tagStyle + ' display:inline-flex; align-items:center; white-space:nowrap; flex-shrink:0;">' + tag + '</span>' +
@@ -4873,6 +4911,7 @@
       while (list.children.length > 20) {
         list.removeChild(list.lastChild);
       }
+      applyDiscordActivityFilter();
       if (shouldPersist) {
         try {
           const saved = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
@@ -5212,7 +5251,7 @@
 
               const resultWord = hasWon ? 'Won' : 'Loss';
               const resultColor = hasWon ? 'green' : 'red';
-              logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '! — ' + resultWord, 'Guess Result', resultColor);
+              logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '!', 'Guess Result', resultColor);
               if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
               delete pendingGiveaways[channelId];
             }
