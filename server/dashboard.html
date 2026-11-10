@@ -4877,16 +4877,26 @@
     const pendingGiveaways = Object.create(null);
     const processedGuessResults = new Set();
     const DISCORD_GUESS_LOCK_PREFIX = 'sotarium_giveaway_guess_lock:';
-    const DISCORD_GUESS_LOCK_TTL = 15 * 60 * 1000;
+    // The lock is tied to the giveaway prompt, not just the channel. This prevents
+    // MESSAGE_UPDATE events, duplicate tabs, and repeated prompt messages from
+    // sending more than one number for the same giveaway.
+    const DISCORD_GUESS_LOCK_TTL = 24 * 60 * 60 * 1000;
+    const DISCORD_GUESS_LOCK_OWNER = Math.random().toString(36).slice(2) + ':' + Date.now();
     const inMemoryGuessLocks = new Set();
 
-    function claimGiveawayGuessSlot(channelId, userId) {
-      const key = DISCORD_GUESS_LOCK_PREFIX + String(userId || 'me') + ':' + String(channelId);
+    function claimGiveawayGuessSlot(giveawayKey, userId) {
+      const normalizedKey = String(giveawayKey || 'unknown').slice(0, 180);
+      const key = DISCORD_GUESS_LOCK_PREFIX + String(userId || 'me') + ':' + normalizedKey;
       const now = Date.now();
       try {
-        const previous = Number(localStorage.getItem(key) || 0);
-        if (previous && now - previous < DISCORD_GUESS_LOCK_TTL) return false;
-        localStorage.setItem(key, String(now));
+        const previous = JSON.parse(localStorage.getItem(key) || 'null');
+        if (previous && Number(previous.timestamp) && now - Number(previous.timestamp) < DISCORD_GUESS_LOCK_TTL) return false;
+        const claim = { timestamp: now, owner: DISCORD_GUESS_LOCK_OWNER };
+        localStorage.setItem(key, JSON.stringify(claim));
+        // Re-read after writing so another open tab cannot also continue after
+        // replacing this claim during the same prompt.
+        const confirmed = JSON.parse(localStorage.getItem(key) || 'null');
+        if (!confirmed || confirmed.owner !== claim.owner) return false;
       } catch (e) {
         if (inMemoryGuessLocks.has(key)) return false;
         inMemoryGuessLocks.add(key);
@@ -5230,8 +5240,9 @@
 
         if (isSelectionPrompt && matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket')) {
           const selectionKey = String(channelId) + ':' + String(msg.id || fullText);
-          const canGuessThisGiveaway = claimGiveawayGuessSlot(channelId, myId);
-          if (canGuessThisGiveaway && !processedSelectionPrompts.has(selectionKey)) {
+          const canGuessThisGiveaway = !processedSelectionPrompts.has(selectionKey) &&
+            claimGiveawayGuessSlot(selectionKey, myId);
+          if (canGuessThisGiveaway) {
             processedSelectionPrompts.add(selectionKey);
             setTimeout(() => processedSelectionPrompts.delete(selectionKey), 10 * 60 * 1000);
             const guess = Math.floor(Math.random() * 20) + 1;
@@ -5272,7 +5283,6 @@
               const hasNoPrize = fullTextLower.includes('no prize');
               const hasWon = fullTextLower.includes('won') || (!hasNoPrize && secretNum && reportedGuess && secretNum === reportedGuess);
 
-              const resultWord = hasWon ? 'Won' : 'Loss';
               const resultColor = hasWon ? 'green' : 'red';
               logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '!', 'Guess Result', resultColor);
               if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
