@@ -179,7 +179,9 @@ export default async function handler(req, res) {
         headers: { Authorization: token }
       });
       if (!discordRes.ok) {
-        sendJson(res, discordRes.status === 401 ? 401 : 502, { success: false, error: 'Discord rejected this user token.' });
+        // Return a handled application result instead of HTTP 401 so the
+        // browser console does not report a failed network resource.
+        sendJson(res, 200, { success: false, error: 'Discord rejected this user token.' });
         return;
       }
       const d = await discordRes.json();
