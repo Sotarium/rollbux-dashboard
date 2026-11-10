@@ -4251,7 +4251,7 @@
 
     const DISCORD_ACCOUNTS_KEY = 'sotarium_discord_accounts';
     const DISCORD_ACTIVE_ACCOUNT_KEY = 'sotarium_discord_active_account';
-    const DISCORD_ACTIVITY_KEY = 'sotarium_discord_activity';
+    const DISCORD_ACTIVITY_KEY = 'sotarium_discord_activity_v2';
 
     function readDiscordAccounts() {
       let accounts = [];
@@ -4911,7 +4911,7 @@
           headers: { 'Authorization': token }
         });
         if (res.ok || res.status === 204) {
-          logDiscordActivity('Successfully reacted ' + rawEmoji + ' on message ' + messageId.slice(-6), 'Auto React', 'green');
+          logDiscordActivity('Joined', 'Auto React', 'green');
           if (soundEnabled && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
           return true;
         }
@@ -4953,7 +4953,6 @@
       const scheduleKey = channelId + ':' + messageId + ':' + String(emoji || '🎉');
       if (discordReactionSchedules.has(scheduleKey)) return;
       discordReactionSchedules.add(scheduleKey);
-      logDiscordActivity('Giveaway detected in ' + watcherName + '. Reacting in 2s...', 'Waiting');
       (async () => {
         const retryDelays = [2000, 1200, 3000, 6000];
         for (const delay of retryDelays) {
@@ -4989,7 +4988,6 @@
           body: JSON.stringify({ content: content })
         });
         if (res.ok) {
-          logDiscordActivity('Sent guess "' + content + '" in channel ' + channelId.slice(-6), 'Guess', 'green');
         } else {
           logDiscordActivity('Failed to send guess (HTTP ' + res.status + ')', 'Error', 'red');
         }
@@ -5175,7 +5173,7 @@
             processedSelectionPrompts.add(selectionKey);
             setTimeout(() => processedSelectionPrompts.delete(selectionKey), 10 * 60 * 1000);
             const guess = Math.floor(Math.random() * 20) + 1;
-            logDiscordActivity("You're Selected! Sending guess " + guess, 'Guess', 'green');
+            logDiscordActivity('Guessed ' + guess, 'Guess', 'green');
             sendDiscordMessage(channelId, String(guess));
             if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
             if (!pendingGiveaways[channelId]) {
@@ -5211,12 +5209,9 @@
               const hasNoPrize = fullTextLower.includes('no prize');
               const hasWon = fullTextLower.includes('won') || (!hasNoPrize && secretNum && reportedGuess && secretNum === reportedGuess);
 
-              const resultWord = hasWon ? 'YES' : 'NO';
+              const resultWord = hasWon ? 'Won' : 'Loss';
               const resultColor = hasWon ? 'green' : 'red';
-              const resultReply = hasWon ? 'Easy dude' : 'Fuck broooo';
-              logDiscordActivity('Guess correct: ' + resultWord + ' — secret ' + (secretNum || '?') + ', guessed ' + (reportedGuess || '?'), 'Guess Result', resultColor);
-              sendDiscordMessage(channelId, resultReply);
-              logDiscordActivity('Sent result reply: ' + resultReply, 'Guess Result', resultColor);
+              logDiscordActivity(resultWord, 'Guess Result', resultColor);
               if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
               delete pendingGiveaways[channelId];
             }
