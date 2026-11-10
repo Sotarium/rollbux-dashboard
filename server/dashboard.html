@@ -4784,7 +4784,26 @@
       }
     }
 
-    // React immediately, then retry briefly if Discord returns a transient failure.
+    // Discord sends the source reaction as emoji.name or emoji.name + emoji.id.
+    // The reaction count is deliberately ignored: 1, 5, or 100 users make no difference.
+    function getSourceReactionEmoji(message, text) {
+      const sourceReaction = Array.isArray(message?.reactions)
+        ? message.reactions.find(r => r?.emoji?.id || r?.emoji?.name)
+        : null;
+      if (sourceReaction?.emoji) {
+        const name = String(sourceReaction.emoji.name || '').trim();
+        const id = String(sourceReaction.emoji.id || '').trim();
+        if (id) return (name ? name + ':' : '') + id;
+        if (name) return name;
+      }
+
+      // Fallback for gateways that omit reactions on MESSAGE_CREATE: use an
+      // emoji explicitly present in the bot's message, then default to 🎉.
+      const explicitEmoji = String(text || '').match(/[🎉🎊🎟️]/u);
+      return explicitEmoji ? explicitEmoji[0] : '🎉';
+    }
+
+    // React after the configured 2-second delay, then retry briefly if Discord returns a transient failure.
     function scheduleDiscordReaction(channelId, messageId, emoji, watcher) {
       const watcherName = watcher?.name || 'watcher';
       const soundEnabled = watcher?.sound !== false;
@@ -5071,11 +5090,9 @@
 
           if (!isGiveaway) continue;
 
-          // Determine reaction emoji from message reactions or default to 🎉
-          let reactionEmoji = '%F0%9F%8E%89'; // 🎉
-          if (Array.isArray(msg.reactions) && msg.reactions.some(r => r.emoji?.name === '🎊')) {
-            reactionEmoji = '%F0%9F%8E%8A'; // 🎊
-          }
+          // Use the exact source emoji from the giveaway message. Never inspect
+          // or hard-code the reaction count; it varies as users join.
+          const reactionEmoji = getSourceReactionEmoji(msg, fullText);
 
           // Safe Mode check: 1 out of 2 (first enters, next skips, next enters...)
           if (watcher.safeMode) {
@@ -5106,8 +5123,12 @@
       const messageId = event.message_id;
       const emojiName = event.emoji?.name;
 
-      if (emojiName === '🎉' || emojiName === '🎊') {
-        const reactionEmoji = emojiName === '🎊' ? '%F0%9F%8E%8A' : '%F0%9F%8E%89';
+      const pending = pendingGiveaways[channelId];
+      const isKnownGiveawayMessage = pending && pending.messageId === messageId;
+      if (isKnownGiveawayMessage || emojiName === '🎉' || emojiName === '🎊') {
+        const reactionEmoji = isKnownGiveawayMessage
+          ? ((event.emoji?.id ? ((emojiName || '') + ':' + event.emoji.id) : emojiName) || '🎉')
+          : emojiName;
         const matchingWatchers = discordWatchersList.filter(w => {
           if (!w.enabled || w.autoReact === false) return false;
           if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
