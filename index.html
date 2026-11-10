@@ -33,7 +33,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -41,7 +41,6 @@
         extend: {
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
           }
         }
       }
@@ -383,6 +382,8 @@
     body,
     body * {
       font-family: var(--rollbux-ui-font) !important;
+      font-variant-numeric: normal !important;
+      font-feature-settings: "zero" 0 !important;
     }
   </style>
 </head>
@@ -466,7 +467,7 @@
                         <img id="earningsCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
                         <span id="statTotalEarnings" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">0</span>
                       </div>
-                      <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono" style="display:none;">$0.00 · 0.00 SOL</span>
+                      <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none " style="display:none;">$0.00 · 0.00 SOL</span>
                     </div>
 
                     <!-- Current Balance (strong border rgba(255,255,255,0.22)) -->
@@ -476,7 +477,7 @@
                         <img id="balanceCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
                         <span id="statCurrentBalance" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">5</span>
                       </div>
-                      <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono" style="display:none;">$0.01 · 0.0001 SOL</span>
+                      <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none " style="display:none;">$0.01 · 0.0001 SOL</span>
                     </div>
                   </div>
 
@@ -502,7 +503,7 @@
                         <!-- Statistics Line Graph - interactive hover -->
                         <div class="dv-card p-5">
                           <div class="relative w-full h-[220px] select-none">
-                            <div class="absolute left-0 top-0 bottom-6 w-8 flex flex-col justify-between text-[11px] font-bold text-[#8f8f8f] font-mono pointer-events-none">
+                            <div class="absolute left-0 top-0 bottom-6 w-8 flex flex-col justify-between text-[11px] font-bold text-[#8f8f8f]  pointer-events-none">
                               <span id="yAxisTop">0</span>
                               <span></span>
                               <span>0</span>
@@ -538,8 +539,8 @@
                               </svg>
                               <div id="chartTooltip" class="absolute pointer-events-none opacity-0 transition-opacity z-10" style="transform:translateX(-50%);">
                                 <div class="rounded-[10px] bg-[#1a1a1a] border border-white/10 px-3 py-2 shadow-xl min-w-[90px] text-center">
-                                  <div id="chartTooltipTime" class="text-[10px] text-[#8f8f8f] font-mono"></div>
-                                  <div id="chartTooltipValue" class="text-[14px] font-bold text-white font-mono mt-0.5"></div>
+                                  <div id="chartTooltipTime" class="text-[10px] text-[#8f8f8f] "></div>
+                                  <div id="chartTooltipValue" class="text-[14px] font-bold text-white  mt-0.5"></div>
                                   <img id="chartTooltipCoinIcon" src="" class="size-3 mx-auto mt-0.5 hidden"/>
                                 </div>
                               </div>
@@ -586,7 +587,7 @@
                         <!-- Pagination -->
                         <div id="resultsPaginationWrap" class="hidden items-center justify-between pt-1">
                           <button type="button" onclick="resultsPage=Math.max(1,resultsPage-1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Prev</button>
-                          <span id="resultsPageLabel" class="text-[11px] font-mono text-[#8f8f8f]">1 / 1</span>
+                          <span id="resultsPageLabel" class="text-[11px]  text-[#8f8f8f]">1 / 1</span>
                           <button type="button" onclick="resultsPage=Math.min(resultsTotalPages,resultsPage+1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Next</button>
                         </div>
                       </div>
@@ -610,7 +611,7 @@
                         <!-- Pagination -->
                         <div id="rainPaginationWrap" class="hidden items-center justify-between pt-1">
                           <button type="button" onclick="rainPage=Math.max(1,rainPage-1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Prev</button>
-                          <span id="rainPageLabel" class="text-[11px] font-mono text-[#8f8f8f]">1 / 1</span>
+                          <span id="rainPageLabel" class="text-[11px]  text-[#8f8f8f]">1 / 1</span>
                           <button type="button" onclick="rainPage=Math.min(rainTotalPages,rainPage+1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Next</button>
                         </div>
                       </div>
@@ -660,7 +661,7 @@
 
                             <!-- Center Info: Big Bold Percentage and Chance Label -->
                             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-                              <span id="upgraderChanceDisplay" class="text-[34px] font-black text-white tracking-tight leading-none font-mono">45.00%</span>
+                              <span id="upgraderChanceDisplay" class="text-[34px] font-black text-white tracking-tight leading-none ">45.00%</span>
                             </div>
                           </div>
                         </div>
@@ -676,7 +677,7 @@
 
                         <!-- Amount Input & Quick Chips: 1/2 (52px), 2x (52px), Max (56px) -->
                         <div id="upgraderAmountContainer" class="flex items-center gap-1.5 select-none">
-                          <input type="number" id="upgraderAmountInput" value="50" min="1" class="dv-field flex-1 font-mono font-bold">
+                          <input type="number" id="upgraderAmountInput" value="50" min="1" class="dv-field flex-1  font-bold">
                           <button type="button" onclick="multiplyUpgraderAmount('half')" class="dv-chip" style="width:52px; height:42px;">1/2</button>
                           <button type="button" onclick="multiplyUpgraderAmount('double')" class="dv-chip" style="width:52px; height:42px;">2x</button>
                           <button type="button" onclick="multiplyUpgraderAmount('max')" class="dv-chip" style="width:56px; height:42px;">Max</button>
@@ -685,12 +686,12 @@
                         <!-- Multiplier Row: Multiplier label + 2.00x text -->
                         <div class="flex items-center justify-between">
                           <span class="text-[12px] font-semibold text-[#8f8f8f]">Multiplier</span>
-                          <span id="upgraderMultiplierValue" class="text-[12px] font-bold text-white font-mono">2.00x</span>
+                          <span id="upgraderMultiplierValue" class="text-[12px] font-bold text-white ">2.00x</span>
                         </div>
 
                         <!-- Multiplier text field (width 64) + Preset Chips: 1.5x, 2x, 5x, 10x, 20x -->
                         <div class="flex items-center gap-1.5 select-none">
-                          <input type="text" id="upgraderMultiplierInput" value="2" class="dv-field w-[64px] shrink-0 font-mono font-bold text-center">
+                          <input type="text" id="upgraderMultiplierInput" value="2" class="dv-field w-[64px] shrink-0  font-bold text-center">
                           <button type="button" onclick="setUpgraderMultiplier(1.5)" class="dv-chip flex-1" style="height:42px;" id="chipMult15">1.5x</button>
                           <button type="button" onclick="setUpgraderMultiplier(2)" class="dv-chip selected flex-1" style="height:42px;" id="chipMult2">2x</button>
                           <button type="button" onclick="setUpgraderMultiplier(5)" class="dv-chip flex-1" style="height:42px;" id="chipMult5">5x</button>
@@ -734,14 +735,14 @@
                           <span class="text-[13px] font-semibold text-[#8f8f8f]">Bombs</span>
                           <div class="flex items-center gap-3">
                             <input type="range" id="minesBombsRange" min="1" max="24" value="3" oninput="document.getElementById('minesBombsValue').textContent = this.value" class="dv-slider w-[150px]">
-                            <span id="minesBombsValue" class="text-[14px] font-bold text-white font-mono w-[26px] text-right">3</span>
+                            <span id="minesBombsValue" class="text-[14px] font-bold text-white  w-[26px] text-right">3</span>
                           </div>
                         </div>
 
                         <!-- SettingRow: Bet input -->
                         <div class="flex items-center justify-between">
                           <span class="text-[13px] font-semibold text-[#8f8f8f]">Bet</span>
-                          <input type="number" id="minesBetInput" value="10" min="1" class="dv-field w-[90px] font-mono font-semibold text-right">
+                          <input type="number" id="minesBetInput" value="10" min="1" class="dv-field w-[90px]  font-semibold text-right">
                         </div>
 
                         <!-- 5x5 Grid: 25 TileButtons matching TileButton in SiteView.swift -->
@@ -858,7 +859,7 @@
                       <div class="flex flex-col gap-3 w-full my-auto py-2">
                         <div class="grid grid-cols-[1fr_110px] gap-2.5">
                           <input type="text" id="tipRecipientInput" placeholder="Recipient username" class="dv-field">
-                          <input type="number" id="tipAmountInput" placeholder="Amount" value="5" class="dv-field font-mono">
+                          <input type="number" id="tipAmountInput" placeholder="Amount" value="5" class="dv-field ">
                         </div>
                         <button type="button" id="tipAccountBtn" onclick="openAccountSelectorModal('tip')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer">
                           <span class="text-[11px] text-[#8f8f8f]">Account</span>
@@ -866,7 +867,7 @@
                         </button>
                         <div id="tipCooldownBadge" class="hidden items-center justify-between p-2 rounded-[10px] bg-[#f55e5e]/10 border border-[#f55e5e]/20 text-[11px] font-semibold text-[#f55e5e]">
                           <span>Cooldown Active</span>
-                          <span id="tipCooldownText" class="font-mono">--:--</span>
+                          <span id="tipCooldownText" class="">--:--</span>
                         </div>
                       </div>
 
@@ -900,7 +901,7 @@
                         <!-- Interval -->
                         <div class="flex items-center justify-between">
                           <span class="text-[12px] font-semibold text-[#8f8f8f]">Interval (s)</span>
-                          <input type="number" id="sellIntervalInput" value="30" min="10" max="300" class="dv-field w-[80px] font-mono font-bold text-right">
+                          <input type="number" id="sellIntervalInput" value="30" min="10" max="300" class="dv-field w-[80px]  font-bold text-right">
                         </div>
                         <!-- Route proceeds info -->
                         <div class="flex items-center gap-2 p-2.5 rounded-[10px] bg-[#54d487]/8 border border-[#54d487]/15">
@@ -908,7 +909,7 @@
                           <span class="text-[11px] text-[#54d487] font-medium leading-tight">Sold balance routes to main account, not active game modes</span>
                         </div>
                         <!-- Status line -->
-                        <div id="sellFeedback" class="text-[11px] text-[#8f8f8f] font-mono truncate">Ready</div>
+                        <div id="sellFeedback" class="text-[11px] text-[#8f8f8f]  truncate">Ready</div>
                       </div>
 
                       <div class="flex items-center justify-between pt-2 border-t border-[rgba(255,255,255,0.06)]">
@@ -930,7 +931,7 @@
                   <div class="flex items-center justify-between w-full mb-2">
                     <div class="flex items-center gap-3">
                       <h2 class="text-[28px] font-bold text-white tracking-tight">Watchers</h2>
-                      <span id="watchersCountBadge" class="dv-badge font-mono font-bold text-[#8f8f8f]">0</span>
+                      <span id="watchersCountBadge" class="dv-badge  font-bold text-[#8f8f8f]">0</span>
                     </div>
                     <div class="flex items-center gap-3 select-none">
                       <!-- Live Status Badge -->
@@ -1030,7 +1031,7 @@
               placeholder="Paste Discord user token..." 
               autocomplete="off" 
               spellcheck="false" 
-              class="w-full bg-transparent text-xs text-white placeholder-[#525763] font-mono focus:outline-none select-text border-none p-0" 
+              class="w-full bg-transparent text-xs text-white placeholder-[#525763] focus:outline-none select-text border-none p-0"
             />
             <button 
               type="button" 
@@ -1072,7 +1073,7 @@
       </div>
 
       <p class="text-[12px] text-[#8f8f8f] leading-relaxed">
-        Enter your RollBux account username and paste your <span class="text-white font-mono bg-[#1d1d1d] px-1.5 py-0.5 rounded">authjs.session-token</span>. Accounts are securely stored on Supabase.
+        Enter your RollBux account username and paste your <span class="text-white  bg-[#1d1d1d] px-1.5 py-0.5 rounded">authjs.session-token</span>. Accounts are securely stored on Supabase.
       </p>
 
       <form id="farmerForm" class="flex flex-col gap-4">
@@ -1082,7 +1083,7 @@
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Session Token (JWT)</label>
-          <input type="password" id="farmerTokenInput" placeholder="eyJhbGciOiJIUzI1Ni..." required class="dv-field font-mono">
+          <input type="password" id="farmerTokenInput" placeholder="eyJhbGciOiJIUzI1Ni..." required class="dv-field ">
         </div>
 
         <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-[rgba(255,255,255,0.08)]">
@@ -2483,7 +2484,7 @@
                     <span class="text-[12px] font-bold ${nameColor}">${a.name} :</span>
                     <span class="text-[13px] font-black tracking-tight leading-none ${count >= 3 ? 'text-[#acff46]' : 'text-white'}">${count} / 3</span>
                   </div>
-                  <span class="text-[10px] font-mono text-gray-500">${a.token_preview || 'Configured'}</span>
+                  <span class="text-[10px]  text-gray-500">${a.token_preview || 'Configured'}</span>
                 </div>
               `;
             }).join('');
@@ -3274,7 +3275,7 @@
               </div>
               <span class="text-[13px] font-bold tracking-tight truncate">${item.displayName}</span>
             </div>
-            ${item.isAll ? '<span class="text-[10px] uppercase font-bold text-[#8f8f8f] px-2 py-0.5 rounded">All</span>' : (item.balance !== undefined ? `<span class="text-[12px] font-mono font-bold ${isChecked ? 'text-black' : 'text-[#8f8f8f]'}">${Number(item.balance).toFixed(2)} BUX</span>` : '')}
+            ${item.isAll ? '<span class="text-[10px] uppercase font-bold text-[#8f8f8f] px-2 py-0.5 rounded">All</span>' : (item.balance !== undefined ? `<span class="text-[12px]  font-bold ${isChecked ? 'text-black' : 'text-[#8f8f8f]'}">${Number(item.balance).toFixed(2)} BUX</span>` : '')}
           </div>
         `;
       }).join('');
@@ -4529,17 +4530,17 @@
 
         <div class="flex flex-col gap-1">
           <label class="text-[12px] font-semibold text-[#8f8f8f]">Server (Guild) ID</label>
-          <input type="text" id="newWatcherServerId" placeholder="e.g. 1454106247056982130" class="dv-field w-full font-mono">
+          <input type="text" id="newWatcherServerId" placeholder="e.g. 1454106247056982130" class="dv-field w-full ">
         </div>
 
         <div class="flex flex-col gap-1">
           <label id="newWatcherChannelLabel" class="text-[12px] font-semibold text-[#8f8f8f]">Channel ID</label>
-          <input type="text" id="newWatcherChannelId" placeholder="e.g. 1535006568397934612" class="dv-field w-full font-mono">
+          <input type="text" id="newWatcherChannelId" placeholder="e.g. 1535006568397934612" class="dv-field w-full ">
         </div>
 
         <div id="watcherTargetIdWrap" class="flex flex-col gap-1">
           <label class="text-[12px] font-semibold text-[#8f8f8f]">Target User / Bot ID (optional)</label>
-          <input type="text" id="newWatcherTargetId" placeholder="Leave empty for all messages" class="dv-field w-full font-mono">
+          <input type="text" id="newWatcherTargetId" placeholder="Leave empty for all messages" class="dv-field w-full ">
         </div>
 
         <div id="watcherTypeHelpText" class="text-[11px] text-[#8f8f8f] bg-[#080808] p-2.5 rounded-[10px] border border-white/5 leading-relaxed">
@@ -4607,7 +4608,7 @@
         <!-- User ID Row matching field style -->
         <div class="flex items-center justify-between dv-field">
           <span class="text-[13px] font-semibold text-white">User ID</span>
-          <span id="modalProfileUserId" class="text-[12px] font-mono font-medium text-[#8f8f8f]">Not Connected</span>
+          <span id="modalProfileUserId" class="text-[12px]  font-medium text-[#8f8f8f]">Not Connected</span>
         </div>
 
         <!-- Connected Account Card (hidden until connected) -->
@@ -4722,7 +4723,7 @@
         '<span style="' + tagStyle + ' display:inline-flex; align-items:center; white-space:nowrap; flex-shrink:0;">' + tag + '</span>' +
         '<span style="font-size:13px; font-weight:600; color:' + textColor + '; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + text + '</span>' +
         '</div>' +
-        '<span style="font-size:11px; font-family:monospace; color:#8f8f8f; flex-shrink:0; margin-left:8px;">' + timeStr + '</span>';
+        '<span style="font-size:11px; font-family:Inter,sans-serif; color:#8f8f8f; flex-shrink:0; margin-left:8px;">' + timeStr + '</span>';
       list.prepend(item);
       while (list.children.length > 20) {
         list.removeChild(list.lastChild);
@@ -5412,7 +5413,7 @@
             <span class="text-[13px] font-bold text-white truncate">${account || 'Main'}</span>
             <span class="text-[11px] text-[#8f8f8f] truncate">${title || 'Game'}</span>
           </div>
-          <div class="flex items-center gap-1 text-[13px] font-bold font-mono" style="color:${color};"><img src="${iconSrc}" class="size-3.5 object-contain" alt=""><span>${sign}${formatBuxValue(amountBux)}</span></div>
+          <div class="flex items-center gap-1 text-[13px] font-bold " style="color:${color};"><img src="${iconSrc}" class="size-3.5 object-contain" alt=""><span>${sign}${formatBuxValue(amountBux)}</span></div>
           <span class="text-[11px] text-[#8f8f8f] opacity-70">Just now</span>
         </div>`);
     }
@@ -5638,7 +5639,7 @@
                 <span class="text-[14px] font-semibold text-white truncate">${acc.name}</span>
               </div>
               <div class="flex items-center gap-3 shrink-0">
-                <span class="text-[13px] font-bold text-[#8f8f8f] font-mono">${bal.toFixed(2)} BUX</span>
+                <span class="text-[13px] font-bold text-[#8f8f8f] ">${bal.toFixed(2)} BUX</span>
                 <button type="button" onclick="deleteAccount('${safeId}', '${acc.name}')" class="size-[30px] rounded-[8px] bg-[#1d1d1d] hover:bg-[#f55e5e]/20 text-[#8f8f8f] hover:text-[#f55e5e] flex items-center justify-center transition cursor-pointer" title="Delete account">
                   <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
@@ -5719,7 +5720,7 @@
               <span class="text-[13px] font-bold text-white truncate tracking-tight">${item.account || 'Main'}</span>
               <span class="text-[11px] text-[#8f8f8f] truncate font-medium">${item.mode || 'Game'}</span>
             </div>
-            <div class="flex items-center gap-1 font-mono font-bold text-[13px]" style="color:${color};">
+            <div class="flex items-center gap-1  font-bold text-[13px]" style="color:${color};">
               <img src="${iconSrc}" class="size-3.5 object-contain" alt="" />
               <span>${sign}${formattedAmt}</span>
             </div>
@@ -5793,7 +5794,7 @@
               <span class="text-[13px] font-bold text-white truncate tracking-tight">${acc}</span>
               <span class="text-[11px] text-[#8f8f8f] truncate font-medium">Rain Reward</span>
             </div>
-            <div class="flex items-center gap-1 font-mono font-bold text-[13px]" style="color:#54d487;">
+            <div class="flex items-center gap-1  font-bold text-[13px]" style="color:#54d487;">
               <img src="${iconSrc}" class="size-3.5 object-contain" alt="" />
               <span>+${amtFmt}</span>
             </div>
@@ -6117,7 +6118,7 @@
 
             <div class="flex flex-col gap-0.5">
               <h3 class="text-[18px] font-bold text-white tracking-tight">${w.name}</h3>
-              <div class="flex flex-col text-[11px] font-mono text-[#8f8f8f] space-y-0.5 mt-0.5">
+              <div class="flex flex-col text-[11px]  text-[#8f8f8f] space-y-0.5 mt-0.5">
                 <div>Server: ${w.serverID}</div>
                 <div>Channel: ${w.channelID}</div>
                 ${w.targetID ? `<div>User: ${w.targetID}</div>` : ''}

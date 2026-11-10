@@ -23,6 +23,8 @@
     body,
     body * {
       font-family: var(--rollbux-ui-font) !important;
+      font-variant-numeric: normal !important;
+      font-feature-settings: "zero" 0 !important;
     }
   </style>
 </head>
@@ -141,7 +143,7 @@
         <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">Cloud Execution Logs</h3>
         <span id="lastUpdated" class="text-[11px] text-gray-500">Last tick: Never</span>
       </div>
-      <div id="logConsole" class="bg-black/60 rounded-lg p-3 font-mono text-xs text-gray-300 h-64 overflow-y-auto space-y-1 border border-white/5">
+      <div id="logConsole" class="bg-black/60 rounded-lg p-3  text-xs text-gray-300 h-64 overflow-y-auto space-y-1 border border-white/5">
         <div class="text-gray-500">// Waiting for first tick...</div>
       </div>
     </div>
@@ -185,7 +187,7 @@
         return `
           <tr class="hover:bg-white/[0.02]">
             <td class="py-3 font-semibold text-white">${acc.name}</td>
-            <td class="py-3 font-mono text-gray-400">${acc.token_preview || '••••••••'}</td>
+            <td class="py-3  text-gray-400">${acc.token_preview || '••••••••'}</td>
             <td class="py-3 text-blue-400">${chats}</td>
             <td class="py-3">${joinBadge}</td>
             <td class="py-3 text-right">

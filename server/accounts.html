@@ -9,7 +9,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -140,6 +140,8 @@
     body,
     body * {
       font-family: var(--rollbux-ui-font) !important;
+      font-variant-numeric: normal !important;
+      font-feature-settings: "zero" 0 !important;
     }
   </style>
 </head>
@@ -167,7 +169,7 @@
     <section class="card p-5">
       <div class="flex items-center justify-between border-b border-white/5 pb-3 mb-4">
         <h2 class="text-sm font-semibold text-gray-200">Connected Accounts</h2>
-        <span id="accountCountBadge" class="text-xs text-gray-500 font-mono">0 accounts</span>
+        <span id="accountCountBadge" class="text-xs text-gray-500 ">0 accounts</span>
       </div>
 
       <div id="connectedAccounts" class="flex flex-col gap-2">
@@ -280,7 +282,7 @@
                 <span data-v-322fcb82="" class="user-name">${account.name || 'Account'}</span>
               </div>
               <div class="flex items-center gap-3">
-                <span class="text-xs font-mono font-bold text-[#acff46] bg-[#acff46]/10 border border-[#acff46]/20 px-2 py-0.5 rounded-md">
+                <span class="text-xs  font-bold text-[#acff46] bg-[#acff46]/10 border border-[#acff46]/20 px-2 py-0.5 rounded-md">
                   ${Number(account.balance ?? 0).toFixed(2)} BUX
                 </span>
                 <button type="button" data-account-id="${account.id}" class="remove-account text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer transition">

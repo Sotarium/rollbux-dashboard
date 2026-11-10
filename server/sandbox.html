@@ -6,7 +6,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>RainRoach Sandbox</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>body{background:#080b11;color:#e5e7eb;font-family:Inter,ui-sans-serif,system-ui,sans-serif}.card{background:#0d131e;border:1px solid rgba(255,255,255,.07)}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}</style>
+  <style>body{background:#080b11;color:#e5e7eb;font-family:Inter,ui-sans-serif,system-ui,sans-serif}.card{background:#0d131e;border:1px solid rgba(255,255,255,.07)}.mono{font-family:Inter,sans-serif}</style>
   <style id="rollbux-discord-typography">
     /* Shared site typography from the dashboard design system. */
     :root {
@@ -19,6 +19,8 @@
     body,
     body * {
       font-family: var(--rollbux-ui-font) !important;
+      font-variant-numeric: normal !important;
+      font-feature-settings: "zero" 0 !important;
     }
   </style>
 </head>
