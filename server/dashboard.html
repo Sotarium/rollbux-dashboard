@@ -3126,6 +3126,17 @@
       return registeredAccountsCache;
     }
 
+    async function getAccountBalanceBux(accountName) {
+      const key = String(accountName || '').trim().toLowerCase();
+      const accounts = await getRegisteredAccountsList(true);
+      const account = accounts.find(a => String(a.name || '').trim().toLowerCase() === key);
+      if (account && Number.isFinite(Number(account.balance))) return Number(account.balance) || 0;
+      if (key === String(targetUsername || '').trim().toLowerCase()) {
+        return Number(liveUserData?.user?.balance_bux || 0);
+      }
+      return 0;
+    }
+
     const accountSelectorModeLabel = document.getElementById('accountSelectorModeLabel');
     const accountSelectorList = document.getElementById('accountSelectorList');
     const closeAccountSelectorModalBtn = document.getElementById('closeAccountSelectorModalBtn');
@@ -3366,19 +3377,7 @@
         if (now - lastPlay < 30000) continue;
 
         // Determine account balance
-        let balance = 0;
-        if (key === targetUsername.toLowerCase()) {
-          balance = (liveUserData && liveUserData.user && liveUserData.user.balance_bux) || (userData && userData.user && userData.user.balance_bux) || 0;
-        } else {
-          // Check cached DB user balance
-          try {
-            const uRes = await fetch(`/api/user/${encodeURIComponent(accName)}`);
-            if (uRes.ok) {
-              const uData = await uRes.json();
-              balance = (uData && uData.user && uData.user.balance_bux) || 0;
-            }
-          } catch (e) {}
-        }
+        const balance = Number(acc.balance) || 0;
 
         if (balance >= minRequired) {
           lastUpgraderAccountPlayTimes[key] = now;
@@ -3547,18 +3546,7 @@
         const lastPlay = lastBattleAccountPlayTimes[key] || 0;
         if (now - lastPlay < 45000) continue;
 
-        let balance = 0;
-        if (key === targetUsername.toLowerCase()) {
-          balance = (liveUserData && liveUserData.user && liveUserData.user.balance_bux) || (userData && userData.user && userData.user.balance_bux) || 0;
-        } else {
-          try {
-            const uRes = await fetch(`/api/user/${encodeURIComponent(accName)}`);
-            if (uRes.ok) {
-              const uData = await uRes.json();
-              balance = (uData && uData.user && uData.user.balance_bux) || 0;
-            }
-          } catch (e) {}
-        }
+        const balance = Number(acc.balance) || 0;
 
         if (balance >= minRequired) {
           lastBattleAccountPlayTimes[key] = now;
@@ -3609,7 +3597,7 @@
       }
     }
 
-    async function executeMinesRound(accountName) {
+    async function executeMinesRound(accountName, knownBalanceBux = null) {
       if (isMinesExecuting) return;
       isMinesExecuting = true;
       if (minesManualPlayBtn) { minesManualPlayBtn.disabled = true; minesManualPlayBtn.classList.add('opacity-50'); }
@@ -3618,11 +3606,10 @@
       setMinesFeedback(`${acc} : checking balance...`, '#acff46');
 
       try {
-        // 1. Get balance for all-in bet
-        const uRes = await fetch(`/api/user/${encodeURIComponent(acc)}`);
-        if (!uRes.ok) throw new Error('balance fetch failed');
-        const uData = await uRes.json();
-        const balanceBux = (uData?.user?.balance_bux) || 0;
+        // Use the live account balance endpoint instead of the rain-history user endpoint.
+        const balanceBux = knownBalanceBux !== null
+          ? (Number(knownBalanceBux) || 0)
+          : await getAccountBalanceBux(acc);
         const balanceMicro = Math.floor(balanceBux * 1_000_000);
         const minBet = 50_000_000; // 50 BUX minimum
         if (balanceMicro < minBet) {
@@ -3742,7 +3729,7 @@
       // Run next round after 4s cooldown
       minesLoopTimer = setTimeout(async () => {
         if (!minesMasterToggle || !minesMasterToggle.checked) return;
-        const accounts = await getRegisteredAccountsList().catch(() => []);
+        const accounts = await getRegisteredAccountsList(true).catch(() => []);
         const selectedAccounts = getSelectedAccountsForMode('mines').map(s => s.toLowerCase().trim());
         
         const targetAccounts = (selectedAccounts.includes('all') || selectedAccounts.length === 0)
@@ -3754,20 +3741,14 @@
           return;
         }
 
-        // Loop through candidate accounts to find one with sufficient balance
+        // Use the live balance returned with the registered account list.
         for (const candidate of targetAccounts) {
           const accName = candidate.name || targetUsername;
-          try {
-            const uRes = await fetch(`/api/user/${encodeURIComponent(accName)}`);
-            if (uRes.ok) {
-              const uData = await uRes.json();
-              const bal = (uData?.user?.balance_bux) || 0;
-              if (bal >= 50) {
-                await executeMinesRound(accName);
-                return;
-              }
-            }
-          } catch (e) {}
+          const bal = Number(candidate.balance) || 0;
+          if (bal >= 50) {
+            await executeMinesRound(accName, bal);
+            return;
+          }
         }
 
         // If none had >= 50 BUX, wait and re-check next tick
@@ -3880,7 +3861,7 @@
       }
     }
 
-    async function executeChickenRound(accountName) {
+    async function executeChickenRound(accountName, knownBalanceBux = null) {
       if (isChickenExecuting) return;
       isChickenExecuting = true;
       if (chickenManualPlayBtn) { chickenManualPlayBtn.disabled = true; chickenManualPlayBtn.classList.add('opacity-50'); }
@@ -3889,10 +3870,10 @@
       setChickenFeedback(`${acc}: checking bal...`, '#acff46');
 
       try {
-        const uRes = await fetch(`/api/user/${encodeURIComponent(acc)}`);
-        if (!uRes.ok) throw new Error('balance check failed');
-        const uData = await uRes.json();
-        const balanceBux = (uData?.user?.balance_bux) || 0;
+        // Use the live account balance endpoint instead of the rain-history user endpoint.
+        const balanceBux = knownBalanceBux !== null
+          ? (Number(knownBalanceBux) || 0)
+          : await getAccountBalanceBux(acc);
         const balanceMicro = Math.floor(balanceBux * 1_000_000);
         const minBet = 50_000_000;
         if (balanceMicro < minBet) {
@@ -3981,7 +3962,7 @@
       if (chickenLoopTimer) clearTimeout(chickenLoopTimer);
       chickenLoopTimer = setTimeout(async () => {
         if (!chickenMasterToggle || !chickenMasterToggle.checked) return;
-        const accounts = await getRegisteredAccountsList().catch(() => []);
+        const accounts = await getRegisteredAccountsList(true).catch(() => []);
         const selectedAccounts = getSelectedAccountsForMode('chicken').map(s => s.toLowerCase().trim());
         const targetAccounts = (selectedAccounts.includes('all') || selectedAccounts.length === 0)
           ? accounts
@@ -3994,17 +3975,11 @@
 
         for (const candidate of targetAccounts) {
           const accName = candidate.name || targetUsername;
-          try {
-            const uRes = await fetch(`/api/user/${encodeURIComponent(accName)}`);
-            if (uRes.ok) {
-              const uData = await uRes.json();
-              const bal = (uData?.user?.balance_bux) || 0;
-              if (bal >= 50) {
-                await executeChickenRound(accName);
-                return;
-              }
-            }
-          } catch(e) {}
+          const bal = Number(candidate.balance) || 0;
+          if (bal >= 50) {
+            await executeChickenRound(accName, bal);
+            return;
+          }
         }
         setChickenFeedback('Waiting for >=50 BUX...', '#9aa3a8');
         scheduleChickenLoop();
