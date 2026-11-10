@@ -4553,8 +4553,8 @@
         </div>
 
         <div id="watcherTargetIdWrap" class="flex flex-col gap-1">
-          <label class="text-[12px] font-semibold text-[#8f8f8f]">Target User / Bot ID (optional)</label>
-          <input type="text" id="newWatcherTargetId" placeholder="Leave empty for all messages" class="dv-field w-full ">
+          <label class="text-[12px] font-semibold text-[#8f8f8f]">Giveaway Bot ID (optional)</label>
+          <input type="text" id="newWatcherTargetId" placeholder="Leave empty to accept any bot" class="dv-field w-full ">
         </div>
 
         <div id="watcherTypeHelpText" class="text-[11px] text-[#8f8f8f] bg-[#080808] p-2.5 rounded-[10px] border border-white/5 leading-relaxed">
@@ -4784,9 +4784,9 @@
       const scheduleKey = channelId + ':' + messageId + ':' + String(emoji || '🎉');
       if (discordReactionSchedules.has(scheduleKey)) return;
       discordReactionSchedules.add(scheduleKey);
-      logDiscordActivity('Giveaway detected in ' + (watcherName || 'watcher') + '. Reacting now...', 'Waiting');
+      logDiscordActivity('Giveaway detected in ' + (watcherName || 'watcher') + '. Reacting in 2s...', 'Waiting');
       (async () => {
-        const retryDelays = [0, 1200, 3000, 6000];
+        const retryDelays = [2000, 1200, 3000, 6000];
         for (const delay of retryDelays) {
           if (delay) await new Promise(resolve => setTimeout(resolve, delay));
           const ok = await triggerDiscordReaction(channelId, messageId, emoji);
@@ -4968,6 +4968,15 @@
       }
       const fullTextLower = fullText.toLowerCase();
 
+      // Match the configured channel/server and, when supplied, the giveaway bot ID.
+      const matchingWatchers = discordWatchersList.filter(w => {
+        if (!w.enabled) return false;
+        if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
+        if (w.serverID && String(w.serverID).trim() !== String(guildId).trim()) return false;
+        if (w.targetID && String(w.targetID).trim() !== String(authorId).trim()) return false;
+        return true;
+      });
+
       // --- Step 1: Check if this message announces that the connected user got picked / needs to guess ---
       const myUser = (() => { try { return JSON.parse(localStorage.getItem('sotarium_discord_user') || '{}'); } catch(e) { return {}; } })();
       const myId = myUser.id;
@@ -4992,9 +5001,9 @@
           fullTextLower.includes("1–20")
         );
 
-        if (isSelectionPrompt) {
+        if (isSelectionPrompt && matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket')) {
           const guess = Math.floor(Math.random() * 20) + 1;
-          logDiscordActivity("You're Selected! Guessed " + guess, 'Selected', 'green');
+          logDiscordActivity("You're Selected! Sending guess " + guess, 'Guess', 'green');
           sendDiscordMessage(channelId, String(guess));
           if (!pendingGiveaways[channelId]) {
             pendingGiveaways[channelId] = {};
@@ -5023,12 +5032,10 @@
               const hasNoPrize = fullTextLower.includes('no prize');
               const hasWon = fullTextLower.includes('won') || (!hasNoPrize && secretNum && reportedGuess && secretNum === reportedGuess);
 
-              if (hasWon) {
-                logDiscordActivity('I got it right! Secret was ' + (secretNum || 'matched') + ' (Guessed ' + (reportedGuess || secretNum) + ')', 'Won', 'green');
-                if (typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
-              } else {
-                logDiscordActivity('Missed! Secret was ' + (secretNum || '?') + ', guessed ' + (reportedGuess || '?'), 'Ended', 'red');
-              }
+              const resultWord = hasWon ? 'YES' : 'NO';
+              const resultColor = hasWon ? 'green' : 'red';
+              logDiscordActivity('Guess correct: ' + resultWord + ' — secret ' + (secretNum || '?') + ', guessed ' + (reportedGuess || '?'), 'Guess Result', resultColor);
+              if (hasWon && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
               delete pendingGiveaways[channelId];
             }
           }
@@ -5036,15 +5043,6 @@
       }
 
       // --- Step 2: Match watchers for giveaway entry ---
-      const matchingWatchers = discordWatchersList.filter(w => {
-        if (!w.enabled) return false;
-        if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
-        if (w.serverID && String(w.serverID).trim() !== String(guildId).trim()) return false;
-        // Target ID filtering: match authorId if targetID is set
-        if (w.targetID && String(w.targetID).trim() !== String(authorId).trim()) return false;
-        return true;
-      });
-
       for (const watcher of matchingWatchers) {
         if (watcher.type === 'claimer' || watcher.mode === 'ticket') {
           triggerTicketClaim(channelId, msg.id, content, watcher);
