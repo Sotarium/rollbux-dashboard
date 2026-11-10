@@ -4745,6 +4745,7 @@
     }
 
     const discordReactionKeys = new Set();
+    const discordReactionSchedules = new Set();
 
     async function triggerDiscordReaction(channelId, messageId, emoji) {
       const token = localStorage.getItem('sotarium_discord_token');
@@ -4776,6 +4777,23 @@
         logDiscordActivity('Reaction request failed on ' + messageId.slice(-6), 'Error', 'red');
         return false;
       }
+    }
+
+    // React immediately, then retry briefly if Discord returns a transient failure.
+    function scheduleDiscordReaction(channelId, messageId, emoji, watcherName) {
+      const scheduleKey = channelId + ':' + messageId + ':' + String(emoji || '🎉');
+      if (discordReactionSchedules.has(scheduleKey)) return;
+      discordReactionSchedules.add(scheduleKey);
+      logDiscordActivity('Giveaway detected in ' + (watcherName || 'watcher') + '. Reacting now...', 'Waiting');
+      (async () => {
+        const retryDelays = [0, 1200, 3000, 6000];
+        for (const delay of retryDelays) {
+          if (delay) await new Promise(resolve => setTimeout(resolve, delay));
+          const ok = await triggerDiscordReaction(channelId, messageId, emoji);
+          if (ok) break;
+        }
+        discordReactionSchedules.delete(scheduleKey);
+      })();
     }
 
     async function triggerTicketClaim(channelId, messageId, content, watcher) {
@@ -5030,7 +5048,7 @@
       for (const watcher of matchingWatchers) {
         if (watcher.type === 'claimer' || watcher.mode === 'ticket') {
           triggerTicketClaim(channelId, msg.id, content, watcher);
-        } else if (watcher.autoReact) {
+        } else if (watcher.autoReact !== false) {
           // Do not react to selection prompt or ended announcement
           const isEndedOrSelected = fullTextLower.includes('giveaway ended') ||
                                     fullTextLower.includes("you're selected") ||
@@ -5069,12 +5087,8 @@
           // Remember this channel for winner announcement
           pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
 
-          // React after 3s delay
-          logDiscordActivity('Giveaway detected in ' + watcher.name + '. Reacting in 3s...', 'Waiting');
-          setTimeout(() => {
-            if (!watcher.enabled) return;
-            triggerDiscordReaction(channelId, msg.id, reactionEmoji);
-          }, 3000);
+          // React immediately; retryDiscordReaction handles brief transient failures.
+          if (watcher.enabled) scheduleDiscordReaction(channelId, msg.id, reactionEmoji, watcher.name);
         }
       }
     }
@@ -5091,7 +5105,7 @@
       if (emojiName === '🎉' || emojiName === '🎊') {
         const reactionEmoji = emojiName === '🎊' ? '%F0%9F%8E%8A' : '%F0%9F%8E%89';
         const matchingWatchers = discordWatchersList.filter(w => {
-          if (!w.enabled || !w.autoReact) return false;
+          if (!w.enabled || w.autoReact === false) return false;
           if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
           if (w.serverID && String(w.serverID).trim() !== String(event.guild_id || '').trim()) return false;
           // Skip if targetID is set because MESSAGE_REACTION_ADD doesn't have message author
@@ -5107,10 +5121,7 @@
             if (count % 2 !== 0) continue;
           }
           pendingGiveaways[channelId] = { messageId: messageId, watcherName: watcher.name, ts: Date.now() };
-          setTimeout(() => {
-            if (!watcher.enabled) return;
-            triggerDiscordReaction(channelId, messageId, reactionEmoji);
-          }, 3000);
+          if (watcher.enabled) scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher.name);
         }
       }
     }
@@ -6007,7 +6018,7 @@
         if (bWatch) { bWatch.style.background = '#ffffff'; bWatch.style.color = '#000000'; }
         if (bClaim) { bClaim.style.background = 'transparent'; bClaim.style.color = '#8f8f8f'; }
         if (help) {
-          help.innerHTML = '<b>Watcher mode:</b> Reacts 🎉 after 3s to giveaways. Guesses 1–20 when you get picked.';
+          help.innerHTML = '<b>Watcher mode:</b> Reacts 🎉 immediately to giveaways, with brief retries if needed. Guesses 1–20 when you get picked.';
         }
         if (actionLbl) actionLbl.textContent = 'Auto React · 🎉';
         if (targetWrap) targetWrap.style.display = '';
