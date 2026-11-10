@@ -1054,7 +1054,7 @@
             <input 
               type="password" 
               id="discordTokenInput" 
-              placeholder="Paste Discord user token..." 
+              placeholder="Paste Discord bot token..."
               autocomplete="off" 
               spellcheck="false" 
               class="w-full bg-transparent text-xs text-white placeholder-[#525763] focus:outline-none select-text border-none p-0"
@@ -4484,8 +4484,9 @@
 
     window.submitDiscordLogin = async function() {
       let raw = (discordTokenInput?.value || '').trim();
-      // Strip surrounding quotes or "Bot " prefix if accidentally copied
+      // Accept raw bot tokens and tokens pasted with Bot/Bearer prefixes.
       raw = raw.replace(/^["']|["']$/g, '').trim();
+      raw = raw.replace(/^(?:Bot|Bearer)\s+/i, '').trim();
       
       if (!raw) {
         if (discordLoginError) {
@@ -4536,7 +4537,7 @@
           syncDiscordGwUI();
           syncDiscordCustomProfile();
         } else {
-          throw new Error('Invalid Discord Token: Discord rejected with 401 Unauthorized.');
+          throw new Error('Discord rejected this token (401). Use a valid Discord bot token, with or without the Bot prefix.');
         }
       } catch (err) {
         if (discordLoginError) {
