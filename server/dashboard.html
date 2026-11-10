@@ -2869,6 +2869,7 @@
         // The arc sits exactly at the play position
         upgraderArc.setAttribute('transform', `rotate(${(upgraderAngle - 90).toFixed(2)} 100 100)`);
         upgraderArc.style.opacity = '1';
+        upgraderArc.style.transition = isDraggingKnob ? 'none' : 'stroke-dasharray 0.15s ease, transform 0.04s linear';
       }
 
       const knobGroup = document.getElementById('upgraderKnobGroup');
@@ -2886,45 +2887,43 @@
       }
     }
 
-    // Drag / Spin interaction for Wheel (only active in manual mode)
+    // Drag / Spin interaction for Wheel (pointer capture keeps fast spins attached).
     function handleWheelPointerEvent(e) {
-      if (!upgraderWheelContainer) return;
+      if (!upgraderWheelContainer || e.clientX === undefined || e.clientY === undefined) return;
       const rect = upgraderWheelContainer.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-      const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
-      const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
-      
-      if (clientX === undefined || clientY === undefined) return;
-      const rad = Math.atan2(clientY - cy, clientX - cx);
-      let deg = (rad * (180 / Math.PI)) + 90; // normalize so top = 0deg
-      if (deg < 0) deg += 360;
-      upgraderAngle = deg % 360;
+      const rad = Math.atan2(e.clientY - cy, e.clientX - cx);
+      const deg = ((rad * (180 / Math.PI)) + 90 + 360) % 360;
+      upgraderAngle = deg;
       localStorage.setItem('rollbux_upgrader_angle', upgraderAngle.toFixed(2));
       updateUpgraderWheelUI();
     }
-
-    if (upgraderWheelContainer) {
-      upgraderWheelContainer.addEventListener('mousedown', (e) => {
-        isDraggingKnob = true;
-        handleWheelPointerEvent(e);
-      });
-      upgraderWheelContainer.addEventListener('touchstart', (e) => {
-        isDraggingKnob = true;
-        handleWheelPointerEvent(e);
-      }, { passive: true });
-
-      window.addEventListener('mousemove', (e) => {
-        if (isDraggingKnob) handleWheelPointerEvent(e);
-      });
-      window.addEventListener('touchmove', (e) => {
-        if (isDraggingKnob) handleWheelPointerEvent(e);
-      }, { passive: true });
-
-      window.addEventListener('mouseup', () => { isDraggingKnob = false; });
-      window.addEventListener('touchend', () => { isDraggingKnob = false; });
+    function finishWheelPointer(e) {
+      isDraggingKnob = false;
+      if (e?.pointerId !== undefined && upgraderWheelContainer?.hasPointerCapture?.(e.pointerId)) {
+        upgraderWheelContainer.releasePointerCapture(e.pointerId);
+      }
+      // Restore the idle animation only after the knob and arc are aligned.
+      updateUpgraderWheelUI();
     }
-
+    if (upgraderWheelContainer) {
+      upgraderWheelContainer.style.touchAction = 'none';
+      upgraderWheelContainer.addEventListener('pointerdown', (e) => {
+        if (e.button !== undefined && e.button !== 0) return;
+        isDraggingKnob = true;
+        if (e.pointerId !== undefined) upgraderWheelContainer.setPointerCapture?.(e.pointerId);
+        handleWheelPointerEvent(e);
+      });
+      upgraderWheelContainer.addEventListener('pointermove', (e) => {
+        if (isDraggingKnob) handleWheelPointerEvent(e);
+      });
+      upgraderWheelContainer.addEventListener('pointerup', finishWheelPointer);
+      upgraderWheelContainer.addEventListener('pointercancel', finishWheelPointer);
+      upgraderWheelContainer.addEventListener('lostpointercapture', () => {
+        if (isDraggingKnob) finishWheelPointer();
+      });
+    }
     // Multiplier Input & Presets
     if (upgraderMultiplierInput) {
       upgraderMultiplierInput.addEventListener('input', () => {
