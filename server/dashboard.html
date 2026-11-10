@@ -4486,16 +4486,15 @@
       let raw = (discordTokenInput?.value || '').trim();
       // Accept raw bot tokens and tokens pasted with Bot/Bearer prefixes.
       raw = raw.replace(/^["']|["']$/g, '').trim();
-      raw = raw.replace(/^(?:Bot|Bearer)\s+/i, '').trim();
-      
-      if (!raw) {
+      const pastedAuthPrefix = /^(Bot|Bearer)\s+/i.exec(raw)?.[1] || '';
+      const tokenValue = raw.replace(/^(?:Bot|Bearer)\s+/i, '').trim();
+      if (!tokenValue) {
         if (discordLoginError) {
           discordLoginError.textContent = 'Please enter your Discord token';
           discordLoginError.classList.remove('hidden');
         }
         return;
       }
-
       if (discordLoginBtn) {
         discordLoginBtn.disabled = true;
         discordLoginBtn.textContent = 'Connecting...';
@@ -4505,24 +4504,24 @@
       }
 
       try {
-        // Try direct user token first, fallback to Bot prefix if applicable
-        let resp = await fetch('https://discord.com/api/v10/users/@me', {
-          headers: { Authorization: raw }
-        });
-
-        let finalToken = raw;
-
-        if (!resp.ok && !raw.startsWith('Bot ')) {
-          const botResp = await fetch('https://discord.com/api/v10/users/@me', {
-            headers: { Authorization: 'Bot ' + raw }
+        // The input is a bot token by default, so try the Bot form first.
+        // This avoids an unnecessary 401 when users paste a valid raw bot token.
+        const authCandidates = pastedAuthPrefix
+          ? [pastedAuthPrefix + ' ' + tokenValue]
+          : ['Bot ' + tokenValue, tokenValue];
+        let resp = null;
+        let finalToken = authCandidates[0];
+        for (const authValue of authCandidates) {
+          const candidate = await fetch('https://discord.com/api/v10/users/@me', {
+            headers: { Authorization: authValue }
           });
-          if (botResp.ok) {
-            resp = botResp;
-            finalToken = 'Bot ' + raw;
+          resp = candidate;
+          if (candidate.ok) {
+            finalToken = authValue;
+            break;
           }
         }
-
-        if (resp.ok) {
+        if (resp?.ok) {
           const d = await resp.json();
           const u = {
             id: d.id,
@@ -4537,7 +4536,7 @@
           syncDiscordGwUI();
           syncDiscordCustomProfile();
         } else {
-          throw new Error('Discord rejected this token (401). Use a valid Discord bot token, with or without the Bot prefix.');
+          throw new Error('Discord rejected this token (HTTP ' + (resp?.status || 401) + '). Paste a valid bot token from the Discord Developer Portal.');
         }
       } catch (err) {
         if (discordLoginError) {
