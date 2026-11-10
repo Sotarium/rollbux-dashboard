@@ -4892,6 +4892,8 @@
 
     const discordReactionKeys = new Set();
     const discordReactionSchedules = new Set();
+    const processedGiveawayMessages = new Set();
+    const processedSelectionPrompts = new Set();
 
     async function triggerDiscordReaction(channelId, messageId, emoji, soundEnabled = true) {
       const token = getActiveDiscordToken();
@@ -5168,15 +5170,20 @@
         );
 
         if (isSelectionPrompt && matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket')) {
-          const guess = Math.floor(Math.random() * 20) + 1;
-          logDiscordActivity("You're Selected! Sending guess " + guess, 'Guess', 'green');
-          sendDiscordMessage(channelId, String(guess));
-          if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
-          if (!pendingGiveaways[channelId]) {
-            pendingGiveaways[channelId] = {};
+          const selectionKey = String(channelId) + ':' + String(msg.id || fullText);
+          if (!processedSelectionPrompts.has(selectionKey)) {
+            processedSelectionPrompts.add(selectionKey);
+            setTimeout(() => processedSelectionPrompts.delete(selectionKey), 10 * 60 * 1000);
+            const guess = Math.floor(Math.random() * 20) + 1;
+            logDiscordActivity("You're Selected! Sending guess " + guess, 'Guess', 'green');
+            sendDiscordMessage(channelId, String(guess));
+            if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
+            if (!pendingGiveaways[channelId]) {
+              pendingGiveaways[channelId] = {};
+            }
+            pendingGiveaways[channelId].myGuess = guess;
+            pendingGiveaways[channelId].selectedAt = Date.now();
           }
-          pendingGiveaways[channelId].myGuess = guess;
-          pendingGiveaways[channelId].selectedAt = Date.now();
         } else {
           // Final announcement: "Flash giveaway ended ... The secret number was 14. @User guessed 3."
           const isFinalAnnouncement = (
@@ -5218,6 +5225,12 @@
       }
 
       // --- Step 2: Match watchers for giveaway entry ---
+      // Discord can emit MESSAGE_CREATE, MESSAGE_UPDATE, and reaction events for the same giveaway.
+      // Only the first matching event may schedule the reaction or ticket claim.
+      const giveawayEventKey = String(channelId) + ':' + String(msg.id || fullText);
+      if (processedGiveawayMessages.has(giveawayEventKey)) return;
+      processedGiveawayMessages.add(giveawayEventKey);
+      setTimeout(() => processedGiveawayMessages.delete(giveawayEventKey), 10 * 60 * 1000);
       for (const watcher of matchingWatchers) {
         if (watcher.type === 'claimer' || watcher.mode === 'ticket') {
           triggerTicketClaim(channelId, msg.id, content, watcher);
@@ -5275,7 +5288,11 @@
 
       const pending = pendingGiveaways[channelId];
       const isKnownGiveawayMessage = pending && pending.messageId === messageId;
+      const reactionEventKey = String(channelId) + ':' + String(messageId);
+      if (processedGiveawayMessages.has(reactionEventKey)) return;
       if (isKnownGiveawayMessage || emojiName === '🎉' || emojiName === '🎊') {
+        processedGiveawayMessages.add(reactionEventKey);
+        setTimeout(() => processedGiveawayMessages.delete(reactionEventKey), 10 * 60 * 1000);
         const reactionEmoji = isKnownGiveawayMessage
           ? ((event.emoji?.id ? ((emojiName || '') + ':' + event.emoji.id) : emojiName) || '🎉')
           : emojiName;
