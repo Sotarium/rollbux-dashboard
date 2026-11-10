@@ -5266,8 +5266,10 @@
     let minesSelectedSet = new Set();
     function setupMinesTiles() {
       document.querySelectorAll('.dv-tile').forEach((tile) => {
+        if (tile.dataset.minesClickBound === 'true') return;
+        tile.dataset.minesClickBound = 'true';
         tile.addEventListener('click', () => {
-          const idx = parseInt(tile.dataset.index);
+          const idx = parseInt(tile.dataset.index, 10);
           if (tile.classList.contains('revealed-safe') || tile.classList.contains('revealed-bomb')) return;
           if (minesSelectedSet.has(idx)) {
             minesSelectedSet.delete(idx);
@@ -5283,6 +5285,8 @@
         });
       });
     }
+    // The dashboard can be revealed after DOMContentLoaded, so bind immediately as well.
+    setupMinesTiles();
 
     window.minesClearTiles = function() {
       minesSelectedSet.clear();
