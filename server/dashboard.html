@@ -4504,24 +4504,15 @@
       }
 
       try {
-        // The input is a bot token by default, so try the Bot form first.
-        // This avoids an unnecessary 401 when users paste a valid raw bot token.
-        const authCandidates = pastedAuthPrefix
-          ? [pastedAuthPrefix + ' ' + tokenValue]
-          : ['Bot ' + tokenValue, tokenValue];
-        let resp = null;
-        let finalToken = authCandidates[0];
-        for (const authValue of authCandidates) {
-          const candidate = await fetch('https://discord.com/api/v10/users/@me', {
-            headers: { Authorization: authValue }
-          });
-          resp = candidate;
-          if (candidate.ok) {
-            finalToken = authValue;
-            break;
-          }
-        }
-        if (resp?.ok) {
+        // This modal accepts Discord bot tokens only. Use one request so an
+        // invalid token produces one clear 401 instead of duplicate console errors.
+        const finalToken = pastedAuthPrefix
+          ? pastedAuthPrefix + ' ' + tokenValue
+          : 'Bot ' + tokenValue;
+        const resp = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: { Authorization: finalToken }
+        });
+        if (resp.ok) {
           const d = await resp.json();
           const u = {
             id: d.id,
