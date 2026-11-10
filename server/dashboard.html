@@ -403,6 +403,22 @@
 </head>
 
 <body class="selection:bg-[#acff46] selection:text-[#0e131f]">
+<script>
+    // One-time cleanup after the application data reset. This clears only
+    // browser data owned by this site, including cached profiles, rewards,
+    // activity logs, sessions, and locally stored Discord credentials.
+    (() => {
+      const purgeVersion = 'app-data-reset-2026-11-10-v1';
+      try {
+        if (localStorage.getItem('__rollbux_data_purge') !== purgeVersion) {
+          localStorage.clear();
+          sessionStorage.clear();
+          localStorage.setItem('__rollbux_data_purge', purgeVersion);
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <!-- Login Overlay -->
   <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#242424;align-items:center;justify-content:center;">
     <div style="width:290px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;">
