@@ -88,6 +88,28 @@ async function lockSessionTokenToIp(token, ip) {
 async function sessionOwnsNetwork(req, session) {
   return Boolean(session?.sub) && await lockSessionTokenToIp(`user:${session.sub}`, getClientIp(req));
 }
+async function resolveRequestSession(req) {
+  const cookieSession = currentSession(req);
+  if (cookieSession) return cookieSession;
+  const token = String(req.headers['x-rollbux-token'] || '').trim();
+  if (!token) return null;
+  try {
+    const response = await fetch('https://rollbux.com/_api/users/me', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+        'Authorization': `Bearer ${token}`,
+        'Cookie': `authjs.session-token=${token}`
+      }
+    });
+    if (!response.ok) return null;
+    const body = await response.json();
+    const user = body?.data?.user || body?.user || {};
+    if (!user.username) return null;
+    return { sub: String(user.username).toLowerCase(), username: user.username };
+  } catch {
+    return null;
+  }
+}
 function parseBody(req) {
   return new Promise((resolve) => {
     let body = '';
@@ -261,7 +283,7 @@ export default async function handler(req, res) {
     return;
   }
   if (pathname === '/api/account' && req.method === 'GET') {
-    const session = currentSession(req);
+    const session = await resolveRequestSession(req);
     if (!session) {
       sendJson(res, 401, { error: 'Authentication required' });
       return;
@@ -496,7 +518,7 @@ export default async function handler(req, res) {
 
   // Multi-Account Management Routes
   if (pathname === '/api/roach/accounts') {
-    const session = currentSession(req);
+    const session = await resolveRequestSession(req);
     if (!session) {
       sendJson(res, 401, { error: 'Authentication required' });
       return;
@@ -1700,7 +1722,7 @@ export default async function handler(req, res) {
   }
 
   if (pathname.startsWith('/api/user/') && pathname.endsWith('/clear') && req.method === 'POST') {
-    const session = currentSession(req);
+    const session = await resolveRequestSession(req);
     const username = decodeURIComponent(pathname.replace('/api/user/', '').replace('/clear', '')).trim();
     if (!session || String(session.username || session.email || '').trim().toLowerCase() !== username.toLowerCase() || !(await sessionOwnsNetwork(req, session))) {
       sendJson(res, 403, { error: 'You can only clear your own dashboard data.' });
@@ -1728,7 +1750,7 @@ export default async function handler(req, res) {
 
   if (pathname.startsWith('/api/user/')) {
     const username = decodeURIComponent(pathname.replace('/api/user/', '')).trim();
-    const session = currentSession(req);
+    const session = await resolveRequestSession(req);
     const ownsRequestedUser = session && String(session.username || session.email || '').trim().toLowerCase() === username.toLowerCase();
     if (!ownsRequestedUser || !(await sessionOwnsNetwork(req, session))) {
       sendJson(res, 403, { error: 'You can only view your own dashboard data from its locked network.' });

@@ -1464,7 +1464,7 @@
         renderDashboard(liveUserData);
       }
       try {
-        const res = await fetch(`/api/user/${encodeURIComponent(targetUsername)}/clear`, { method: 'POST' });
+        const res = await fetch(`/api/user/${encodeURIComponent(targetUsername)}/clear`, { method: 'POST', headers: dashboardAuthHeaders() });
         if (res.ok) {
           const data = await res.json();
           if (data && data.user) {
@@ -2222,7 +2222,7 @@
           sessionIdentityResolved = true;
           renderGameHistory();
         }
-        const res = await fetch(`/api/user/${encodeURIComponent(targetUsername)}`);
+        const res = await fetch(`/api/user/${encodeURIComponent(targetUsername)}`, { headers: dashboardAuthHeaders() });
         if (res.status === 403) {
           document.body.innerHTML = `
             <div class="min-h-screen flex flex-col items-center justify-center bg-[#121418] text-[#c2c6db]">
@@ -2484,7 +2484,7 @@
     async function checkFarmerStatus() {
       try {
         const [accRes, statusRes] = await Promise.all([
-          fetch('/api/roach/accounts'),
+          fetch('/api/roach/accounts', { headers: dashboardAuthHeaders() }),
           fetch('/api/roach/status')
         ]);
 
@@ -3120,6 +3120,10 @@
       });
     }
 
+    function dashboardAuthHeaders() {
+      const token = localStorage.getItem('sotarium_session_token') || localStorage.getItem('sotarium_registered_token') || '';
+      return token ? { 'x-rollbux-token': token } : {};
+    }
     // Auto-trigger condition evaluator across ALL registered accounts
     const lastUpgraderAccountPlayTimes = {};
     let cachedRegisteredAccounts = [];
@@ -3132,7 +3136,7 @@
         return registeredAccountsCache;
       }
       try {
-        const res = await fetch('/api/roach/accounts');
+        const res = await fetch('/api/roach/accounts', { headers: dashboardAuthHeaders() });
         if (res.ok) {
           const data = await res.json();
           if (data && Array.isArray(data.accounts) && data.accounts.length > 0) {
@@ -5899,7 +5903,7 @@
       const container = document.getElementById('accountsQuickList');
       if (!container) return;
       try {
-        const res = await fetch('/api/roach/accounts');
+        const res = await fetch('/api/roach/accounts', { headers: dashboardAuthHeaders() });
         if (!res.ok) throw new Error('Failed to fetch accounts');
         const data = await res.json();
         const accs = data.accounts || [];
@@ -6119,7 +6123,7 @@
 
         // 2. Fetch latest profile data for account from /api/user/:accName
         try {
-          const res = await fetch('/api/user/' + encodeURIComponent(accName));
+          const res = await fetch('/api/user/' + encodeURIComponent(accName), { headers: dashboardAuthHeaders() });
           if (res.ok) {
             const data = await res.json();
             if (data?.user?.transactions && Array.isArray(data.user.transactions)) {
