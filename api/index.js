@@ -445,6 +445,11 @@ export default async function handler(req, res) {
         return;
       } else if (req.method === 'DELETE') {
         if (payload.id) {
+          const owned = await getSupabaseAccounts(session.sub);
+          if (!owned.some(a => String(a.id) === String(payload.id))) {
+            sendJson(res, 403, { error: 'You can only delete your own accounts.' });
+            return;
+          }
           await deleteSupabaseAccount(payload.id);
         }
         sendJson(res, 200, { ok: true });
@@ -625,6 +630,7 @@ export default async function handler(req, res) {
 
         const newAccount = {
           id: `acc_${Date.now()}`,
+          user_id: session.sub,
           name: payload.name.trim(),
           token: payload.token.trim(),
           created_at: new Date().toISOString()
