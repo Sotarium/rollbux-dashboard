@@ -66,7 +66,7 @@ function isAllowedIp(req) {
   return true;
 }
 function tokenLockKey(token) {
-  return `rollbux:session-ip:${crypto.createHash('sha256').update(token).digest('hex')}`;
+  return `rollbux:session-ip-v2:${crypto.createHash('sha256').update(token).digest('hex')}`;
 }
 async function lockSessionTokenToIp(token, ip) {
   if (!UPSTASH_TOKEN || !ip) return true;
@@ -86,12 +86,13 @@ async function lockSessionTokenToIp(token, ip) {
   return !finalIp || finalIp === ip;
 }
 async function sessionOwnsNetwork(req, session) {
-  return Boolean(session?.sub) && await lockSessionTokenToIp(`user:${session.sub}`, getClientIp(req));
+  const lockIdentity = session?.__sessionToken || (session?.sub ? `user:${session.sub}` : '');
+  return Boolean(lockIdentity) && await lockSessionTokenToIp(lockIdentity, getClientIp(req));
 }
 async function resolveRequestSession(req) {
   const cookieSession = currentSession(req);
-  if (cookieSession) return cookieSession;
   const token = String(req.headers['x-rollbux-token'] || '').trim();
+  if (cookieSession) return token ? { ...cookieSession, __sessionToken: token } : cookieSession;
   if (!token) return null;
   try {
     const response = await fetch('https://rollbux.com/_api/users/me', {
@@ -105,7 +106,7 @@ async function resolveRequestSession(req) {
     const body = await response.json();
     const user = body?.data?.user || body?.user || {};
     if (!user.username) return null;
-    return { sub: String(user.username).toLowerCase(), username: user.username };
+    return { sub: String(user.username).toLowerCase(), username: user.username, __sessionToken: token };
   } catch {
     return null;
   }
@@ -164,6 +165,30 @@ export default async function handler(req, res) {
   const rawPath = url.pathname.startsWith('/api') ? url.pathname : (req.headers['x-matched-path'] || req.headers['x-vercel-matched-path'] || url.pathname);
   const pathname = rawPath.split('?')[0];
 
+  // Validate Discord user tokens server-side so rejected tokens do not
+  // appear as noisy cross-origin browser 401 errors.
+  if (pathname === '/api/discord/verify' && req.method === 'POST') {
+    try {
+      const payload = req.body || await parseBody(req);
+      const token = String(payload.token || '').replace(/^Bearer\s+/i, '').trim();
+      if (!token) {
+        sendJson(res, 400, { success: false, error: 'Please enter your Discord user token.' });
+        return;
+      }
+      const discordRes = await fetch('https://discord.com/api/v10/users/@me', {
+        headers: { Authorization: token }
+      });
+      if (!discordRes.ok) {
+        sendJson(res, discordRes.status === 401 ? 401 : 502, { success: false, error: 'Discord rejected this user token.' });
+        return;
+      }
+      const d = await discordRes.json();
+      sendJson(res, 200, { success: true, user: d });
+    } catch (error) {
+      sendJson(res, 502, { success: false, error: 'Unable to reach Discord right now.' });
+    }
+    return;
+  }
   // Direct Rollbux session token verification & login endpoint
   if (pathname === '/api/verify-session' && req.method === 'POST') {
     try {

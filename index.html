@@ -4508,13 +4508,17 @@
       }
 
       try {
-        // Validate the Discord user token with exactly one request.
+        // Validate through our same-origin API so Discord 401s do not
+        // become noisy browser console network errors.
         const finalToken = userToken;
-        const resp = await fetch('https://discord.com/api/v10/users/@me', {
-          headers: { Authorization: finalToken }
+        const resp = await fetch('/api/discord/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: finalToken })
         });
-        if (resp.ok) {
-          const d = await resp.json();
+        const result = await resp.json().catch(() => ({}));
+        if (resp.ok && result.success && result.user) {
+          const d = result.user;
           const u = {
             id: d.id,
             username: d.global_name || d.username,
@@ -4528,7 +4532,7 @@
           syncDiscordGwUI();
           syncDiscordCustomProfile();
         } else {
-          throw new Error('Discord rejected this token (HTTP ' + (resp?.status || 401) + '). Paste a valid Discord user token.');
+          throw new Error(result.error || 'Discord rejected this user token.');
         }
       } catch (err) {
         if (discordLoginError) {
@@ -5490,9 +5494,12 @@
     (function autoFetchDiscordUser() {
       const savedToken = localStorage.getItem('sotarium_discord_token');
       if (savedToken) {
-        fetch('https://discord.com/api/v10/users/@me', {
-          headers: { Authorization: savedToken }
-        }).then(r => r.ok ? r.json() : null).then(d => {
+        fetch('/api/discord/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: savedToken })
+        }).then(r => r.ok ? r.json() : null).then(result => {
+          const d = result?.user;
           if (d) {
             const u = {
               id: d.id,
