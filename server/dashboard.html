@@ -408,7 +408,7 @@
     // browser data owned by this site, including cached profiles, rewards,
     // activity logs, sessions, and locally stored Discord credentials.
     (() => {
-      const purgeVersion = 'app-data-reset-2026-11-10-v1';
+      const purgeVersion = 'app-data-reset-2026-11-10-v2';
       try {
         if (localStorage.getItem('__rollbux_data_purge') !== purgeVersion) {
           localStorage.clear();
@@ -1342,6 +1342,7 @@
       if (!path) return 'Sotarium';
       if (path === 'dashboard/user') return 'Sotarium';
       if (parts[0] === 'dashboard' && parts[1]) return decodeURIComponent(parts[1]);
+      if (parts[0].startsWith('@') && parts[0].length > 1) return decodeURIComponent(parts[0].slice(1));
       if (path === 'users') {
         window.location.replace('/users.html');
         return 'Sotarium';
@@ -4674,7 +4675,12 @@
               localStorage.setItem('sotarium_session_token', token);
               localStorage.setItem('sotarium_registered_token', token);
               localStorage.setItem('sotarium_user_profile', JSON.stringify(data.user));
-              showDashboard();
+              const username = data.user.username || data.user.email;
+              if (username) {
+                window.location.assign('/@' + encodeURIComponent(username));
+              } else {
+                showDashboard();
+              }
             } else {
               loginBtn.disabled = false;
               loginBtn.textContent = 'Continue';

@@ -1,24 +1,84 @@
 {
   "redirects": [
-    { "source": "/dashboard/user", "destination": "/", "permanent": false },
-    { "source": "/dashboard/:path*", "destination": "/", "permanent": false }
+    {
+      "source": "/dashboard/user",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/dashboard/:path*",
+      "destination": "/",
+      "permanent": false
+    }
   ],
   "rewrites": [
-    { "source": "/login", "destination": "/api/index.js" },
-    { "source": "/signup", "destination": "/api/index.js" },
-    { "source": "/login.html", "destination": "/api/index.js" },
-    { "source": "/signup.html", "destination": "/api/index.js" },
-    { "source": "/api/roach/tick", "destination": "/api/roach/tick.js" },
-    { "source": "/api/:path*", "destination": "/api/index.js" },
-    { "source": "/roach", "destination": "/api/index.js" },
-    { "source": "/roach/sandbox", "destination": "/api/index.js" },
-    { "source": "/accounts", "destination": "/api/index.js" },
-    { "source": "/accounts.html", "destination": "/api/index.js" },
-    { "source": "/history", "destination": "/api/index.js" },
-    { "source": "/history.html", "destination": "/api/index.js" },
-    { "source": "/users/:path*/accounts", "destination": "/api/index.js" },
-    { "source": "/users", "destination": "/api/index.js" },
-    { "source": "/users.html", "destination": "/api/index.js" },
-    { "source": "/user/:path*", "destination": "/api/index.js" }
+    {
+      "source": "/@:username",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/signup",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/login.html",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/signup.html",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/api/roach/tick",
+      "destination": "/api/roach/tick.js"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/roach",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/roach/sandbox",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/accounts",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/accounts.html",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/history",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/history.html",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/users/:path*/accounts",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/users",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/users.html",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/user/:path*",
+      "destination": "/api/index.js"
+    }
   ]
 }
