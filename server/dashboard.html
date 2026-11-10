@@ -2157,7 +2157,10 @@
     }
 
 
+    let fetchUserDataInFlight = false;
     async function fetchUserData() {
+      if (fetchUserDataInFlight) return;
+      fetchUserDataInFlight = true;
       try {
         if (!sessionIdentityResolved) {
           const sessionRes = await fetch('/api/auth/me', { credentials: 'include' });
@@ -2268,6 +2271,8 @@
         }
       } catch (err) {
         console.error('Error fetching user data:', err);
+      } finally {
+        fetchUserDataInFlight = false;
       }
     }
 
@@ -2280,7 +2285,7 @@
     var isBattleExecuting = false;
 
     fetchUserData();
-    setInterval(fetchUserData, 2500);
+    setInterval(fetchUserData, 15000);
 
     const copyCodeBtn = document.getElementById('copyCodeBtn');
     const editCodeBtn = document.getElementById('editCodeBtn');

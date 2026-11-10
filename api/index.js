@@ -482,10 +482,6 @@ export default async function handler(req, res) {
 
     const url = UPSTASH_URL;
     const token = UPSTASH_TOKEN;
-    if (!token) {
-      res.status(500).json({ error: "Upstash token missing" });
-      return;
-    }
 
     if (req.method === 'GET') {
       try {
