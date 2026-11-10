@@ -85,6 +85,9 @@ async function lockSessionTokenToIp(token, ip) {
   const finalIp = await read();
   return !finalIp || finalIp === ip;
 }
+async function sessionOwnsNetwork(req, session) {
+  return Boolean(session?.sub) && await lockSessionTokenToIp(`user:${session.sub}`, getClientIp(req));
+}
 function parseBody(req) {
   return new Promise((resolve) => {
     let body = '';
@@ -311,6 +314,10 @@ export default async function handler(req, res) {
       sendJson(res, 401, { error: 'Authentication required' });
       return;
     }
+    if (!(await sessionOwnsNetwork(req, session))) {
+      sendJson(res, 403, { error: 'This dashboard is locked to another network.' });
+      return;
+    }
     try {
       if (req.method === 'GET') {
         let accounts = await getSupabaseAccounts(session.sub);
@@ -489,18 +496,21 @@ export default async function handler(req, res) {
 
   // Multi-Account Management Routes
   if (pathname === '/api/roach/accounts') {
-    if (!isAllowedIp(req)) {
-      res.statusCode = 403;
-      res.end('Forbidden');
+    const session = currentSession(req);
+    if (!session) {
+      sendJson(res, 401, { error: 'Authentication required' });
       return;
     }
-
+    if (!(await sessionOwnsNetwork(req, session))) {
+      sendJson(res, 403, { error: 'This dashboard is locked to another network.' });
+      return;
+    }
     const url = UPSTASH_URL;
     const token = UPSTASH_TOKEN;
 
     if (req.method === 'GET') {
       try {
-        let accounts = await getSupabaseAccounts();
+        let accounts = await getSupabaseAccounts(session.sub);
 
         // In parallel, fetch live cart (inventory) and balance for each account from RollBux
         const safeAccounts = await Promise.all(accounts.map(async (a) => {
@@ -1690,12 +1700,12 @@ export default async function handler(req, res) {
   }
 
   if (pathname.startsWith('/api/user/') && pathname.endsWith('/clear') && req.method === 'POST') {
-    if (!isAllowedIp(req)) {
-      res.statusCode = 403;
-      res.end('Forbidden');
+    const session = currentSession(req);
+    const username = decodeURIComponent(pathname.replace('/api/user/', '').replace('/clear', '')).trim();
+    if (!session || String(session.username || session.email || '').trim().toLowerCase() !== username.toLowerCase() || !(await sessionOwnsNetwork(req, session))) {
+      sendJson(res, 403, { error: 'You can only clear your own dashboard data.' });
       return;
     }
-    const username = decodeURIComponent(pathname.replace('/api/user/', '').replace('/clear', '')).trim();
     const user = clearUserStats(username);
 
     // Save cleared state to Upstash so ephemeral serverless containers never forget the clear
@@ -1717,17 +1727,19 @@ export default async function handler(req, res) {
   }
 
   if (pathname.startsWith('/api/user/')) {
+    const username = decodeURIComponent(pathname.replace('/api/user/', '')).trim();
+    const session = currentSession(req);
+    const ownsRequestedUser = session && String(session.username || session.email || '').trim().toLowerCase() === username.toLowerCase();
+    if (!ownsRequestedUser || !(await sessionOwnsNetwork(req, session))) {
+      sendJson(res, 403, { error: 'You can only view your own dashboard data from its locked network.' });
+      return;
+    }
     if (!isAllowedIp(req)) {
       res.statusCode = 403;
       res.end('Forbidden');
       return;
     }
-    const username = decodeURIComponent(pathname.replace('/api/user/', '')).trim();
-    const session = currentSession(req);
-    const ownsRequestedUser = session && String(session.username || session.email || '').trim().toLowerCase() === username.toLowerCase();
-    const user = ownsRequestedUser
-      ? getUserForAuth({ id: session.sub, username: session.username, email: session.email, createdAt: session.createdAt })
-      : getUser(username);
+    const user = getUserForAuth({ id: session.sub, username: session.username, email: session.email, createdAt: session.createdAt });
     const effectiveUser = user || {
       username,
       balance_bux: 0,
