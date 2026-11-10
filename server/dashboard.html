@@ -1054,7 +1054,7 @@
             <input 
               type="password" 
               id="discordTokenInput" 
-              placeholder="Paste Discord bot token..."
+              placeholder="Paste Discord user token..."
               autocomplete="off" 
               spellcheck="false" 
               class="w-full bg-transparent text-xs text-white placeholder-[#525763] focus:outline-none select-text border-none p-0"
@@ -4484,11 +4484,11 @@
 
     window.submitDiscordLogin = async function() {
       let raw = (discordTokenInput?.value || '').trim();
-      // Accept raw bot tokens and tokens pasted with Bot/Bearer prefixes.
+      // This field is for a Discord user token. Send it raw; do not add
+      // a Bot prefix or transform it into a bot authorization header.
       raw = raw.replace(/^["']|["']$/g, '').trim();
-      const pastedAuthPrefix = /^(Bot|Bearer)\s+/i.exec(raw)?.[1] || '';
-      const tokenValue = raw.replace(/^(?:Bot|Bearer)\s+/i, '').trim();
-      if (!tokenValue) {
+      const userToken = raw.replace(/^Bearer\s+/i, '').trim();
+      if (!userToken) {
         if (discordLoginError) {
           discordLoginError.textContent = 'Please enter your Discord token';
           discordLoginError.classList.remove('hidden');
@@ -4504,11 +4504,8 @@
       }
 
       try {
-        // This modal accepts Discord bot tokens only. Use one request so an
-        // invalid token produces one clear 401 instead of duplicate console errors.
-        const finalToken = pastedAuthPrefix
-          ? pastedAuthPrefix + ' ' + tokenValue
-          : 'Bot ' + tokenValue;
+        // Validate the Discord user token with exactly one request.
+        const finalToken = userToken;
         const resp = await fetch('https://discord.com/api/v10/users/@me', {
           headers: { Authorization: finalToken }
         });
@@ -4527,7 +4524,7 @@
           syncDiscordGwUI();
           syncDiscordCustomProfile();
         } else {
-          throw new Error('Discord rejected this token (HTTP ' + (resp?.status || 401) + '). Paste a valid bot token from the Discord Developer Portal.');
+          throw new Error('Discord rejected this token (HTTP ' + (resp?.status || 401) + '). Paste a valid Discord user token.');
         }
       } catch (err) {
         if (discordLoginError) {
