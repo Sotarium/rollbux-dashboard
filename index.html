@@ -4329,7 +4329,7 @@
         list.innerHTML = '<div class="text-[11px] text-[#8f8f8f] p-2 rounded-[9px] bg-[#080808]">No Discord accounts linked.</div>';
         return;
       }
-      list.innerHTML = accounts.map(a => {
+      const accountCards = accounts.map(a => {
         const name = String(a.user?.username || a.user?.handle || 'Discord account').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         const selected = active && String(active.id) === String(a.id);
         const id = String(a.id).replace(/[^a-zA-Z0-9_-]/g, '');
@@ -4337,6 +4337,9 @@
           '<button type="button" class="flex-1 min-w-0 text-left text-[12px] font-semibold text-white truncate" onclick="selectDiscordAccount(\'' + id + '\')">' + name + (selected ? ' <span class="text-[#54d487]">(active)</span>' : '') + '</button>' +
           '<button type="button" class="text-[11px] text-[#8f8f8f] hover:text-red-400" onclick="removeDiscordAccount(\'' + id + '\')">Remove</button></div>';
       }).join('');
+      list.innerHTML = accountCards + '<div class="flex items-center justify-between gap-3 p-3 rounded-[10px] bg-[#121212] border border-[rgba(255,255,255,0.14)]">' +
+        '<span class="text-[12px] font-semibold text-white">Add another Discord account</span>' +
+        '<button type="button" class="shrink-0 px-3 py-1.5 rounded-[8px] bg-white text-black text-[12px] font-bold hover:bg-[#e8e8e8] transition" onclick="closeDiscordProfileModal(); openDiscordLoginModal();">+ Add</button></div>';
     }
 
     window.clearDiscordActivity = function() {
