@@ -4747,7 +4747,7 @@
     const discordReactionKeys = new Set();
     const discordReactionSchedules = new Set();
 
-    async function triggerDiscordReaction(channelId, messageId, emoji) {
+    async function triggerDiscordReaction(channelId, messageId, emoji, soundEnabled = true) {
       const token = localStorage.getItem('sotarium_discord_token');
       if (!token || !channelId || !messageId) return false;
       const rawEmoji = String(emoji || '🎉');
@@ -4764,7 +4764,7 @@
         });
         if (res.ok || res.status === 204) {
           logDiscordActivity('Successfully reacted ' + rawEmoji + ' on message ' + messageId.slice(-6), 'Auto React', 'green');
-          window.playWatcherBeep();
+          if (soundEnabled && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
           return true;
         }
         // Do not permanently suppress a transient failure or an expired token response.
@@ -4780,16 +4780,18 @@
     }
 
     // React immediately, then retry briefly if Discord returns a transient failure.
-    function scheduleDiscordReaction(channelId, messageId, emoji, watcherName) {
+    function scheduleDiscordReaction(channelId, messageId, emoji, watcher) {
+      const watcherName = watcher?.name || 'watcher';
+      const soundEnabled = watcher?.sound !== false;
       const scheduleKey = channelId + ':' + messageId + ':' + String(emoji || '🎉');
       if (discordReactionSchedules.has(scheduleKey)) return;
       discordReactionSchedules.add(scheduleKey);
-      logDiscordActivity('Giveaway detected in ' + (watcherName || 'watcher') + '. Reacting in 2s...', 'Waiting');
+      logDiscordActivity('Giveaway detected in ' + watcherName + '. Reacting in 2s...', 'Waiting');
       (async () => {
         const retryDelays = [2000, 1200, 3000, 6000];
         for (const delay of retryDelays) {
           if (delay) await new Promise(resolve => setTimeout(resolve, delay));
-          const ok = await triggerDiscordReaction(channelId, messageId, emoji);
+          const ok = await triggerDiscordReaction(channelId, messageId, emoji, soundEnabled);
           if (ok) break;
         }
         discordReactionSchedules.delete(scheduleKey);
@@ -4800,9 +4802,8 @@
       const token = localStorage.getItem('sotarium_discord_token');
       if (!token) return;
       try {
-        await triggerDiscordReaction(channelId, messageId, '🎟️');
+        await triggerDiscordReaction(channelId, messageId, '🎟️', watcher.sound !== false);
         logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer');
-        window.playWatcherBeep();
       } catch (e) {
         console.error('[Discord Gateway] Ticket Claim error:', e);
       }
@@ -5005,12 +5006,12 @@
           const guess = Math.floor(Math.random() * 20) + 1;
           logDiscordActivity("You're Selected! Sending guess " + guess, 'Guess', 'green');
           sendDiscordMessage(channelId, String(guess));
+          if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
           if (!pendingGiveaways[channelId]) {
             pendingGiveaways[channelId] = {};
           }
           pendingGiveaways[channelId].myGuess = guess;
           pendingGiveaways[channelId].selectedAt = Date.now();
-          if (typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
         } else {
           // Final announcement: "Flash giveaway ended ... The secret number was 14. @User guessed 3."
           const isFinalAnnouncement = (
@@ -5035,7 +5036,7 @@
               const resultWord = hasWon ? 'YES' : 'NO';
               const resultColor = hasWon ? 'green' : 'red';
               logDiscordActivity('Guess correct: ' + resultWord + ' — secret ' + (secretNum || '?') + ', guessed ' + (reportedGuess || '?'), 'Guess Result', resultColor);
-              if (hasWon && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
+              if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
               delete pendingGiveaways[channelId];
             }
           }
@@ -5086,7 +5087,7 @@
           pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
 
           // React immediately; retryDiscordReaction handles brief transient failures.
-          if (watcher.enabled) scheduleDiscordReaction(channelId, msg.id, reactionEmoji, watcher.name);
+          if (watcher.enabled) scheduleDiscordReaction(channelId, msg.id, reactionEmoji, watcher);
         }
       }
     }
@@ -5119,7 +5120,7 @@
             if (count % 2 !== 0) continue;
           }
           pendingGiveaways[channelId] = { messageId: messageId, watcherName: watcher.name, ts: Date.now() };
-          if (watcher.enabled) scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher.name);
+          if (watcher.enabled) scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher);
         }
       }
     }
