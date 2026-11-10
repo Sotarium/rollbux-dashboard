@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <title>Rollbux - History</title>
   <!-- Suppress cdn.tailwindcss.com console warning -->
   <script>
@@ -51,6 +53,25 @@
     }
     .custom-scroll::-webkit-scrollbar-thumb:hover {
       background: rgba(255, 255, 255, 0.18);
+    }
+  </style>
+  <style id="rollbux-discord-typography">
+    /* Discord-style UI typography: compact, neutral, and readable across every page. */
+    :root {
+      --rollbux-ui-font: "gg sans", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+    }
+    html,
+    body {
+      font-family: var(--rollbux-ui-font) !important;
+    }
+    body,
+    body *:not(.font-mono):not(code):not(pre) {
+      font-family: var(--rollbux-ui-font) !important;
+    }
+    .font-mono,
+    code,
+    pre {
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace !important;
     }
   </style>
 </head>

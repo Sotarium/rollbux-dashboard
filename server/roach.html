@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RainRoach Multi-Account Center</title>
@@ -8,6 +10,25 @@
   <style>
     body { background-color: #0b0e14; color: #d1d5db; font-family: ui-sans-serif, system-ui, sans-serif; }
     .glass-card { background: rgba(18, 24, 38, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+  </style>
+  <style id="rollbux-discord-typography">
+    /* Discord-style UI typography: compact, neutral, and readable across every page. */
+    :root {
+      --rollbux-ui-font: "gg sans", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+    }
+    html,
+    body {
+      font-family: var(--rollbux-ui-font) !important;
+    }
+    body,
+    body *:not(.font-mono):not(code):not(pre) {
+      font-family: var(--rollbux-ui-font) !important;
+    }
+    .font-mono,
+    code,
+    pre {
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace !important;
+    }
   </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 flex flex-col items-center">
