@@ -92,8 +92,9 @@ async function sessionOwnsNetwork(req, session) {
 async function resolveRequestSession(req) {
   const cookieSession = currentSession(req);
   const token = String(req.headers['x-rollbux-token'] || '').trim();
-  if (cookieSession) return token ? { ...cookieSession, __sessionToken: token } : cookieSession;
-  if (!token) return null;
+  // The explicitly supplied Rollbux token identifies the account whose data
+  // is being requested; the dashboard signup cookie may be a different user.
+  if (!token) return cookieSession || null;
   try {
     const response = await fetch('https://rollbux.com/_api/users/me', {
       headers: {
