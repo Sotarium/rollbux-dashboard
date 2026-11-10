@@ -5189,7 +5189,8 @@
             fullTextLower.includes('the secret number was')
           );
           if (isFinalAnnouncement) {
-            const secretMatch = fullText.match(/secret number was\s*(\d+)/i);
+            const normalizedResultText = fullText.replace(/[\*_`~]/g, ' ');
+            const secretMatch = normalizedResultText.match(/secret\s+number\s+(?:was|is)\s*[:\-]?\s*(\d{1,2})/i);
             const secretNum = secretMatch ? secretMatch[1] : null;
 
             // Check if user was the one who guessed or won
@@ -5203,7 +5204,7 @@
               processedGuessResults.add(resultKey);
               setTimeout(() => processedGuessResults.delete(resultKey), 10 * 60 * 1000);
               const myGuess = pending?.myGuess;
-              const guessedMatch = fullText.match(/guessed\s*(\d+)/i);
+              const guessedMatch = normalizedResultText.match(/guessed\s*(?:the\s+number\s*)?[:\-]?\s*(\d{1,2})/i);
               const reportedGuess = guessedMatch ? guessedMatch[1] : (myGuess ? String(myGuess) : null);
 
               const hasNoPrize = fullTextLower.includes('no prize');
@@ -5211,7 +5212,7 @@
 
               const resultWord = hasWon ? 'Won' : 'Loss';
               const resultColor = hasWon ? 'green' : 'red';
-              logDiscordActivity(resultWord, 'Guess Result', resultColor);
+              logDiscordActivity(resultWord + ' — secret ' + (secretNum || '?') + ', guessed ' + (reportedGuess || '?'), 'Guess Result', resultColor);
               if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
               delete pendingGiveaways[channelId];
             }
