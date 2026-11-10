@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <title>Rollbux - Live Affiliate Stats</title>
   <!-- Suppress cdn.tailwindcss.com production warning in console -->
   <script>
@@ -373,9 +372,9 @@
   </style>
 
   <style id="rollbux-discord-typography">
-    /* Discord-style UI typography: compact, neutral, and readable across every page. */
+    /* Shared site typography from the dashboard design system. */
     :root {
-      --rollbux-ui-font: "gg sans", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+      --rollbux-ui-font: 'Inter', sans-serif;
     }
     html,
     body {
@@ -470,7 +469,7 @@
                       <span class="text-[14px] font-semibold text-[#8f8f8f]">Total Earnings</span>
                       <div class="flex items-center gap-2 mt-2">
                         <img id="earningsCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
-                        <span id="statTotalEarnings" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">0</span>
+                        <span id="statTotalEarnings" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">0</span>
                       </div>
                       <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono" style="display:none;">$0.00 · 0.00 SOL</span>
                     </div>
@@ -480,7 +479,7 @@
                       <span class="text-[14px] font-semibold text-white">Current Balance</span>
                       <div class="flex items-center gap-2 mt-2">
                         <img id="balanceCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
-                        <span id="statCurrentBalance" class="text-[30px] font-bold text-white tracking-tight leading-none font-mono">5</span>
+                        <span id="statCurrentBalance" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">5</span>
                       </div>
                       <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none font-mono" style="display:none;">$0.01 · 0.0001 SOL</span>
                     </div>
