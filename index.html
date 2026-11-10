@@ -665,7 +665,7 @@
                               <circle id="upgraderArc" cx="100" cy="100" r="75" fill="none" stroke="#ffffff" stroke-width="16"
                                 stroke-linecap="round"
                                 stroke-dasharray="212 471.24" stroke-dashoffset="0"
-                                transform="rotate(-90 100 100)" style="transition: stroke-dasharray 0.15s ease, transform 0.04s linear;" />
+                                transform="rotate(-90 100 100)" style="transition: stroke-dasharray 0.15s ease, stroke-dashoffset 0.04s linear;" />
 
                               <!-- Cartoon Draggable Knob Marker (pure white glowing pill) -->
                               <g id="upgraderKnobGroup" transform="rotate(0 100 100)">
@@ -2866,10 +2866,11 @@
       const arcLen = Math.max(1, (chance / 100) * UPGRADER_CIRCUMFERENCE);
       if (upgraderArc) {
         upgraderArc.setAttribute('stroke-dasharray', `${arcLen.toFixed(2)} ${UPGRADER_CIRCUMFERENCE.toFixed(2)}`);
-        // The arc sits exactly at the play position
-        upgraderArc.setAttribute('transform', `rotate(${(upgraderAngle - 90).toFixed(2)} 100 100)`);
+        // Keep the circle centered; move only the dash pattern so fast spins cannot detach the arc.
+        const dashOffset = -((upgraderAngle / 360) * UPGRADER_CIRCUMFERENCE);
+        upgraderArc.setAttribute('stroke-dashoffset', dashOffset.toFixed(2));
         upgraderArc.style.opacity = '1';
-        upgraderArc.style.transition = isDraggingKnob ? 'none' : 'stroke-dasharray 0.15s ease, transform 0.04s linear';
+        upgraderArc.style.transition = isDraggingKnob ? 'none' : 'stroke-dasharray 0.15s ease, stroke-dashoffset 0.04s linear';
       }
 
       const knobGroup = document.getElementById('upgraderKnobGroup');
