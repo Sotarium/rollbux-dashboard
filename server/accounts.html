@@ -137,6 +137,15 @@
     body {
       font-family: var(--rollbux-ui-font) !important;
     }
+    /* Slightly larger readable scale across the complete interface. */
+    body {
+      zoom: 1.04;
+    }
+    @media (max-width: 640px) {
+      body {
+        zoom: 1.02;
+      }
+    }
     body,
     body * {
       font-family: var(--rollbux-ui-font) !important;
