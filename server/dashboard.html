@@ -479,7 +479,7 @@
                       <span class="text-[14px] font-semibold text-[#8f8f8f]">Total Earnings</span>
                       <div class="flex items-center gap-2 mt-2">
                         <img id="earningsCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
-                        <span id="statTotalEarnings" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">0</span>
+                        <span id="statTotalEarnings" data-bux-value="0" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">0</span>
                       </div>
                       <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none " style="display:none;">$0.00 · 0.00 SOL</span>
                     </div>
@@ -489,7 +489,7 @@
                       <span class="text-[14px] font-semibold text-white">Current Balance</span>
                       <div class="flex items-center gap-2 mt-2">
                         <img id="balanceCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
-                        <span id="statCurrentBalance" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">5</span>
+                        <span id="statCurrentBalance" data-bux-value="5" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">5</span>
                       </div>
                       <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none " style="display:none;">$0.01 · 0.0001 SOL</span>
                     </div>
@@ -1403,6 +1403,12 @@
       if (unit === 'USD' && unitUsdBtn) unitUsdBtn.style.cssText = ACT_U;
       if (unit === 'BUX' && unitBuxBtn) unitBuxBtn.style.cssText = ACT_U;
       updateCurrencyIcons();
+      // Reformat the cards even when the user endpoint is unavailable and the
+      // dashboard is showing its retained/static BUX fallback values.
+      const earningsBux = Number(statTotalEarnings?.dataset?.buxValue ?? 0) || 0;
+      const balanceBux = Number(statCurrentBalance?.dataset?.buxValue ?? 0) || 0;
+      if (statTotalEarnings) statTotalEarnings.textContent = formatBuxValue(earningsBux);
+      if (statCurrentBalance) statCurrentBalance.textContent = formatBuxValue(balanceBux);
       if (liveUserData) renderDashboard(liveUserData);
       if (typeof renderGameHistory === 'function') renderGameHistory();
       if (typeof renderResultsFeed === 'function') renderResultsFeed();
@@ -1711,8 +1717,14 @@
       const balanceBux = user.balance_bux || 0;
       const earningsBux = user.total_earnings_bux || 0;
 
-      if (typeof statTotalEarnings !== "undefined" && statTotalEarnings) { statTotalEarnings.textContent = formatValue(earningsBux); }
-      if (typeof statCurrentBalance !== "undefined" && statCurrentBalance) { statCurrentBalance.textContent = formatValue(balanceBux); }
+      if (typeof statTotalEarnings !== "undefined" && statTotalEarnings) {
+        statTotalEarnings.dataset.buxValue = String(earningsBux);
+        statTotalEarnings.textContent = formatValue(earningsBux);
+      }
+      if (typeof statCurrentBalance !== "undefined" && statCurrentBalance) {
+        statCurrentBalance.dataset.buxValue = String(balanceBux);
+        statCurrentBalance.textContent = formatValue(balanceBux);
+      }
 
       // Render Rains Table
       let txs = user.transactions || [];
