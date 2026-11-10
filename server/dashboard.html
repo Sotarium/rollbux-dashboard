@@ -987,17 +987,23 @@
                   </div>
 
                   <!-- Bottom Bar matching bottomBar in DiscordView.swift (height: 72px) -->
-                  <div class="w-full mt-4 select-none rounded-[18px] bg-[#121212] border border-[rgba(255,255,255,0.10)] p-3.5 flex items-center justify-between">
-                    <!-- Profile Pill: Clicking this OPENS Profile & Accounts Modal! -->
-                    <button id="discordProfilePillBtn" onclick="openDiscordProfileModal()" type="button" class="flex items-center gap-2.5 px-3 py-1.5 rounded-[11px] bg-[#080808] hover:bg-[#1d1d1d] border border-[rgba(255,255,255,0.10)] transition cursor-pointer">
-                      <img id="discordPillAvatar" src="" class="size-7 rounded-full object-cover hidden" alt="Profile" />
-                      <img id="discordPillAvatarPlaceholder" src="/discord-logo.png" class="size-7 rounded-full object-cover shrink-0" alt="Discord" onerror="this.onerror=null; this.src='discord-logo.png';" />
-                      <span id="discordPillName" class="text-[13px] font-bold text-white">Connect Discord</span>
-                    </button>
-                    <!-- Stop / Start Monitoring Button -->
-                    <button id="discordStopBtn" onclick="toggleDiscordWatcherActive()" type="button" class="dv-pill active" style="height:44px; min-width:130px; font-size:14px; font-weight:700;">
-                      Stop
-                    </button>
+                  <div class="w-full mt-4 select-none rounded-[18px] bg-[#121212] border border-[rgba(255,255,255,0.10)] p-3.5 flex flex-col gap-3">
+                    <div class="w-full flex items-center justify-between gap-3">
+                      <!-- Profile Pill: Clicking this OPENS Profile & Accounts Modal! -->
+                      <button id="discordProfilePillBtn" onclick="openDiscordProfileModal()" type="button" class="flex items-center gap-2.5 px-3 py-1.5 rounded-[11px] bg-[#080808] hover:bg-[#1d1d1d] border border-[rgba(255,255,255,0.10)] transition cursor-pointer">
+                        <img id="discordPillAvatar" src="" class="size-7 rounded-full object-cover hidden" alt="Profile" />
+                        <img id="discordPillAvatarPlaceholder" src="/discord-logo.png" class="size-7 rounded-full object-cover shrink-0" alt="Discord" onerror="this.onerror=null; this.src='discord-logo.png';" />
+                        <span id="discordPillName" class="text-[13px] font-bold text-white">Connect Discord</span>
+                      </button>
+                      <!-- Stop / Start Monitoring Button -->
+                      <button id="discordStopBtn" onclick="toggleDiscordWatcherActive()" type="button" class="dv-pill active" style="height:44px; min-width:130px; font-size:14px; font-weight:700;">
+                        Stop
+                      </button>
+                    </div>
+                    <div id="discordAddAccountTile" class="w-full flex items-center justify-between gap-3 p-3 rounded-[12px] bg-[#0b0b0b] border border-dashed border-[rgba(255,255,255,0.22)]">
+                      <span class="text-[13px] font-semibold text-white">Add another Discord account</span>
+                      <button type="button" class="shrink-0 px-4 py-2 rounded-[8px] bg-white text-black text-[12px] font-bold hover:bg-[#e8e8e8] transition" onclick="openDiscordLoginModal()">+ Add</button>
+                    </div>
                   </div>
                 </div>
 
