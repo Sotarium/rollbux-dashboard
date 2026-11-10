@@ -4875,6 +4875,24 @@
     const DISCORD_GATEWAY_INTENTS = 1 | 512 | 1024 | 32768;
     const pendingGiveaways = Object.create(null);
     const processedGuessResults = new Set();
+    const DISCORD_GUESS_LOCK_PREFIX = 'sotarium_giveaway_guess_lock:';
+    const DISCORD_GUESS_LOCK_TTL = 15 * 60 * 1000;
+    const inMemoryGuessLocks = new Set();
+
+    function claimGiveawayGuessSlot(channelId, userId) {
+      const key = DISCORD_GUESS_LOCK_PREFIX + String(userId || 'me') + ':' + String(channelId);
+      const now = Date.now();
+      try {
+        const previous = Number(localStorage.getItem(key) || 0);
+        if (previous && now - previous < DISCORD_GUESS_LOCK_TTL) return false;
+        localStorage.setItem(key, String(now));
+      } catch (e) {
+        if (inMemoryGuessLocks.has(key)) return false;
+        inMemoryGuessLocks.add(key);
+        setTimeout(() => inMemoryGuessLocks.delete(key), DISCORD_GUESS_LOCK_TTL);
+      }
+      return true;
+    }
 
     function logDiscordActivity(text, tag, color, shouldPersist = true) {
       // color: undefined = default white, 'green' = won, 'red' = error/miss
@@ -5015,8 +5033,11 @@
     }
 
     async function sendDiscordMessage(channelId, content) {
+      // Safety guard: the self-bot may send only the single numeric guess, never a result/reply.
+      const guessText = String(content ?? '').trim();
+      if (!/^(?:[1-9]|1[0-9]|20)$/.test(guessText)) return false;
       const token = getActiveDiscordToken();
-      if (!token) return;
+      if (!token) return false;
       try {
         const res = await fetch('https://discord.com/api/v10/channels/' + channelId + '/messages', {
           method: 'POST',
@@ -5208,12 +5229,13 @@
 
         if (isSelectionPrompt && matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket')) {
           const selectionKey = String(channelId) + ':' + String(msg.id || fullText);
-          if (!processedSelectionPrompts.has(selectionKey)) {
+          const canGuessThisGiveaway = claimGiveawayGuessSlot(channelId, myId);
+          if (canGuessThisGiveaway && !processedSelectionPrompts.has(selectionKey)) {
             processedSelectionPrompts.add(selectionKey);
             setTimeout(() => processedSelectionPrompts.delete(selectionKey), 10 * 60 * 1000);
             const guess = Math.floor(Math.random() * 20) + 1;
             logDiscordActivity('Guessed ' + guess, 'Guess', 'green');
-            sendDiscordMessage(channelId, String(guess));
+            void sendDiscordMessage(channelId, String(guess));
             if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
             if (!pendingGiveaways[channelId]) {
               pendingGiveaways[channelId] = {};
