@@ -5212,7 +5212,7 @@
 
               const resultWord = hasWon ? 'Won' : 'Loss';
               const resultColor = hasWon ? 'green' : 'red';
-              logDiscordActivity(resultWord + ' — secret ' + (secretNum || '?') + ', guessed ' + (reportedGuess || '?'), 'Guess Result', resultColor);
+              logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '! — ' + resultWord, 'Guess Result', resultColor);
               if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
               delete pendingGiveaways[channelId];
             }
