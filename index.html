@@ -4703,6 +4703,8 @@
     let isGatewayRunning = true;
     // GUILDS + GUILD_MESSAGES + GUILD_MESSAGE_REACTIONS + MESSAGE_CONTENT.
     const DISCORD_GATEWAY_INTENTS = 1 | 512 | 1024 | 32768;
+    const pendingGiveaways = Object.create(null);
+    const processedGuessResults = new Set();
 
     function logDiscordActivity(text, tag, color) {
       // color: undefined = default white, 'green' = won, 'red' = error/miss
@@ -5038,10 +5040,16 @@
             const secretNum = secretMatch ? secretMatch[1] : null;
 
             // Check if user was the one who guessed or won
-            const isMyResult = mentionsMe || (pendingGiveaways[channelId] && pendingGiveaways[channelId].myGuess);
+            const isGuessWatcher = matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket');
+            const isMyResult = isGuessWatcher && (mentionsMe || (pendingGiveaways[channelId] && pendingGiveaways[channelId].myGuess));
 
             if (isMyResult) {
-              const myGuess = pendingGiveaways[channelId]?.myGuess;
+              const pending = pendingGiveaways[channelId];
+              const resultKey = String(channelId || '') + ':' + String(msg.id || secretNum || fullText);
+              if (processedGuessResults.has(resultKey)) return;
+              processedGuessResults.add(resultKey);
+              setTimeout(() => processedGuessResults.delete(resultKey), 10 * 60 * 1000);
+              const myGuess = pending?.myGuess;
               const guessedMatch = fullText.match(/guessed\s*(\d+)/i);
               const reportedGuess = guessedMatch ? guessedMatch[1] : (myGuess ? String(myGuess) : null);
 
@@ -5050,7 +5058,10 @@
 
               const resultWord = hasWon ? 'YES' : 'NO';
               const resultColor = hasWon ? 'green' : 'red';
+              const resultReply = hasWon ? 'Easy dude' : 'Fuck broooo';
               logDiscordActivity('Guess correct: ' + resultWord + ' — secret ' + (secretNum || '?') + ', guessed ' + (reportedGuess || '?'), 'Guess Result', resultColor);
+              sendDiscordMessage(channelId, resultReply);
+              logDiscordActivity('Sent result reply: ' + resultReply, 'Guess Result', resultColor);
               if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
               delete pendingGiveaways[channelId];
             }
