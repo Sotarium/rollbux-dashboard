@@ -43,6 +43,20 @@
     }
   }
 
+  function readWebhooks() {
+    try {
+      const value = JSON.parse(localStorage.getItem('sotarium_discord_webhooks') || '[]');
+      return Array.isArray(value) ? value.filter(w => w && w.url).map(w => ({ name: w.name, url: w.url, enabled: w.enabled !== false })) : [];
+    } catch (e) { return []; }
+  }
+
+  function readWebhookSettings() {
+    try {
+      const value = JSON.parse(localStorage.getItem('sotarium_discord_webhook_settings') || '{}');
+      return { everyone: value.everyone === true, here: value.here === true };
+    } catch (e) { return { everyone: false, here: false }; }
+  }
+
   async function pushConfig() {
     const user = siteUser();
     if (!user) return;
@@ -57,11 +71,27 @@
           siteUser: user,
           accounts: readAccounts(),
           watchers: readWatchers(),
+          webhooks: readWebhooks(),
+          webhookSettings: readWebhookSettings(),
         }),
       });
     } catch (e) {
       console.warn('[discord-worker-sync]', e);
     }
+  }
+
+  async function testWorkerWebhooks() {
+    const user = siteUser();
+    if (!user) throw new Error('No site user found.');
+    await pushConfig();
+    const res = await fetch(WORKER_URL + '/test-webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-worker-secret': WORKER_SECRET },
+      body: JSON.stringify({ siteUser: user })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Webhook test failed.');
+    return data;
   }
 
   function accountForWorkerEvent(event) {
@@ -139,13 +169,16 @@
   }
 
   window.pushDiscordConfigToWorker = pushConfig;
+  window.testDiscordWorkerWebhooks = testWorkerWebhooks;
   window.pullDiscordWorkerActivity = pullActivity;
 
   window.addEventListener('storage', function (e) {
     if (
       e.key === 'sotarium_discord_accounts' ||
       e.key === 'discord_watchers_list' ||
-      e.key === 'sotarium_discord_token'
+      e.key === 'sotarium_discord_token' ||
+      e.key === 'sotarium_discord_webhooks' ||
+      e.key === 'sotarium_discord_webhook_settings'
     ) {
       pushConfig();
     }
@@ -169,7 +202,9 @@
       key === 'sotarium_discord_accounts' ||
       key === 'discord_watchers_list' ||
       key === 'sotarium_discord_token' ||
-      key === 'sotarium_discord_user'
+      key === 'sotarium_discord_user' ||
+      key === 'sotarium_discord_webhooks' ||
+      key === 'sotarium_discord_webhook_settings'
     ) {
       clearTimeout(window.__dwSyncT);
       window.__dwSyncT = setTimeout(pushConfig, 400);

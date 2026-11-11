@@ -16,6 +16,8 @@ const INTENTS = 1 | 512 | 1024 | 32768;
 
 const tenants = new Map();
 const tenantWatchers = new Map();
+const tenantWebhooks = new Map();
+const tenantWebhookSettings = new Map();
 let activityLog = [];
 
 function log(msg, type = 'info', account = null, siteUser = null) {
@@ -50,6 +52,12 @@ function accountsKey(siteUser) {
 }
 function watchersKey(siteUser) {
   return `sotarium:discord:watchers:${String(siteUser).toLowerCase()}`;
+}
+function webhooksKey(siteUser) {
+  return `sotarium:discord:webhooks:${String(siteUser).toLowerCase()}`;
+}
+function webhookSettingsKey(siteUser) {
+  return `sotarium:discord:webhook-settings:${String(siteUser).toLowerCase()}`;
 }
 function indexKey() {
   return 'sotarium:discord:tenants';
@@ -108,13 +116,29 @@ function getTenantWatchers(siteUser) {
   return tenantWatchers.get(key);
 }
 
+function getTenantWebhooks(siteUser) {
+  const key = String(siteUser).toLowerCase();
+  if (!tenantWebhooks.has(key)) tenantWebhooks.set(key, []);
+  return tenantWebhooks.get(key);
+}
+
+function getTenantWebhookSettings(siteUser) {
+  const key = String(siteUser).toLowerCase();
+  if (!tenantWebhookSettings.has(key)) tenantWebhookSettings.set(key, { everyone: false, here: false });
+  return tenantWebhookSettings.get(key);
+}
+
 async function persistTenant(siteUser) {
   const key = String(siteUser).toLowerCase();
   const accMap = getTenantAccounts(key);
   const list = [...accMap.values()].map(({ id, token, user }) => ({ id, token, user }));
   const watchers = getTenantWatchers(key);
+  const webhooks = getTenantWebhooks(key);
+  const webhookSettings = getTenantWebhookSettings(key);
   await redis('SET', accountsKey(key), JSON.stringify(list));
   await redis('SET', watchersKey(key), JSON.stringify(watchers));
+  await redis('SET', webhooksKey(key), JSON.stringify(webhooks));
+  await redis('SET', webhookSettingsKey(key), JSON.stringify(webhookSettings));
   let index = [];
   try {
     const raw = await redis('GET', indexKey());
@@ -130,6 +154,8 @@ async function loadTenant(siteUser) {
   const key = String(siteUser).toLowerCase();
   const rawAcc = await redis('GET', accountsKey(key));
   const rawWatch = await redis('GET', watchersKey(key));
+  const rawWebhooks = await redis('GET', webhooksKey(key));
+  const rawWebhookSettings = await redis('GET', webhookSettingsKey(key));
   const accMap = getTenantAccounts(key);
 
   if (rawAcc) {
@@ -164,6 +190,18 @@ async function loadTenant(siteUser) {
       tenantWatchers.set(key, JSON.parse(rawWatch));
     } catch {}
   }
+  if (rawWebhooks) {
+    try {
+      const list = JSON.parse(rawWebhooks);
+      if (Array.isArray(list)) tenantWebhooks.set(key, list.filter(w => w && w.url));
+    } catch {}
+  }
+  if (rawWebhookSettings) {
+    try {
+      const settings = JSON.parse(rawWebhookSettings);
+      tenantWebhookSettings.set(key, { everyone: settings.everyone === true, here: settings.here === true });
+    } catch {}
+  }
 }
 
 async function loadAllTenants() {
@@ -195,6 +233,8 @@ async function loadAllTenants() {
           });
         }
         if (Array.isArray(t.watchers)) tenantWatchers.set(key, t.watchers);
+        if (Array.isArray(t.webhooks)) tenantWebhooks.set(key, t.webhooks.filter(w => w && w.url));
+        if (t.webhookSettings) tenantWebhookSettings.set(key, { everyone: t.webhookSettings.everyone === true, here: t.webhookSettings.here === true });
       }
     } catch (e) {
       console.error('bad DISCORD_BOOTSTRAP', e.message);
@@ -223,11 +263,65 @@ async function sendMessage(channelId, content, account) {
   }
 }
 
+async function postWebhook(url, payload) {
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'Sotarium-Rollbux-Worker/1.0' },
+      body: JSON.stringify(payload)
+    });
+    return res.ok;
+  } catch (e) {
+    console.error('[webhook]', e.message);
+    return false;
+  }
+}
+
+async function notifyWebhookActivity(siteUser, account, details = {}) {
+  const webhooks = getTenantWebhooks(siteUser).filter(w => w && w.url && w.enabled !== false);
+  if (!webhooks.length) return 0;
+  const settings = getTenantWebhookSettings(siteUser);
+  const mentions = [];
+  if (settings.everyone) mentions.push('@everyone');
+  if (settings.here) mentions.push('@here');
+  const content = [mentions.join(' '), 'Rollbux activity detected', details.message || 'A monitored giveaway activity was detected.'].filter(Boolean).join('\n');
+  const payload = {
+    content,
+    allowed_mentions: { parse: mentions.length ? ['everyone'] : [] },
+    embeds: [{
+      title: 'Rollbux activity detected',
+      description: details.message || 'A monitored giveaway activity was detected.',
+      color: 0x54d487,
+      fields: [
+        { name: 'Discord account', value: String(account?.user?.username || account?.id || 'Unknown'), inline: true },
+        ...(details.channelId ? [{ name: 'Channel', value: String(details.channelId), inline: true }] : [])
+      ],
+      timestamp: new Date().toISOString(),
+      footer: { text: 'Sotarium Rollbux watcher' }
+    }]
+  };
+  const results = await Promise.all(webhooks.map(webhook => postWebhook(webhook.url, payload)));
+  return results.filter(Boolean).length;
+}
+
+async function sendWebhookTest(siteUser) {
+  const webhooks = getTenantWebhooks(siteUser).filter(w => w && w.url && w.enabled !== false);
+  if (!webhooks.length) return 0;
+  const payload = {
+    content: 'Sotarium webhook test — Rollbux activity notifications are connected.',
+    allowed_mentions: { parse: [] },
+    embeds: [{ title: 'Webhook test successful', description: 'This webhook is ready for Rollbux activity alerts.', color: 0x54d487, timestamp: new Date().toISOString() }]
+  };
+  const results = await Promise.all(webhooks.map(webhook => postWebhook(webhook.url, payload)));
+  return results.filter(Boolean).length;
+}
+
 async function addReaction(channelId, messageId, emoji, account) {
   const encoded = encodeURIComponent(emoji);
   try {
     await discordApi('PUT', `/channels/${channelId}/messages/${messageId}/reactions/${encoded}/@me`, account.token);
     log(`reacted ${emoji}`, 'claim', account, account.siteUser);
+    void notifyWebhookActivity(account.siteUser, account, { channelId, messageId, message: `Reaction ${emoji} added to a monitored Rollbux activity.` });
     return true;
   } catch (e) {
     log(`react failed: ${e.message}`, 'error', account, account.siteUser);
@@ -461,6 +555,27 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === '/test-webhook' && req.method === 'POST') {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    try {
+      const data = JSON.parse(body);
+      const siteUser = String(data.siteUser || '').toLowerCase().trim();
+      if (!siteUser) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'siteUser required' }));
+        return;
+      }
+      const sent = await sendWebhookTest(siteUser);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, sent }));
+    } catch (e) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
   if (url.pathname === '/config' && req.method === 'POST') {
     let body = '';
     for await (const chunk of req) body += chunk;
@@ -503,6 +618,18 @@ const server = http.createServer(async (req, res) => {
 
       if (Array.isArray(data.watchers)) {
         tenantWatchers.set(siteUser, data.watchers);
+      }
+      if (Array.isArray(data.webhooks)) {
+        tenantWebhooks.set(siteUser, data.webhooks.filter(webhook => {
+          if (!webhook?.url) return false;
+          try {
+            const parsed = new URL(webhook.url);
+            return parsed.protocol === 'https:' && (parsed.hostname === 'discord.com' || parsed.hostname.endsWith('.discord.com') || parsed.hostname === 'discordapp.com' || parsed.hostname.endsWith('.discordapp.com'));
+          } catch { return false; }
+        }).map(webhook => ({ name: webhook.name || 'Discord webhook', url: webhook.url, enabled: webhook.enabled !== false })));
+      }
+      if (data.webhookSettings && typeof data.webhookSettings === 'object') {
+        tenantWebhookSettings.set(siteUser, { everyone: data.webhookSettings.everyone === true, here: data.webhookSettings.here === true });
       }
 
       await persistTenant(siteUser);
