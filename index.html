@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <title>Rollbux - Live Affiliate Stats</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xyflow/react@12.3.1/dist/style.css">
   <!-- Suppress cdn.tailwindcss.com production warning in console -->
   <script>
     (function(){
@@ -971,6 +972,7 @@
                         <svg class="size-4 text-[#8f8f8f] mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                         <span>Webhooks</span>
                       </button>
+                      <button onclick="openDiscordResume()" type="button" class="dv-pill active" style="height:38px;">Resume</button>
                     </div>
                   </div>
 
@@ -4891,6 +4893,44 @@
       if (m) m.style.display = 'none';
     };
 
+    window.openDiscordResume = function() {
+      const modal = document.getElementById('discordResumeModal');
+      if (modal) modal.classList.remove('hidden');
+      window.dispatchEvent(new CustomEvent('discord-resume-open'));
+    };
+    window.closeDiscordResume = function() {
+      const modal = document.getElementById('discordResumeModal');
+      if (modal) modal.classList.add('hidden');
+    };
+    window.getDiscordResumeData = function() {
+      const accounts = readDiscordAccounts();
+      const active = getActiveDiscordAccount();
+      let events = [];
+      try {
+        const parsed = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
+        if (Array.isArray(parsed)) events = parsed;
+      } catch (e) {}
+      const stats = Object.fromEntries(accounts.map(account => [String(account.id), { joined: 0, guesses: 0, wins: 0, losses: 0 }]));
+      const fallbackId = active ? String(active.id) : '';
+      events.forEach(event => {
+        const id = String(event.accountId || fallbackId);
+        if (!stats[id]) return;
+        const text = String(event.text || '').toLowerCase();
+        const tag = String(event.tag || '').toLowerCase();
+        if (tag === 'auto react' && text.includes('joined')) stats[id].joined++;
+        if (tag === 'guess' || text.startsWith('guessed ')) stats[id].guesses++;
+        if (tag === 'guess result' && event.color === 'green') stats[id].wins++;
+        if (tag === 'guess result' && event.color === 'red') stats[id].losses++;
+      });
+      return accounts.map(account => ({
+        id: String(account.id),
+        name: account.user?.username || account.user?.handle || 'Discord account',
+        avatar: account.user?.avatar || '/discord-logo.png',
+        active: active && String(active.id) === String(account.id),
+        stats: stats[String(account.id)] || { joined: 0, guesses: 0, wins: 0, losses: 0 }
+      }));
+    };
+
     window.toggleDiscordWatcherActive = function() {
       const btn = document.getElementById('discordStopBtn');
       if (!btn) return;
@@ -4950,6 +4990,9 @@
     function logDiscordActivity(text, tag, color, shouldPersist = true) {
       // color: undefined = default white, 'green' = won, 'red' = error/miss
       tag = tag || 'Auto React';
+      const activityAccount = getActiveDiscordAccount();
+      const activityAccountId = activityAccount ? String(activityAccount.id) : '';
+      const activityAccountName = activityAccount?.user?.username || activityAccount?.user?.handle || 'Unassigned account';
       const list = document.getElementById('discordActivityList');
       if (!list) return;
       const emptyMsg = list.querySelector('.text-\\[\\#8f8f8f\\]');
@@ -4986,7 +5029,7 @@
       if (shouldPersist) {
         try {
           const saved = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
-          saved.unshift({ text: String(text), tag: String(tag), color: color || '' });
+          saved.unshift({ text: String(text), tag: String(tag), color: color || '', accountId: activityAccountId, accountName: activityAccountName });
           localStorage.setItem(DISCORD_ACTIVITY_KEY, JSON.stringify(saved.slice(0, 20)));
         } catch (e) {}
       }
@@ -6509,6 +6552,78 @@
     });
   </script>
 
+
+  <!-- Embedded Discord résumé map powered by React Flow (@xyflow/react). -->
+  <div id="discordResumeModal" class="hidden fixed inset-0 z-[99998] items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="w-full max-w-[1180px] h-[min(88vh,820px)] rounded-[22px] bg-[#101010] border border-white/10 shadow-2xl flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-white/10">
+        <div>
+          <h3 class="text-[20px] font-bold text-white">Discord Account Resume</h3>
+          <p class="text-[12px] text-[#8f8f8f] mt-1">A per-account map of joins, guesses, wins, and losses.</p>
+        </div>
+        <button type="button" onclick="closeDiscordResume()" class="dv-icon-btn" title="Close">
+          <svg class="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="discordResumeRoot" class="min-h-0 flex-1"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import React from 'https://esm.sh/react@18.3.1';
+    import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+    import { ReactFlow, Background, Controls, MiniMap, Handle, Position } from 'https://esm.sh/@xyflow/react@12.3.1?deps=react@18.3.1,react-dom@18.3.1';
+
+    const resumeRootElement = document.getElementById('discordResumeRoot');
+    const resumeRoot = resumeRootElement ? createRoot(resumeRootElement) : null;
+    const h = React.createElement;
+
+    function Metric({ label, value, color }) {
+      return h('div', { style: { background: '#080808', border: '1px solid rgba(255,255,255,.08)', borderRadius: 10, padding: '8px 10px' } },
+        h('div', { style: { color: '#8f8f8f', fontSize: 9, textTransform: 'uppercase', letterSpacing: '.08em' } }, label),
+        h('div', { style: { color, fontSize: 19, fontWeight: 800, marginTop: 2 } }, String(value)));
+    }
+
+    function AccountNode({ data }) {
+      const s = data.account.stats;
+      return h('div', { style: { width: 236, background: '#151515', border: data.account.active ? '1px solid rgba(255,255,255,.8)' : '1px solid rgba(255,255,255,.12)', borderRadius: 16, padding: 12, color: '#fff', boxShadow: data.account.active ? '0 0 24px rgba(255,255,255,.1)' : 'none' } },
+        h(Handle, { type: 'source', position: Position.Right, style: { background: '#54d487', width: 8, height: 8, border: 0 } }),
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 } },
+          h('img', { src: data.account.avatar, alt: data.account.name, style: { width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }, onError: e => { e.currentTarget.src = '/discord-logo.png'; } }),
+          h('div', null, h('div', { style: { fontWeight: 800, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 } }, data.account.name), h('div', { style: { color: data.account.active ? '#fff' : '#8f8f8f', fontSize: 10 } }, data.account.active ? 'Active account' : 'Linked account'))),
+        h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 } },
+          h(Metric, { label: 'Joined', value: s.joined, color: '#54d487' }), h(Metric, { label: 'Guesses', value: s.guesses, color: '#fff' }),
+          h(Metric, { label: 'Won', value: s.wins, color: '#54d487' }), h(Metric, { label: 'Loss', value: s.losses, color: '#ff6868' })));
+    }
+
+    function HubNode({ data }) {
+      return h('div', { style: { minWidth: 190, padding: '16px 20px', background: '#080808', color: '#fff', border: '1px solid rgba(84,212,135,.6)', borderRadius: 16, textAlign: 'center', boxShadow: '0 0 28px rgba(84,212,135,.12)' } },
+        h(Handle, { type: 'target', position: Position.Left, style: { background: '#54d487', width: 9, height: 9, border: 0 } }),
+        h('div', { style: { fontSize: 11, color: '#54d487', textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 800 } }, 'Discord'),
+        h('div', { style: { fontSize: 16, fontWeight: 800, marginTop: 4 } }, 'Watcher network'),
+        h('div', { style: { fontSize: 11, color: '#8f8f8f', marginTop: 4 } }, data.count + ' linked account' + (data.count === 1 ? '' : 's')));
+    }
+
+    function ResumeGraph({ accounts }) {
+      const nodes = accounts.map((account, index) => ({ id: 'account-' + account.id, type: 'account', position: { x: 30 + (index % 3) * 270, y: 35 + Math.floor(index / 3) * 220 }, data: { account } }));
+      nodes.push({ id: 'hub', type: 'hub', position: { x: 430, y: Math.max(120, Math.ceil(accounts.length / 3) * 110) }, data: { count: accounts.length } });
+      const edges = accounts.map(account => ({ id: 'edge-' + account.id, source: 'account-' + account.id, target: 'hub', animated: true, style: { stroke: '#54d487', strokeWidth: 1.5 } }));
+      return h('div', { style: { height: '100%', width: '100%' } }, h(ReactFlow, { nodes, edges, nodeTypes: { account: AccountNode, hub: HubNode }, fitView: true, fitViewOptions: { padding: 0.22 }, proOptions: { hideAttribution: false } }, h(Background, { color: '#303030', gap: 22 }), h(Controls, null), h(MiniMap, { nodeColor: '#54d487', maskColor: 'rgba(0,0,0,.55)' })));
+    }
+
+    function renderDiscordResume() {
+      if (!resumeRoot || typeof window.getDiscordResumeData !== 'function') return;
+      const accounts = window.getDiscordResumeData();
+      const cards = accounts.length ? accounts.map(account => h('div', { key: account.id, style: { background: '#121212', border: account.active ? '1px solid rgba(255,255,255,.65)' : '1px solid rgba(255,255,255,.08)', borderRadius: 14, padding: 12 } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 } }, h('img', { src: account.avatar, alt: account.name, style: { width: 26, height: 26, borderRadius: '50%' } }), h('span', { style: { color: '#fff', fontSize: 13, fontWeight: 800 } }, account.name)),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 5 } }, h(Metric, { label: 'Join', value: account.stats.joined, color: '#54d487' }), h(Metric, { label: 'Guess', value: account.stats.guesses, color: '#fff' }), h(Metric, { label: 'Won', value: account.stats.wins, color: '#54d487' }), h(Metric, { label: 'Loss', value: account.stats.losses, color: '#ff6868' })))) : h('div', { style: { color: '#8f8f8f', padding: 18 } }, 'No Discord accounts linked yet.');
+      resumeRoot.render(h('div', { style: { height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 } },
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 10, padding: 16, maxHeight: 210, overflowY: 'auto' } }, cards),
+        h('div', { style: { minHeight: 0, flex: 1, background: '#0d0d0d' } }, accounts.length ? h(ResumeGraph, { accounts }) : h('div', { style: { height: '100%', display: 'grid', placeItems: 'center', color: '#8f8f8f' } }, 'Link a Discord account to build the map.'))));
+    }
+
+    window.addEventListener('discord-resume-open', renderDiscordResume);
+  </script>
 
   <!-- Custom Vibe-Coded Modal Overlay for Confirm / Prompt / Alert -->
   <div id="vibeDialogModal" class="hidden fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
