@@ -5569,6 +5569,7 @@
               state.ws.send(JSON.stringify({ op: 2, d: { token: account.token, intents: DISCORD_GATEWAY_INTENTS, capabilities: 8189, properties: { os: 'Windows', browser: 'Chrome', device: '' }, presence: { status: 'online', since: 0, activities: [], afk: false } } }));
             }
             if (op === 0) {
+              if (t === 'READY') logDiscordActivity('Connected and listening', 'Connection', 'green', true, account);
               if (t === 'MESSAGE_CREATE' || t === 'MESSAGE_UPDATE') handleGatewayMessage(d, account);
               if (t === 'MESSAGE_REACTION_ADD') handleGatewayReactionAdd(d, account);
             }
@@ -5640,6 +5641,7 @@
       const fullTextLower = fullText.toLowerCase();
 
       // Match the configured channel/server and, when supplied, the giveaway bot ID.
+      const hasComponents = Array.isArray(msg.components) && msg.components.length > 0;
       const matchingWatchers = discordWatchersList.filter(w => {
         if (!w.enabled) return false;
         if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
@@ -5647,6 +5649,9 @@
         if (w.targetID && String(w.targetID).trim() !== String(authorId).trim()) return false;
         return true;
       });
+      if (matchingWatchers.length === 0 && (fullTextLower.includes('giveaway') || hasComponents)) {
+        logDiscordActivity(hasComponents ? 'Giveaway component received; no watcher matched' : 'Giveaway message received; no watcher matched', 'Diagnostic', 'red', true, account);
+      }
 
       // --- Step 1: Check if this message announces that the connected user got picked / needs to guess ---
       // Always resolve the active account so multi-account switching cannot
@@ -5754,6 +5759,10 @@
                             (Array.isArray(msg.reactions) && msg.reactions.some(r => r.emoji?.name === '🎉' || r.emoji?.name === '🎊'));
 
           if (!isGiveaway) continue;
+          if (hasComponents && !Array.isArray(msg.reactions)) {
+            logDiscordActivity('Giveaway uses a component button; browser reaction mode skipped it', 'Diagnostic', 'red', true, account);
+            continue;
+          }
 
           // Use the exact source emoji from the giveaway message. Never inspect
           // or hard-code the reaction count; it varies as users join.
