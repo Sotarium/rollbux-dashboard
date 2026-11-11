@@ -5650,7 +5650,13 @@
         return true;
       });
       if (matchingWatchers.length === 0 && (fullTextLower.includes('giveaway') || hasComponents)) {
-        logDiscordActivity(hasComponents ? 'Giveaway component received; no watcher matched' : 'Giveaway message received; no watcher matched', 'Diagnostic', 'red', true, account);
+        const enabledWatchers = discordWatchersList.filter(w => w.enabled);
+        if (!enabledWatchers.length) {
+          logDiscordActivity('Giveaway received, but no enabled watcher is configured', 'Diagnostic', 'red', true, account);
+        } else {
+          const details = enabledWatchers.map(w => `${w.name || 'Watcher'}: server ${w.serverID || '*'}, channel ${w.channelID || '*'}, bot ${w.targetID || '*'}`).join(' | ');
+          logDiscordActivity(`Giveaway received, but IDs did not match. Message server ${guildId || '?'}, channel ${channelId || '?'}, author ${authorId || '?'}. Config: ${details}`, 'Diagnostic', 'red', true, account);
+        }
       }
 
       // --- Step 1: Check if this message announces that the connected user got picked / needs to guess ---
