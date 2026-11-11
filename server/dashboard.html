@@ -4590,6 +4590,56 @@
       return 'other';
     }
 
+    function escapeDiscordActivityHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function renderDiscordActivity() {
+      const list = document.getElementById('discordActivityList');
+      if (!list) return;
+      let events = [];
+      try {
+        const parsed = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
+        if (Array.isArray(parsed)) events = parsed.slice(0, 50);
+      } catch (e) {}
+      if (!events.length) {
+        list.innerHTML = '<div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]"><span>No recent activity. Active watchers will log events here.</span></div>';
+        return;
+      }
+      const accounts = readDiscordAccounts();
+      list.innerHTML = events.map(event => {
+        const account = accounts.find(a => String(a.id) === String(event.accountId));
+        const name = event.accountName || account?.user?.username || account?.user?.handle || 'Discord worker';
+        const text = event.text || event.message || 'Activity';
+        const tag = event.tag || 'Worker';
+        const color = event.color === 'red' ? '#ff6b6b' : event.color === 'green' ? '#54d487' : '#c2c6db';
+        const category = getDiscordActivityCategory(text, tag, event.color);
+        const time = event.ts || event.timestamp ? new Date(event.ts || event.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+        return '<div class="flex items-center justify-between gap-3 p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]" data-activity-category="' + category + '">' +
+          '<div class="min-w-0"><div class="flex items-center gap-2"><span class="size-1.5 rounded-full" style="background:' + color + '"></span><span class="text-[12px] font-bold text-white truncate">' + escapeDiscordActivityHtml(text) + '</span><span class="text-[10px] text-[#8f8f8f]">' + escapeDiscordActivityHtml(tag) + '</span></div><div class="text-[11px] text-[#8f8f8f] truncate mt-0.5">' + escapeDiscordActivityHtml(name) + '</div></div>' +
+          '<span class="text-[10px] text-[#8f8f8f] shrink-0">' + escapeDiscordActivityHtml(time) + '</span></div>';
+      }).join('');
+      applyDiscordActivityFilter();
+    }
+
+    window.logDiscordActivity = function(text, tag = 'Activity', color = undefined, persist = true, account = null) {
+      const event = {
+        ts: Date.now(), text: String(text || ''), tag: String(tag || 'Activity'),
+        color, accountId: account?.id ? String(account.id) : '',
+        accountName: account?.user?.username || account?.user?.handle || ''
+      };
+      if (persist !== false) {
+        let events = [];
+        try { events = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]'); } catch (e) {}
+        if (!Array.isArray(events)) events = [];
+        localStorage.setItem(DISCORD_ACTIVITY_KEY, JSON.stringify([event, ...events].slice(0, 200)));
+      }
+      renderDiscordActivity();
+      window.dispatchEvent(new CustomEvent('discord-activity-updated'));
+    };
+
+    window.addEventListener('discord-worker-activity', renderDiscordActivity);
+
     function applyDiscordActivityFilter() {
       const list = document.getElementById('discordActivityList');
       if (!list) return;
@@ -4615,6 +4665,8 @@
       if (list) list.innerHTML = '<div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]"><span>No recent activity. Active watchers will log events here.</span></div>';
       applyDiscordActivityFilter();
     };
+
+    renderDiscordActivity();
 
     window.toggleDiscordTokenVisibility = function() {
       const inp = document.getElementById('discordTokenInput');

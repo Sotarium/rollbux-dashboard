@@ -64,7 +64,71 @@
     }
   }
 
+  function accountForWorkerEvent(event) {
+    const accounts = readAccounts();
+    const wanted = String(event.account || '').toLowerCase();
+    return accounts.find(a => String(a.user?.username || a.user?.handle || a.id || '').toLowerCase() === wanted) || null;
+  }
+
+  function normalizeWorkerEvent(event) {
+    const raw = String(event.msg || '');
+    const account = accountForWorkerEvent(event);
+    let text = raw;
+    let tag = event.type === 'error' ? 'Error' : 'Worker';
+    let color = event.type === 'error' ? 'red' : undefined;
+    if (raw.startsWith('reacted ')) {
+      text = 'Joined';
+      tag = 'Auto React';
+      color = 'green';
+    } else if (raw.startsWith('react failed') || raw.startsWith('reaction failed')) {
+      text = 'Reaction failed';
+      tag = 'Error';
+      color = 'red';
+    } else if (raw.startsWith('claim ')) {
+      tag = 'Claimer';
+      color = 'green';
+    }
+    return {
+      ts: Number(event.ts) || Date.now(),
+      text,
+      tag,
+      color,
+      accountId: account?.id ? String(account.id) : '',
+      accountName: event.account || account?.user?.username || 'Discord worker',
+      worker: true
+    };
+  }
+
+  async function pullActivity() {
+    const user = siteUser();
+    if (!user) return;
+    try {
+      const res = await fetch(WORKER_URL + '/status?user=' + encodeURIComponent(user), {
+        headers: { 'x-worker-secret': WORKER_SECRET }
+      });
+      if (!res.ok) return;
+      const payload = await res.json();
+      const incoming = Array.isArray(payload.activity) ? payload.activity.map(normalizeWorkerEvent) : [];
+      let existing = [];
+      try { existing = JSON.parse(localStorage.getItem('sotarium_discord_activity_v2') || '[]'); } catch (e) {}
+      if (!Array.isArray(existing)) existing = [];
+      const merged = [...incoming, ...existing];
+      const seen = new Set();
+      const deduped = merged.filter(event => {
+        const key = [event.worker ? 'worker' : 'local', event.ts, event.accountId || event.accountName, event.text, event.tag].join('|');
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0)).slice(0, 200);
+      localStorage.setItem('sotarium_discord_activity_v2', JSON.stringify(deduped));
+      window.dispatchEvent(new CustomEvent('discord-worker-activity'));
+    } catch (e) {
+      console.warn('[discord-worker-activity]', e);
+    }
+  }
+
   window.pushDiscordConfigToWorker = pushConfig;
+  window.pullDiscordWorkerActivity = pullActivity;
 
   window.addEventListener('storage', function (e) {
     if (
@@ -79,10 +143,13 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       setTimeout(pushConfig, 1500);
+      setTimeout(pullActivity, 1800);
     });
   } else {
     setTimeout(pushConfig, 1500);
+    setTimeout(pullActivity, 1800);
   }
+  window.__discordWorkerActivityTimer = setInterval(pullActivity, 10000);
 
   const _set = localStorage.setItem.bind(localStorage);
   localStorage.setItem = function (key, value) {
