@@ -75,10 +75,10 @@
       border-radius: 9999px;
     }
     /* Hide input number spinner arrows */
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
     input[type=number] {
       -moz-appearance: textfield;
@@ -439,7 +439,7 @@
   <div class="flex w-full justify-center pb-[40px] pt-[35px]" bis_skin_checked="1">
     <div data-node-id="671:32993" class="flex w-full max-w-[1536px] flex-col items-stretch gap-[28px] px-4 md:px-8" bis_skin_checked="1">
       <div data-node-id="671:32994" class="flex w-full flex-col items-start gap-[28px]" bis_skin_checked="1">
-        
+
 
 
                 <!-- Top Nav Switcher: RollBux | Discord -->
@@ -456,7 +456,7 @@
             <div data-node-id="671:33013" class="flex w-full flex-col items-start gap-[24px] lg:flex-row lg:gap-[28px]" bis_skin_checked="1">
               <!-- Right Main Content -->
               <div data-node-id="671:33061" class="flex flex-1 min-w-0 w-full flex-col items-start gap-[24px]" bis_skin_checked="1">
-                
+
                                                 <!-- ══════════════════════════════════════════════════════════ -->
                 <!-- VIEW 1: ROLLBUX (Exact DiscordViewer-Dashboard-11 SiteView) -->
                 <!-- ══════════════════════════════════════════════════════════ -->
@@ -512,7 +512,7 @@
 
                   <!-- 3-Column Grid: Statistics, Auto Upgrader, Auto Mines -->
                   <div class="grid grid-cols-1 xl:grid-cols-[1fr_380px_380px] lg:grid-cols-[1fr_340px_340px] gap-5 w-full items-start">
-                    
+
                     <!-- ── Column 1: Statistics, Accounts, Results ── -->
                     <div class="flex flex-col gap-5 w-full">
                       <!-- Statistics Section -->
@@ -672,7 +672,7 @@
                               <!-- Cartoon Smooth Outer Bezel Ring -->
                               <circle cx="100" cy="100" r="82" fill="#090a0d" stroke="#262832" stroke-width="3" />
                               <circle cx="100" cy="100" r="75" fill="none" stroke="#16171f" stroke-width="16" />
-                              
+
                               <!-- Inner Center Disc -->
                               <circle cx="100" cy="100" r="66" fill="url(#wheelInnerDisc)" stroke="#22232c" stroke-width="1.5" />
 
@@ -1079,7 +1079,7 @@
 <!-- Spacer -->
                 <div class="flex w-full shrink-0 flex-col items-start gap-[16px]" bis_skin_checked="1"></div>
 
-                
+
 
               </div>
             </div>
@@ -1114,18 +1114,18 @@
         <!-- Token Input Field matching dv-field style -->
         <div class="w-full flex flex-col gap-1.5">
           <div class="flex items-center justify-between dv-field">
-            <input 
-              type="password" 
-              id="discordTokenInput" 
+            <input
+              type="password"
+              id="discordTokenInput"
               placeholder="Paste Discord user token..."
-              autocomplete="off" 
-              spellcheck="false" 
+              autocomplete="off"
+              spellcheck="false"
               class="w-full bg-transparent text-xs text-white placeholder-[#525763] focus:outline-none select-text border-none p-0"
             />
-            <button 
-              type="button" 
-              id="toggleDiscordTokenVisibility" 
-              onclick="toggleDiscordTokenVisibility()" 
+            <button
+              type="button"
+              id="toggleDiscordTokenVisibility"
+              onclick="toggleDiscordTokenVisibility()"
               class="text-gray-400 hover:text-white transition cursor-pointer pl-2"
               title="Toggle visibility"
             >
@@ -1249,8 +1249,8 @@
 
   <!-- Interactive Script for Live User Stats & Dynamic Countdown -->
   <script>
-    
-    
+
+
     // --- Vibe-Coded Custom Modal Dialogs (No browser prompt/confirm alerts) ---
     let vibeDialogResolve = null;
 
@@ -1321,7 +1321,7 @@
       });
     };
 
-    
+
     document.addEventListener('DOMContentLoaded', () => {
       const inp = document.getElementById('vibeDialogInput');
       if (inp) {
@@ -1346,7 +1346,7 @@
       }
     };
 
-    
+
     // --- Statistics Timeframe Range Switcher ---
     window.setStatsRange = function(range) {
       currentStatsRange = range;
@@ -1387,7 +1387,7 @@
       document.getElementById('farmerModal')?.classList.add('hidden');
     };
 
-    
+
     // Safe DOM shim for legacy element access
     (function() {
       const _origGetById = document.getElementById.bind(document);
@@ -1659,7 +1659,7 @@
         const iconSrc = getCurrencyIcon();
         const betFmt = entry.betBux ? formatBuxValue(entry.betBux) : null;
         const outFmt = formatBuxValue(entry.amountBux || 0);
-        
+
         let amtDisplayHtml = '';
         if (betFmt && entry.success) {
           amtDisplayHtml = `<div class="flex flex-col items-center leading-tight">
@@ -2104,7 +2104,7 @@
       // Prioritize building chart from cumulative rain earnings so rain distributions show growth
       if (user.transactions && user.transactions.length > 0) {
         const sorted = [...user.transactions].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-        
+
         const firstTime = (sorted[0].timestamp || Date.now()) - 3600000;
         history.push({
           time: new Date(firstTime).toISOString(),
@@ -3452,8 +3452,8 @@
           ];
 
       accountSelectorList.innerHTML = items.map(item => {
-        const isChecked = item.isAll 
-          ? isAllSelected 
+        const isChecked = item.isAll
+          ? isAllSelected
           : (!isAllSelected && tempSelectedAccounts.some(x => x.toLowerCase() === item.name.toLowerCase()));
 
         return `
@@ -3523,7 +3523,7 @@
       // Filter by user selection if specific accounts are chosen
       const selectedAccounts = getSelectedAccountsForMode('upgrader').map(s => s.toLowerCase().trim());
       const targetAccounts = (selectedAccounts.includes('all') || selectedAccounts.length === 0)
-        ? accounts 
+        ? accounts
         : accounts.filter(a => selectedAccounts.includes((a.name || '').toLowerCase().trim()));
 
       // Check each registered account for eligibility
@@ -3694,7 +3694,7 @@
       // Filter by user selection if specific accounts are chosen
       const selectedAccounts = getSelectedAccountsForMode('battle').map(s => s.toLowerCase().trim());
       const targetAccounts = (selectedAccounts.includes('all') || selectedAccounts.length === 0)
-        ? accounts 
+        ? accounts
         : accounts.filter(a => selectedAccounts.includes((a.name || '').toLowerCase().trim()));
 
       for (const acc of targetAccounts) {
@@ -3890,9 +3890,9 @@
         if (!minesMasterToggle || !minesMasterToggle.checked) return;
         const accounts = await getRegisteredAccountsList(true).catch(() => []);
         const selectedAccounts = getSelectedAccountsForMode('mines').map(s => s.toLowerCase().trim());
-        
+
         const targetAccounts = (selectedAccounts.includes('all') || selectedAccounts.length === 0)
-          ? accounts 
+          ? accounts
           : accounts.filter(a => selectedAccounts.includes((a.name || '').toLowerCase().trim()));
 
         if (targetAccounts.length === 0) {
@@ -4486,7 +4486,7 @@
   </div><!-- /dashboardContent -->
 
   <script>
-    
+
     // ── Auto Claim Giveaway (Cue Integration) ───────────────────────────────────
     const gwMasterToggle = document.getElementById('gwMasterToggle');
     const gwStatusBadge = document.getElementById('gwStatusBadge');
@@ -4666,9 +4666,9 @@
       const accounts = readDiscordAccounts();
       list.innerHTML = events.map(event => {
         const account = accounts.find(a => String(a.id) === String(event.accountId));
-        const name = event.accountName || account?.user?.username || account?.user?.handle || 'Discord worker';
+        const name = event.accountName || account?.user?.username || account?.user?.handle || 'Discord account';
         const text = event.text || event.message || 'Activity';
-        const tag = event.tag || 'Worker';
+        const tag = event.tag || 'Activity';
         const color = event.color === 'red' ? '#ff6b6b' : event.color === 'green' ? '#54d487' : '#c2c6db';
         const category = getDiscordActivityCategory(text, tag, event.color);
         const time = event.ts || event.timestamp ? new Date(event.ts || event.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
@@ -4695,7 +4695,6 @@
       window.dispatchEvent(new CustomEvent('discord-activity-updated'));
     };
 
-    window.addEventListener('discord-worker-activity', renderDiscordActivity);
 
     function applyDiscordActivityFilter() {
       const list = document.getElementById('discordActivityList');
@@ -4782,7 +4781,6 @@
     }
     function saveDiscordWebhookSettings(settings) {
       localStorage.setItem(DISCORD_WEBHOOK_SETTINGS_KEY, JSON.stringify({ everyone: !!settings.everyone, here: !!settings.here }));
-      if (typeof window.pushDiscordConfigToWorker === 'function') window.pushDiscordConfigToWorker();
     }
     function syncDiscordWebhookSettingsUI() {
       const webhooks = readDiscordWebhooks();
@@ -4819,24 +4817,6 @@
       if (sectionList) sectionList.innerHTML = webhookCardsMarkup(webhooks, true);
       syncDiscordWebhookSettingsUI();
     }
-    async function hydrateDiscordWebhookAvatars() {
-      if (typeof window.fetchDiscordWebhookInfo !== 'function') return;
-      const webhooks = readDiscordWebhooks();
-      let changed = false;
-      await Promise.all(webhooks.map(async (webhook) => {
-        if (webhook.avatar) return;
-        try {
-          const info = await window.fetchDiscordWebhookInfo(webhook.url);
-          if (info?.avatar) { webhook.avatar = info.avatar; changed = true; }
-          if ((!webhook.name || webhook.name === 'Discord webhook') && info?.name) { webhook.name = info.name; changed = true; }
-        } catch (e) {}
-      }));
-      if (changed) {
-        localStorage.setItem(DISCORD_WEBHOOKS_KEY, JSON.stringify(webhooks));
-        renderDiscordWebhooks();
-        if (typeof window.pushDiscordConfigToWorker === 'function') window.pushDiscordConfigToWorker();
-      }
-    }
     let editingDiscordWebhookIndex = -1;
     window.openWebhooksModal = function() {
       editingDiscordWebhookIndex = -1;
@@ -4844,7 +4824,6 @@
       const form = document.getElementById('discordWebhookForm');
       if (form) form.reset();
       renderDiscordWebhooks();
-      void hydrateDiscordWebhookAvatars();
       syncDiscordWebhookSettingsUI();
       if (modal) { modal.classList.remove('hidden'); modal.style.display = 'flex'; }
     };
@@ -4874,15 +4853,19 @@
       webhooks.splice(Number(index), 1);
       localStorage.setItem(DISCORD_WEBHOOKS_KEY, JSON.stringify(webhooks));
       renderDiscordWebhooks();
-      if (typeof window.pushDiscordConfigToWorker === 'function') window.pushDiscordConfigToWorker();
     };
     window.testDiscordWebhooks = async function() {
       const status = document.getElementById('discordWebhookTestStatus');
       if (status) status.textContent = 'Sending test...';
       try {
-        if (typeof window.testDiscordWorkerWebhooks !== 'function') throw new Error('Worker sync is still loading. Try again.');
-        const result = await window.testDiscordWorkerWebhooks();
-        if (status) status.textContent = result?.sent ? `Test sent to ${result.sent} webhook${result.sent === 1 ? '' : 's'}.` : 'No webhooks are configured.';
+        const webhooks = readDiscordWebhooks().filter(webhook => webhook.enabled !== false && webhook.url);
+        if (!webhooks.length) { if (status) status.textContent = 'No webhooks are configured.'; return; }
+        const settings = readDiscordWebhookSettings();
+        const mentions = [settings.everyone ? '@everyone' : '', settings.here ? '@here' : ''].filter(Boolean).join(' ');
+        const body = { content: `${mentions}${mentions ? ' ' : ''}Sotarium test notification`, allowed_mentions: { parse: [settings.everyone ? 'everyone' : '', settings.here ? 'everyone' : ''].filter(Boolean) } };
+        const results = await Promise.all(webhooks.map(webhook => fetch(webhook.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(response => response.ok)));
+        const sent = results.filter(Boolean).length;
+        if (status) status.textContent = `Test sent to ${sent} webhook${sent === 1 ? '' : 's'}.`;
       } catch (error) {
         if (status) status.textContent = error.message || 'Test failed.';
       }
@@ -4924,8 +4907,6 @@
       if (urlInput) urlInput.value = '';
       if (submit) submit.textContent = 'Save webhook';
       syncDiscordWebhookSettingsUI();
-      if (typeof window.pushDiscordConfigToWorker === 'function') window.pushDiscordConfigToWorker();
-      void hydrateDiscordWebhookAvatars();
     });
 
     renderDiscordWebhooks();
@@ -5187,7 +5168,7 @@
     })();
   </script>
 
-      
+
   <!-- Dedicated Add Watcher Modal (Clean Vibe-Coded dv-modal-card style) -->
   <div id="addWatcherModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 select-none">
     <div class="dv-modal-card flex flex-col">
@@ -5568,9 +5549,6 @@
     }
 
     function startDiscordGatewayForAccount(account) {
-      // Railway is the persistent gateway owner. Do not open a second browser
-      // session with the same user token, which causes Discord to disconnect it.
-      if (window.__enableLocalDiscordGateway !== true) return;
       if (!isGatewayRunning || !account?.token) return;
       const state = getDiscordGatewayState(account);
       if (!state || (state.ws && (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING))) return;
@@ -5617,7 +5595,6 @@
     }
 
     function startDiscordGateway() {
-      if (window.__enableLocalDiscordGateway !== true) return;
       if (!isGatewayRunning) return;
       const accounts = readDiscordAccounts();
       if (!accounts.length) { updateDiscordLiveBadge('No accounts'); return; }
@@ -5694,7 +5671,7 @@
           fullTextLower.includes("1–20")
         );
 
-        if (isSelectionPrompt && matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket') && typeof window.pushDiscordConfigToWorker !== 'function') {
+        if (isSelectionPrompt && matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket')) {
           const selectionKey = String(channelId) + ':' + String(msg.id || fullText);
           const canGuessThisGiveaway = !state.processedSelectionPrompts.has(selectionKey) &&
             claimGiveawayGuessSlot(selectionKey, myId);
@@ -5958,7 +5935,7 @@
       }
     })();
 
-    
+
     // Exact DiscordViewer-Dashboard-11 Upgrader & Mines Interactivity
     window.setUpgraderMultiplier = function(mult) {
       const valEl = document.getElementById('upgraderMultiplierValue');
@@ -6347,7 +6324,7 @@
       });
     }
 
-    
+
     // --- Real Accounts Management with Supabase ---
     window.refreshAccountsList = async function() {
       const container = document.getElementById('accountsQuickList');
@@ -6819,7 +6796,7 @@
       }
       grid.innerHTML = discordWatchersList.map(w => {
         const isActive = w.enabled;
-        const statusBadge = isActive 
+        const statusBadge = isActive
           ? '<span class="dv-badge" style="background:#54d487/15; border-color:#54d487/30; color:#54d487;">Active</span>'
           : '<span class="dv-badge" style="color:#8f8f8f;">Paused</span>';
         const isClaimer = w.type === 'claimer' || w.mode === 'ticket';
@@ -6981,6 +6958,5 @@
       </div>
     </div>
   </div>
-  <script src="/discord-worker-sync.js"></script>
 </body>
 </html>
