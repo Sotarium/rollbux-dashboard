@@ -6572,7 +6572,7 @@
   <script type="module">
     import React from 'https://esm.sh/react@18.3.1';
     import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
-    import { ReactFlow, Background, Controls, MiniMap, Handle, Position } from 'https://esm.sh/@xyflow/react@12.3.1?deps=react@18.3.1,react-dom@18.3.1';
+    import { ReactFlow, Background, Controls, Handle, Position, useNodesState, useEdgesState } from 'https://esm.sh/@xyflow/react@12.3.1?deps=react@18.3.1,react-dom@18.3.1';
 
     const resumeRootElement = document.getElementById('discordResumeRoot');
     const resumeRoot = resumeRootElement ? createRoot(resumeRootElement) : null;
@@ -6593,14 +6593,17 @@
           h('img', { src: data.account.avatar, alt: data.account.name, style: { width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }, onError: e => { e.currentTarget.src = '/discord-logo.png'; } }),
           h('div', null, h('div', { style: { fontWeight: 800, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 } }, data.account.name), h('div', { style: { color: data.account.active ? '#fff' : '#8f8f8f', fontSize: 10 } }, data.account.active ? 'Active account' : 'Linked account'))),
         h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 } },
-          h(Metric, { label: 'Joined', value: s.joined, color: '#54d487' }), h(Metric, { label: 'Guesses', value: s.guesses, color: '#fff' }),
+          h(Metric, { label: 'Joined', value: s.joined, color: '#54d487' }), h(Metric, { label: 'Picked', value: s.guesses, color: '#fff' }),
           h(Metric, { label: 'Won', value: s.wins, color: '#54d487' }), h(Metric, { label: 'Loss', value: s.losses, color: '#ff6868' })));
     }
 
     function ResumeGraph({ accounts }) {
-      const nodes = accounts.map((account, index) => ({ id: 'account-' + account.id, type: 'account', position: { x: 30 + (index % 3) * 270, y: 35 + Math.floor(index / 3) * 220 }, data: { account } }));
-      const edges = accounts.slice(1).map((account, index) => ({ id: 'edge-' + account.id, source: 'account-' + accounts[index].id, target: 'account-' + account.id, animated: true, style: { stroke: '#54d487', strokeWidth: 1.5 } }));
-      return h('div', { style: { height: '100%', width: '100%' } }, h(ReactFlow, { nodes, edges, nodeTypes: { account: AccountNode }, fitView: true, fitViewOptions: { padding: 0.22 }, proOptions: { hideAttribution: false } }, h(Background, { color: '#303030', gap: 22 }), h(Controls, null), h(MiniMap, { nodeColor: '#54d487', maskColor: 'rgba(0,0,0,.55)' })));
+      const initialNodes = React.useMemo(() => accounts.map((account, index) => ({ id: 'account-' + account.id, type: 'account', position: { x: (index % 3) * 270, y: Math.floor(index / 3) * 220 }, data: { account } })), [accounts]);
+      const initialEdges = React.useMemo(() => accounts.slice(1).map((account, index) => ({ id: 'edge-' + account.id, source: 'account-' + accounts[index].id, target: 'account-' + account.id, animated: true, style: { stroke: '#54d487', strokeWidth: 1.5 } })), [accounts]);
+      const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+      const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+      const nodeTypes = React.useMemo(() => ({ account: AccountNode }), []);
+      return h('div', { style: { height: '100%', width: '100%' } }, h(ReactFlow, { nodes, edges, onNodesChange, onEdgesChange, nodeTypes, nodesDraggable: true, nodeDragThreshold: 1, panOnDrag: false, fitView: true, fitViewOptions: { padding: 0.35 }, minZoom: 0.35, maxZoom: 1.4, proOptions: { hideAttribution: false } }, h(Background, { color: '#303030', gap: 22 }), h(Controls, null)));
     }
 
     function renderDiscordResume() {
