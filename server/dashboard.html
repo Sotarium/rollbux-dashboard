@@ -5556,6 +5556,9 @@
     }
 
     function startDiscordGatewayForAccount(account) {
+      // Railway is the persistent gateway owner. Do not open a second browser
+      // session with the same user token, which causes Discord to disconnect it.
+      if (window.__enableLocalDiscordGateway !== true) return;
       if (!isGatewayRunning || !account?.token) return;
       const state = getDiscordGatewayState(account);
       if (!state || (state.ws && (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING))) return;
@@ -5602,6 +5605,7 @@
     }
 
     function startDiscordGateway() {
+      if (window.__enableLocalDiscordGateway !== true) return;
       if (!isGatewayRunning) return;
       const accounts = readDiscordAccounts();
       if (!accounts.length) { updateDiscordLiveBadge('No accounts'); return; }
