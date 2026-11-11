@@ -72,6 +72,9 @@
 
   function normalizeWorkerEvent(event) {
     const raw = String(event.msg || '');
+    if (isTransportEvent({ worker: true, text: raw, tag: 'Worker' }, event.type)) {
+      return null;
+    }
     const account = accountForWorkerEvent(event);
     let text = raw;
     let tag = event.type === 'error' ? 'Error' : 'Worker';
@@ -99,6 +102,11 @@
     };
   }
 
+  function isTransportEvent(event, sourceType = '') {
+    const text = String(event?.text || event?.msg || '');
+    return (sourceType === 'info' || event?.worker) && /^(gateway open|gateway closed|IDENTIFY sent|READY as )/i.test(text);
+  }
+
   async function pullActivity() {
     const user = siteUser();
     if (!user) return;
@@ -108,10 +116,11 @@
       });
       if (!res.ok) return;
       const payload = await res.json();
-      const incoming = Array.isArray(payload.activity) ? payload.activity.map(normalizeWorkerEvent) : [];
+      const incoming = Array.isArray(payload.activity) ? payload.activity.map(normalizeWorkerEvent).filter(Boolean) : [];
       let existing = [];
       try { existing = JSON.parse(localStorage.getItem('sotarium_discord_activity_v2') || '[]'); } catch (e) {}
       if (!Array.isArray(existing)) existing = [];
+      existing = existing.filter(event => !isTransportEvent(event));
       const merged = [...incoming, ...existing];
       const seen = new Set();
       const deduped = merged.filter(event => {

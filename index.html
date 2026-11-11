@@ -998,7 +998,7 @@
                         <span>Live</span>
                       </div>
                       <!-- Webhooks Button (height: 38) -->
-                      <button onclick="openDiscordLoginModal()" type="button" class="dv-pill inactive" style="height:38px;">
+                      <button onclick="openWebhooksModal()" type="button" class="dv-pill inactive" style="height:38px;">
                         <svg class="size-4 text-[#8f8f8f] mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                         <span>Webhooks</span>
                       </button>
@@ -1130,6 +1130,31 @@
           <button type="button" onclick="closeDiscordLoginModal()" class="dv-pill inactive w-full" style="height:44px; font-size:13px; font-weight:700;">Cancel</button>
           <button type="button" id="discordLoginBtn" onclick="submitDiscordLogin()" class="dv-pill active w-full" style="height:44px; font-size:13px; font-weight:700;">Connect</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discord Webhooks Modal -->
+  <div id="discordWebhooksModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 select-none">
+    <div class="dv-modal-card flex flex-col w-full max-w-[420px]">
+      <div class="dv-modal-header">
+        <h3 class="text-[18px] font-bold text-white">Webhooks</h3>
+        <button type="button" onclick="closeWebhooksModal()" class="dv-icon-btn" aria-label="Close webhooks">
+          <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="flex flex-col gap-3.5 p-5">
+        <p class="text-[12px] text-[#8f8f8f] leading-relaxed">Save Discord webhook URLs for notifications and integrations.</p>
+        <div id="discordWebhooksList" class="flex flex-col gap-2 max-h-[180px] overflow-y-auto"></div>
+        <form id="discordWebhookForm" class="flex flex-col gap-2.5">
+          <input id="discordWebhookName" type="text" placeholder="Webhook name" autocomplete="off" class="dv-field w-full">
+          <input id="discordWebhookUrl" type="url" placeholder="https://discord.com/api/webhooks/..." autocomplete="off" class="dv-field w-full">
+          <div id="discordWebhookError" class="hidden text-[11px] font-semibold text-red-400"></div>
+          <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <button type="button" onclick="closeWebhooksModal()" class="dv-pill inactive w-full" style="height:42px;">Cancel</button>
+            <button type="submit" class="dv-pill active w-full" style="height:42px;">Save webhook</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -4707,6 +4732,67 @@
         m.style.display = 'none';
       }
     };
+
+    const DISCORD_WEBHOOKS_KEY = 'sotarium_discord_webhooks';
+    function readDiscordWebhooks() {
+      try {
+        const value = JSON.parse(localStorage.getItem(DISCORD_WEBHOOKS_KEY) || '[]');
+        return Array.isArray(value) ? value.filter(w => w && w.url) : [];
+      } catch (e) { return []; }
+    }
+    function renderDiscordWebhooks() {
+      const list = document.getElementById('discordWebhooksList');
+      if (!list) return;
+      const webhooks = readDiscordWebhooks();
+      if (!webhooks.length) {
+        list.innerHTML = '<div class="p-3 rounded-[10px] bg-[#080808] border border-white/5 text-[11px] text-[#8f8f8f]">No webhooks saved.</div>';
+        return;
+      }
+      list.innerHTML = webhooks.map((webhook, index) => '<div class="flex items-center justify-between gap-3 p-2.5 rounded-[10px] bg-[#080808] border border-white/5">' +
+        '<div class="min-w-0"><div class="text-[12px] font-semibold text-white truncate">' + escapeDiscordActivityHtml(webhook.name || 'Discord webhook') + '</div><div class="text-[10px] text-[#8f8f8f] truncate">' + escapeDiscordActivityHtml(webhook.url) + '</div></div>' +
+        '<button type="button" onclick="deleteDiscordWebhook(' + index + ')" class="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#ff4b4b] hover:bg-[#ff4b4b]/20 hover:text-white transition" title="Delete webhook" aria-label="Delete webhook"><svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 01-1-1h-4a1 1 0 01-1 1v3M4 7h16"/></svg></button>' +
+        '</div>').join('');
+    }
+    window.openWebhooksModal = function() {
+      const modal = document.getElementById('discordWebhooksModal');
+      const form = document.getElementById('discordWebhookForm');
+      if (form) form.reset();
+      renderDiscordWebhooks();
+      if (modal) { modal.classList.remove('hidden'); modal.style.display = 'flex'; }
+    };
+    window.closeWebhooksModal = function() {
+      const modal = document.getElementById('discordWebhooksModal');
+      if (modal) { modal.classList.add('hidden'); modal.style.display = 'none'; }
+    };
+    window.deleteDiscordWebhook = function(index) {
+      const webhooks = readDiscordWebhooks();
+      webhooks.splice(Number(index), 1);
+      localStorage.setItem(DISCORD_WEBHOOKS_KEY, JSON.stringify(webhooks));
+      renderDiscordWebhooks();
+    };
+    document.getElementById('discordWebhookForm')?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const nameInput = document.getElementById('discordWebhookName');
+      const urlInput = document.getElementById('discordWebhookUrl');
+      const error = document.getElementById('discordWebhookError');
+      const url = String(urlInput?.value || '').trim();
+      let valid = false;
+      try {
+        const parsed = new URL(url);
+        valid = parsed.protocol === 'https:' && (parsed.hostname === 'discord.com' || parsed.hostname.endsWith('.discord.com') || parsed.hostname === 'discordapp.com' || parsed.hostname.endsWith('.discordapp.com'));
+      } catch (e) {}
+      if (!valid) {
+        if (error) { error.textContent = 'Enter a valid Discord webhook URL.'; error.classList.remove('hidden'); }
+        return;
+      }
+      const webhooks = readDiscordWebhooks();
+      webhooks.push({ name: String(nameInput?.value || '').trim() || 'Discord webhook', url, enabled: true, createdAt: Date.now() });
+      localStorage.setItem(DISCORD_WEBHOOKS_KEY, JSON.stringify(webhooks));
+      if (error) error.classList.add('hidden');
+      renderDiscordWebhooks();
+      if (nameInput) nameInput.value = '';
+      if (urlInput) urlInput.value = '';
+    });
 
     function syncDiscordGwUI() {
       const savedToken = getActiveDiscordToken();
