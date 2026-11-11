@@ -4343,15 +4343,20 @@
       const accounts = readDiscordAccounts();
       const account = accounts.find(a => String(a.id) === String(id));
       if (!account) return;
-      const wasRunning = isGatewayRunning;
-      if (wasRunning && typeof stopDiscordGateway === 'function') stopDiscordGateway();
       persistDiscordAccounts(accounts, account.id);
       syncDiscordGwUI();
       syncDiscordCustomProfile();
-      if (wasRunning) { isGatewayRunning = true; startDiscordGateway(); }
+      if (isGatewayRunning && typeof startDiscordGateway === 'function') startDiscordGateway();
     };
 
     window.removeDiscordAccount = function(id) {
+      const removedState = discordGatewayStates.get(String(id));
+      if (removedState) {
+        clearInterval(removedState.heartbeat);
+        clearTimeout(removedState.reconnect);
+        if (removedState.ws) { try { removedState.ws.close(); } catch (e) {} }
+        discordGatewayStates.delete(String(id));
+      }
       const accounts = readDiscordAccounts().filter(a => String(a.id) !== String(id));
       persistDiscordAccounts(accounts, accounts[0]?.id || null);
       syncDiscordGwUI();
@@ -4955,22 +4960,41 @@
     };
 
     // --- Live Discord Gateway WebSocket & Auto-React Engine ---
-    let discordWs = null;
-    let discordHeartbeatInterval = null;
-    let discordReconnectTimeout = null;
-    let discordLastSequence = null;
+    // Every linked Discord account gets its own gateway socket, heartbeat,
+    // dedupe sets, pending giveaway state, and token-bound API actions.
+    const discordGatewayStates = new Map();
     let isGatewayRunning = true;
     // GUILDS + GUILD_MESSAGES + GUILD_MESSAGE_REACTIONS + MESSAGE_CONTENT.
     const DISCORD_GATEWAY_INTENTS = 1 | 512 | 1024 | 32768;
-    const pendingGiveaways = Object.create(null);
-    const processedGuessResults = new Set();
     const DISCORD_GUESS_LOCK_PREFIX = 'sotarium_giveaway_guess_lock:';
-    // The lock is tied to the giveaway prompt, not just the channel. This prevents
-    // MESSAGE_UPDATE events, duplicate tabs, and repeated prompt messages from
-    // sending more than one number for the same giveaway.
     const DISCORD_GUESS_LOCK_TTL = 24 * 60 * 60 * 1000;
     const DISCORD_GUESS_LOCK_OWNER = Math.random().toString(36).slice(2) + ':' + Date.now();
     const inMemoryGuessLocks = new Set();
+
+    function getDiscordGatewayState(account) {
+      const id = String(account?.id || '');
+      if (!id) return null;
+      let state = discordGatewayStates.get(id);
+      if (!state) {
+        state = {
+          account,
+          ws: null,
+          heartbeat: null,
+          reconnect: null,
+          sequence: null,
+          pendingGiveaways: Object.create(null),
+          processedGuessResults: new Set(),
+          processedGiveawayMessages: new Set(),
+          processedSelectionPrompts: new Set(),
+          reactionKeys: new Set(),
+          reactionSchedules: new Set()
+        };
+        discordGatewayStates.set(id, state);
+      } else {
+        state.account = account;
+      }
+      return state;
+    }
 
     function claimGiveawayGuessSlot(giveawayKey, userId) {
       const normalizedKey = String(giveawayKey || 'unknown').slice(0, 180);
@@ -4981,8 +5005,6 @@
         if (previous && Number(previous.timestamp) && now - Number(previous.timestamp) < DISCORD_GUESS_LOCK_TTL) return false;
         const claim = { timestamp: now, owner: DISCORD_GUESS_LOCK_OWNER };
         localStorage.setItem(key, JSON.stringify(claim));
-        // Re-read after writing so another open tab cannot also continue after
-        // replacing this claim during the same prompt.
         const confirmed = JSON.parse(localStorage.getItem(key) || 'null');
         if (!confirmed || confirmed.owner !== claim.owner) return false;
       } catch (e) {
@@ -4993,285 +5015,165 @@
       return true;
     }
 
-    function logDiscordActivity(text, tag, color, shouldPersist = true) {
-      // color: undefined = default white, 'green' = won, 'red' = error/miss
-      tag = tag || 'Auto React';
-      const activityAccount = getActiveDiscordAccount();
-      const activityAccountId = activityAccount ? String(activityAccount.id) : '';
-      const activityAccountName = activityAccount?.user?.username || activityAccount?.user?.handle || 'Unassigned account';
-      const list = document.getElementById('discordActivityList');
-      if (!list) return;
-      const emptyMsg = list.querySelector('.text-\\[\\#8f8f8f\\]');
-      if (emptyMsg && list.children.length === 1) {
-        list.innerHTML = '';
-      }
-      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const item = document.createElement('div');
-      // Row background & border by color
-      let rowStyle = 'background:#080808; border:1px solid rgba(255,255,255,0.06);';
-      let tagStyle  = 'height:22px; padding:0 8px; font-size:10px; font-weight:700; background:#ffffff; color:#000000; border:none; border-radius:6px;';
-      let textColor = '#ffffff';
-      if (color === 'green') {
-        rowStyle  = 'background:rgba(84,212,135,0.08); border:1px solid rgba(84,212,135,0.25);';
-        tagStyle  = 'height:22px; padding:0 8px; font-size:10px; font-weight:700; background:#54d487; color:#000000; border:none; border-radius:6px;';
-        textColor = '#54d487';
-      } else if (color === 'red') {
-        rowStyle  = 'background:rgba(255,80,80,0.08); border:1px solid rgba(255,80,80,0.25);';
-        tagStyle  = 'height:22px; padding:0 8px; font-size:10px; font-weight:700; background:#ff5050; color:#ffffff; border:none; border-radius:6px;';
-        textColor = '#ff5050';
-      }
-      item.dataset.activityCategory = getDiscordActivityCategory(text, tag, color);
-      item.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:10px; border-radius:12px; ' + rowStyle;
-      item.innerHTML = '<div style="display:flex; align-items:center; gap:10px; min-width:0;">' +
-        '<span style="' + tagStyle + ' display:inline-flex; align-items:center; white-space:nowrap; flex-shrink:0;">' + tag + '</span>' +
-        '<span style="font-size:13px; font-weight:600; color:' + textColor + '; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + text + '</span>' +
-        '</div>' +
-        '<span style="font-size:11px; font-family:Inter,sans-serif; color:#8f8f8f; flex-shrink:0; margin-left:8px;">' + timeStr + '</span>';
-      list.prepend(item);
-      while (list.children.length > 20) {
-        list.removeChild(list.lastChild);
-      }
-      applyDiscordActivityFilter();
-      if (shouldPersist) {
-        try {
-          const saved = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
-          saved.unshift({ text: String(text), tag: String(tag), color: color || '', accountId: activityAccountId, accountName: activityAccountName });
-          localStorage.setItem(DISCORD_ACTIVITY_KEY, JSON.stringify(saved.slice(0, 20)));
-        } catch (e) {}
-      }
-    }
-
-    function restoreDiscordActivity() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
-        if (Array.isArray(saved)) saved.slice().reverse().forEach(entry => logDiscordActivity(entry.text, entry.tag, entry.color, false));
-      } catch (e) {}
-    }
-    restoreDiscordActivity();
-
-    const discordReactionKeys = new Set();
-    const discordReactionSchedules = new Set();
-    const processedGiveawayMessages = new Set();
-    const processedSelectionPrompts = new Set();
-
-    async function triggerDiscordReaction(channelId, messageId, emoji, soundEnabled = true) {
-      const token = getActiveDiscordToken();
-      if (!token || !channelId || !messageId) return false;
+    async function triggerDiscordReaction(channelId, messageId, emoji, soundEnabled = true, account = null) {
+      const token = account?.token || getActiveDiscordToken();
+      const state = getDiscordGatewayState(account);
+      if (!token || !channelId || !messageId || !state) return false;
       const rawEmoji = String(emoji || '🎉');
-      const emojiKey = channelId + ':' + messageId + ':' + rawEmoji;
-      // MESSAGE_CREATE, MESSAGE_UPDATE, and reaction events can all describe the same giveaway.
-      if (discordReactionKeys.has(emojiKey)) return true;
-      discordReactionKeys.add(emojiKey);
+      const emojiKey = String(account.id) + ':' + channelId + ':' + messageId + ':' + rawEmoji;
+      if (state.reactionKeys.has(emojiKey)) return true;
+      state.reactionKeys.add(emojiKey);
       const encodedEmoji = rawEmoji.includes('%') ? rawEmoji : encodeURIComponent(rawEmoji);
       try {
         const url = 'https://discord.com/api/v10/channels/' + encodeURIComponent(channelId) + '/messages/' + encodeURIComponent(messageId) + '/reactions/' + encodedEmoji + '/@me';
-        const res = await fetch(url, {
-          method: 'PUT',
-          headers: { 'Authorization': token }
-        });
+        const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': token } });
         if (res.ok || res.status === 204) {
-          logDiscordActivity('Joined', 'Auto React', 'green');
+          logDiscordActivity('Joined', 'Auto React', 'green', true, account);
           if (soundEnabled && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
           return true;
         }
-        // Do not permanently suppress a transient failure or an expired token response.
-        discordReactionKeys.delete(emojiKey);
-        logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error', 'red');
+        state.reactionKeys.delete(emojiKey);
+        logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error', 'red', true, account);
         return false;
       } catch (err) {
-        discordReactionKeys.delete(emojiKey);
+        state.reactionKeys.delete(emojiKey);
         console.error('[Discord Gateway] Reaction error:', err);
-        logDiscordActivity('Reaction request failed on ' + messageId.slice(-6), 'Error', 'red');
+        logDiscordActivity('Reaction request failed on ' + messageId.slice(-6), 'Error', 'red', true, account);
         return false;
       }
     }
 
-    // Discord sends the source reaction as emoji.name or emoji.name + emoji.id.
-    // The reaction count is deliberately ignored: 1, 5, or 100 users make no difference.
     function getSourceReactionEmoji(message, text) {
-      const sourceReaction = Array.isArray(message?.reactions)
-        ? message.reactions.find(r => r?.emoji?.id || r?.emoji?.name)
-        : null;
+      const sourceReaction = Array.isArray(message?.reactions) ? message.reactions.find(r => r?.emoji?.id || r?.emoji?.name) : null;
       if (sourceReaction?.emoji) {
         const name = String(sourceReaction.emoji.name || '').trim();
         const id = String(sourceReaction.emoji.id || '').trim();
         if (id) return (name ? name + ':' : '') + id;
         if (name) return name;
       }
-
-      // Fallback for gateways that omit reactions on MESSAGE_CREATE: use an
-      // emoji explicitly present in the bot's message, then default to 🎉.
       const explicitEmoji = String(text || '').match(/[🎉🎊🎟️]/u);
       return explicitEmoji ? explicitEmoji[0] : '🎉';
     }
 
-    // React after the configured 2-second delay, then retry briefly if Discord returns a transient failure.
-    function scheduleDiscordReaction(channelId, messageId, emoji, watcher) {
-      const watcherName = watcher?.name || 'watcher';
+    function scheduleDiscordReaction(channelId, messageId, emoji, watcher, account) {
+      const state = getDiscordGatewayState(account);
+      if (!state) return;
       const soundEnabled = watcher?.sound !== false;
-      const scheduleKey = channelId + ':' + messageId + ':' + String(emoji || '🎉');
-      if (discordReactionSchedules.has(scheduleKey)) return;
-      discordReactionSchedules.add(scheduleKey);
+      const scheduleKey = String(account.id) + ':' + channelId + ':' + messageId + ':' + String(emoji || '🎉');
+      if (state.reactionSchedules.has(scheduleKey)) return;
+      state.reactionSchedules.add(scheduleKey);
       (async () => {
         const retryDelays = [2000, 1200, 3000, 6000];
         for (const delay of retryDelays) {
           if (delay) await new Promise(resolve => setTimeout(resolve, delay));
-          const ok = await triggerDiscordReaction(channelId, messageId, emoji, soundEnabled);
+          const ok = await triggerDiscordReaction(channelId, messageId, emoji, soundEnabled, account);
           if (ok) break;
         }
-        discordReactionSchedules.delete(scheduleKey);
+        state.reactionSchedules.delete(scheduleKey);
       })();
     }
 
-    async function triggerTicketClaim(channelId, messageId, content, watcher) {
-      const token = getActiveDiscordToken();
+    async function triggerTicketClaim(channelId, messageId, content, watcher, account) {
+      const token = account?.token || getActiveDiscordToken();
       if (!token) return;
       try {
-        await triggerDiscordReaction(channelId, messageId, '🎟️', watcher.sound !== false);
-        logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer');
+        await triggerDiscordReaction(channelId, messageId, '🎟️', watcher.sound !== false, account);
+        logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer', undefined, true, account);
       } catch (e) {
         console.error('[Discord Gateway] Ticket Claim error:', e);
       }
     }
 
-    async function sendDiscordMessage(channelId, content) {
-      // Safety guard: the self-bot may send only the single numeric guess, never a result/reply.
+    async function sendDiscordMessage(channelId, content, account) {
       const guessText = String(content ?? '').trim();
       if (!/^(?:[1-9]|1[0-9]|20)$/.test(guessText)) return false;
-      const token = getActiveDiscordToken();
+      const token = account?.token || getActiveDiscordToken();
       if (!token) return false;
       try {
         const res = await fetch('https://discord.com/api/v10/channels/' + channelId + '/messages', {
-          method: 'POST',
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ content: content })
+          method: 'POST', headers: { 'Authorization': token, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: content })
         });
-        if (res.ok) {
-        } else {
-          logDiscordActivity('Failed to send guess (HTTP ' + res.status + ')', 'Error', 'red');
-        }
+        if (!res.ok) logDiscordActivity('Failed to send guess (HTTP ' + res.status + ')', 'Error', 'red', true, account);
+        return res.ok;
       } catch (err) {
         console.error('[Discord Gateway] Send message error:', err);
+        return false;
       }
     }
 
-    function startDiscordGateway() {
-      const token = getActiveDiscordToken();
-      if (!token || !isGatewayRunning) return;
+    function updateDiscordLiveBadge(text) {
+      const liveBadge = document.getElementById('discordLiveBadgeText');
+      if (liveBadge) liveBadge.textContent = text;
+    }
 
-      if (discordWs && (discordWs.readyState === WebSocket.OPEN || discordWs.readyState === WebSocket.CONNECTING)) {
-        return;
-      }
-
+    function startDiscordGatewayForAccount(account) {
+      if (!isGatewayRunning || !account?.token) return;
+      const state = getDiscordGatewayState(account);
+      if (!state || (state.ws && (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING))) return;
       try {
-        discordWs = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
-
-        discordWs.onopen = function() {
-          console.log('[Discord Gateway] Connected to Discord Gateway WebSocket');
-          const liveBadge = document.getElementById('discordLiveBadgeText');
-          if (liveBadge) liveBadge.textContent = 'Connected';
-        };
-
-        discordWs.onmessage = function(event) {
+        state.ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
+        state.ws.onopen = () => updateDiscordLiveBadge('Connected');
+        state.ws.onmessage = event => {
           try {
             const data = JSON.parse(event.data);
             const op = data.op;
             const d = data.d;
             const t = data.t;
-            if (data.s !== null && data.s !== undefined) discordLastSequence = data.s;
-
-            // Op 10: Hello -> start heartbeat & identify
+            if (data.s !== null && data.s !== undefined) state.sequence = data.s;
             if (op === 10) {
-              const heartbeatInterval = d.heartbeat_interval;
-              clearInterval(discordHeartbeatInterval);
-              discordHeartbeatInterval = setInterval(() => {
-                if (discordWs && discordWs.readyState === WebSocket.OPEN) {
-                  discordWs.send(JSON.stringify({ op: 1, d: discordLastSequence }));
-                }
-              }, heartbeatInterval);
-
-              // Identify
-              discordWs.send(JSON.stringify({
-                op: 2,
-                d: {
-                  token: token,
-                  intents: DISCORD_GATEWAY_INTENTS,
-                  capabilities: 8189,
-                  properties: {
-                    os: 'Windows',
-                    browser: 'Chrome',
-                    device: ''
-                  },
-                  presence: {
-                    status: 'online',
-                    since: 0,
-                    activities: [],
-                    afk: false
-                  }
-                }
-              }));
+              clearInterval(state.heartbeat);
+              state.heartbeat = setInterval(() => {
+                if (state.ws && state.ws.readyState === WebSocket.OPEN) state.ws.send(JSON.stringify({ op: 1, d: state.sequence }));
+              }, d.heartbeat_interval);
+              state.ws.send(JSON.stringify({ op: 2, d: { token: account.token, intents: DISCORD_GATEWAY_INTENTS, capabilities: 8189, properties: { os: 'Windows', browser: 'Chrome', device: '' }, presence: { status: 'online', since: 0, activities: [], afk: false } } }));
             }
-
-            // Op 0: Dispatch events
             if (op === 0) {
-              if (t === 'MESSAGE_CREATE' || t === 'MESSAGE_UPDATE') {
-                handleGatewayMessage(d);
-              }
-              if (t === 'MESSAGE_REACTION_ADD') {
-                handleGatewayReactionAdd(d);
-              }
+              if (t === 'MESSAGE_CREATE' || t === 'MESSAGE_UPDATE') handleGatewayMessage(d, account);
+              if (t === 'MESSAGE_REACTION_ADD') handleGatewayReactionAdd(d, account);
             }
-
-            // Op 7 or 9: Reconnect
             if (op === 7 || op === 9) {
-              console.warn('[Discord Gateway] Reconnect requested (Op ' + op + ')');
-              clearInterval(discordHeartbeatInterval);
-              if (discordWs) {
-                try { discordWs.close(); } catch (e) {}
-                discordWs = null;
-              }
-              clearTimeout(discordReconnectTimeout);
-              discordReconnectTimeout = setTimeout(startDiscordGateway, 3000);
+              clearInterval(state.heartbeat);
+              try { state.ws.close(); } catch (e) {}
+              clearTimeout(state.reconnect);
+              state.reconnect = setTimeout(() => startDiscordGatewayForAccount(account), 3000);
             }
-          } catch (err) {
-            console.error('[Discord Gateway] Parsing error:', err);
-          }
+          } catch (err) { console.error('[Discord Gateway] Parsing error:', err); }
         };
-
-        discordWs.onclose = function(e) {
-          console.warn('[Discord Gateway] Closed:', e.code, e.reason);
-          clearInterval(discordHeartbeatInterval);
-          const liveBadge = document.getElementById('discordLiveBadgeText');
-          if (liveBadge) liveBadge.textContent = isGatewayRunning ? 'Reconnecting...' : 'Paused';
+        state.ws.onclose = e => {
+          clearInterval(state.heartbeat);
+          state.ws = null;
           if (isGatewayRunning) {
-            clearTimeout(discordReconnectTimeout);
-            discordReconnectTimeout = setTimeout(startDiscordGateway, 5000);
+            clearTimeout(state.reconnect);
+            state.reconnect = setTimeout(() => startDiscordGatewayForAccount(account), 5000);
+            updateDiscordLiveBadge('Reconnecting...');
           }
         };
+        state.ws.onerror = err => console.error('[Discord Gateway] Error for ' + (account.user?.username || account.id) + ':', err);
+      } catch (err) { console.error('[Discord Gateway] Initialization error:', err); }
+    }
 
-        discordWs.onerror = function(err) {
-          console.error('[Discord Gateway] Error:', err);
-        };
-      } catch (err) {
-        console.error('[Discord Gateway] Initialization error:', err);
-      }
+    function startDiscordGateway() {
+      if (!isGatewayRunning) return;
+      const accounts = readDiscordAccounts();
+      if (!accounts.length) { updateDiscordLiveBadge('No accounts'); return; }
+      accounts.forEach(startDiscordGatewayForAccount);
     }
 
     function stopDiscordGateway() {
       isGatewayRunning = false;
-      clearInterval(discordHeartbeatInterval);
-      if (discordWs) {
-        try { discordWs.close(); } catch(e) {}
-        discordWs = null;
-      }
-      const liveBadge = document.getElementById('discordLiveBadgeText');
-      if (liveBadge) liveBadge.textContent = 'Paused';
+      discordGatewayStates.forEach(state => {
+        clearInterval(state.heartbeat);
+        clearTimeout(state.reconnect);
+        if (state.ws) { try { state.ws.close(); } catch(e) {} }
+        state.ws = null;
+      });
+      discordGatewayStates.clear();
+      updateDiscordLiveBadge('Paused');
     }
 
-    function handleGatewayMessage(msg) {
+    function handleGatewayMessage(msg, account) {
+      const state = getDiscordGatewayState(account);
+      if (!state) return;
       if (!msg || !Array.isArray(discordWatchersList) || discordWatchersList.length === 0) return;
 
       const channelId = msg.channel_id;
@@ -5308,7 +5210,7 @@
       // --- Step 1: Check if this message announces that the connected user got picked / needs to guess ---
       // Always resolve the active account so multi-account switching cannot
       // make the bot guess for a different account.
-      const myUser = getActiveDiscordUser() || {};
+      const myUser = account?.user || {};
       const myId = String(myUser.id || '');
       if (myId) {
         // Only a real Discord mention counts. Plain @names in message text can
@@ -5329,22 +5231,22 @@
 
         if (isSelectionPrompt && matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket')) {
           const selectionKey = String(channelId) + ':' + String(msg.id || fullText);
-          const canGuessThisGiveaway = !processedSelectionPrompts.has(selectionKey) &&
+          const canGuessThisGiveaway = !state.processedSelectionPrompts.has(selectionKey) &&
             claimGiveawayGuessSlot(selectionKey, myId);
           if (canGuessThisGiveaway) {
-            processedSelectionPrompts.add(selectionKey);
-            setTimeout(() => processedSelectionPrompts.delete(selectionKey), 10 * 60 * 1000);
+            state.processedSelectionPrompts.add(selectionKey);
+            setTimeout(() => state.processedSelectionPrompts.delete(selectionKey), 10 * 60 * 1000);
             // Repeats across different giveaways are allowed; only duplicate
             // handling for this specific giveaway is locked above.
             const guess = Math.floor(Math.random() * 20) + 1;
-            logDiscordActivity('Guessed ' + guess, 'Guess', 'green');
-            void sendDiscordMessage(channelId, String(guess));
+            logDiscordActivity('Guessed ' + guess, 'Guess', 'green', true, account);
+            void sendDiscordMessage(channelId, String(guess), account);
             if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
-            if (!pendingGiveaways[channelId]) {
-              pendingGiveaways[channelId] = {};
+            if (!state.pendingGiveaways[channelId]) {
+              state.pendingGiveaways[channelId] = {};
             }
-            pendingGiveaways[channelId].myGuess = guess;
-            pendingGiveaways[channelId].selectedAt = Date.now();
+            state.pendingGiveaways[channelId].myGuess = guess;
+            state.pendingGiveaways[channelId].selectedAt = Date.now();
           }
         } else {
           // Final announcement: "Flash giveaway ended ... The secret number was 14. @User guessed 3."
@@ -5359,14 +5261,14 @@
 
             // Check if user was the one who guessed or won
             const isGuessWatcher = matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket');
-            const isMyResult = isGuessWatcher && (mentionsMe || (pendingGiveaways[channelId] && pendingGiveaways[channelId].myGuess));
+            const isMyResult = isGuessWatcher && (mentionsMe || (state.pendingGiveaways[channelId] && state.pendingGiveaways[channelId].myGuess));
 
             if (isMyResult) {
-              const pending = pendingGiveaways[channelId];
+              const pending = state.pendingGiveaways[channelId];
               const resultKey = String(channelId || '') + ':' + String(msg.id || secretNum || fullText);
-              if (processedGuessResults.has(resultKey)) return;
-              processedGuessResults.add(resultKey);
-              setTimeout(() => processedGuessResults.delete(resultKey), 10 * 60 * 1000);
+              if (state.processedGuessResults.has(resultKey)) return;
+              state.processedGuessResults.add(resultKey);
+              setTimeout(() => state.processedGuessResults.delete(resultKey), 10 * 60 * 1000);
               const myGuess = pending?.myGuess;
               const guessedMatch = normalizedResultText.match(/guessed\s*(?:the\s+number\s*)?[:\-]?\s*(\d{1,2})/i);
               const reportedGuess = guessedMatch ? guessedMatch[1] : (myGuess ? String(myGuess) : null);
@@ -5375,9 +5277,9 @@
               const hasWon = fullTextLower.includes('won') || (!hasNoPrize && secretNum && reportedGuess && secretNum === reportedGuess);
 
               const resultColor = hasWon ? 'green' : 'red';
-              logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '!', 'Guess Result', resultColor);
+              logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '!', 'Guess Result', resultColor, true, account);
               if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
-              delete pendingGiveaways[channelId];
+              delete state.pendingGiveaways[channelId];
             }
           }
         }
@@ -5387,12 +5289,12 @@
       // Discord can emit MESSAGE_CREATE, MESSAGE_UPDATE, and reaction events for the same giveaway.
       // Only the first matching event may schedule the reaction or ticket claim.
       const giveawayEventKey = String(channelId) + ':' + String(msg.id || fullText);
-      if (processedGiveawayMessages.has(giveawayEventKey)) return;
-      processedGiveawayMessages.add(giveawayEventKey);
-      setTimeout(() => processedGiveawayMessages.delete(giveawayEventKey), 10 * 60 * 1000);
+      if (state.processedGiveawayMessages.has(giveawayEventKey)) return;
+      state.processedGiveawayMessages.add(giveawayEventKey);
+      setTimeout(() => state.processedGiveawayMessages.delete(giveawayEventKey), 10 * 60 * 1000);
       for (const watcher of matchingWatchers) {
         if (watcher.type === 'claimer' || watcher.mode === 'ticket') {
-          triggerTicketClaim(channelId, msg.id, content, watcher);
+          triggerTicketClaim(channelId, msg.id, content, watcher, account);
         } else if (watcher.autoReact !== false) {
           // Do not react to selection prompt or ended announcement
           const isEndedOrSelected = fullTextLower.includes('giveaway ended') ||
@@ -5422,36 +5324,38 @@
             watcher.safeModeCount = count + 1;
             saveWatchers();
             if (count % 2 !== 0) {
-              logDiscordActivity('Safe Mode: Skipped giveaway (1 out of 2) in ' + watcher.name, 'Skipped');
+              logDiscordActivity('Safe Mode: Skipped giveaway (1 out of 2) in ' + watcher.name, 'Skipped', undefined, true, account);
               continue;
             }
           }
 
           // Remember this channel for winner announcement
-          pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
+          state.pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
 
           // React immediately; retryDiscordReaction handles brief transient failures.
-          if (watcher.enabled) scheduleDiscordReaction(channelId, msg.id, reactionEmoji, watcher);
+          if (watcher.enabled) scheduleDiscordReaction(channelId, msg.id, reactionEmoji, watcher, account);
         }
       }
     }
 
-    function handleGatewayReactionAdd(event) {
+    function handleGatewayReactionAdd(event, account) {
+      const state = getDiscordGatewayState(account);
+      if (!state) return;
       if (!event || !Array.isArray(discordWatchersList)) return;
-      const myUser = JSON.parse(localStorage.getItem('sotarium_discord_user') || '{}');
+      const myUser = account?.user || {};
       if (event.user_id === myUser.id) return;
 
       const channelId = event.channel_id;
       const messageId = event.message_id;
       const emojiName = event.emoji?.name;
 
-      const pending = pendingGiveaways[channelId];
+      const pending = state.pendingGiveaways[channelId];
       const isKnownGiveawayMessage = pending && pending.messageId === messageId;
       const reactionEventKey = String(channelId) + ':' + String(messageId);
-      if (processedGiveawayMessages.has(reactionEventKey)) return;
+      if (state.processedGiveawayMessages.has(reactionEventKey)) return;
       if (isKnownGiveawayMessage || emojiName === '🎉' || emojiName === '🎊') {
-        processedGiveawayMessages.add(reactionEventKey);
-        setTimeout(() => processedGiveawayMessages.delete(reactionEventKey), 10 * 60 * 1000);
+        state.processedGiveawayMessages.add(reactionEventKey);
+        setTimeout(() => state.processedGiveawayMessages.delete(reactionEventKey), 10 * 60 * 1000);
         const reactionEmoji = isKnownGiveawayMessage
           ? ((event.emoji?.id ? ((emojiName || '') + ':' + event.emoji.id) : emojiName) || '🎉')
           : emojiName;
@@ -5471,8 +5375,8 @@
             saveWatchers();
             if (count % 2 !== 0) continue;
           }
-          pendingGiveaways[channelId] = { messageId: messageId, watcherName: watcher.name, ts: Date.now() };
-          if (watcher.enabled) scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher);
+          state.pendingGiveaways[channelId] = { messageId: messageId, watcherName: watcher.name, ts: Date.now() };
+          if (watcher.enabled) scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher, account);
         }
       }
     }
