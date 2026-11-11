@@ -2241,13 +2241,19 @@
           renderGameHistory();
         }
         const res = await fetch(`/api/user/${encodeURIComponent(targetUsername)}`, { headers: dashboardAuthHeaders() });
-        if (res.status === 403) {
-          document.body.innerHTML = `
-            <div class="min-h-screen flex flex-col items-center justify-center bg-[#121418] text-[#c2c6db]">
-              <h1 class="text-3xl font-bold text-white mb-2">403 Forbidden</h1>
-              <p class="text-sm text-[#6d7680]">Access to this resource is restricted.</p>
-            </div>
-          `;
+        if (res.status === 401 || res.status === 403) {
+          // A cleared cookie can leave an old local token behind. Never replace
+          // the whole app with a dead-end 403 page; return to the public login.
+          localStorage.removeItem('sotarium_session_token');
+          localStorage.removeItem('sotarium_registered_token');
+          if (window.location.pathname !== '/') {
+            window.location.replace('/');
+          } else {
+            const overlay = document.getElementById('loginOverlay');
+            const dashContent = document.getElementById('dashboardContent');
+            if (overlay) overlay.style.display = 'flex';
+            if (dashContent) dashContent.style.display = 'none';
+          }
           return;
         }
         if (res.ok) {
