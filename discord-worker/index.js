@@ -18,6 +18,8 @@ const tenants = new Map();
 const tenantWatchers = new Map();
 const tenantWebhooks = new Map();
 const tenantWebhookSettings = new Map();
+const processedSelectionPrompts = new Set();
+const processedReactions = new Set();
 let activityLog = [];
 
 function log(msg, type = 'info', account = null, siteUser = null) {
@@ -333,6 +335,10 @@ async function getWebhookMetadata(webhookUrl) {
 }
 
 async function addReaction(channelId, messageId, emoji, account) {
+  const reactionKey = `${account.siteUser}:${account.id}:${channelId}:${messageId}:${emoji}`;
+  if (processedReactions.has(reactionKey)) return true;
+  processedReactions.add(reactionKey);
+  setTimeout(() => processedReactions.delete(reactionKey), 10 * 60 * 1000);
   const encoded = encodeURIComponent(emoji);
   try {
     await discordApi('PUT', `/channels/${channelId}/messages/${messageId}/reactions/${encoded}/@me`, account.token);
@@ -340,6 +346,7 @@ async function addReaction(channelId, messageId, emoji, account) {
     void notifyWebhookActivity(account.siteUser, account, { channelId, messageId, message: `Reaction ${emoji} added to a monitored Rollbux activity.` });
     return true;
   } catch (e) {
+    processedReactions.delete(reactionKey);
     log(`react failed: ${e.message}`, 'error', account, account.siteUser);
     return false;
   }
@@ -400,9 +407,13 @@ async function handleMessage(msg, account) {
       (/pick a number|choose a number|selected|you're selected|you are selected|guess a number|1\s*[–-]\s*20|1-20/i.test(fullText));
 
     if (isSelectPrompt) {
+      const selectionKey = `${siteUser}:${account.id}:${channelId}:${messageId}`;
+      if (processedSelectionPrompts.has(selectionKey)) return;
+      processedSelectionPrompts.add(selectionKey);
+      setTimeout(() => processedSelectionPrompts.delete(selectionKey), 10 * 60 * 1000);
       const guess = String(Math.floor(Math.random() * 20) + 1);
       log(`selected — guessing ${guess}`, 'join', account, siteUser);
-      await sendMessage(channelId, guess, account);
+      if (!await sendMessage(channelId, guess, account)) processedSelectionPrompts.delete(selectionKey);
       return;
     }
   }
