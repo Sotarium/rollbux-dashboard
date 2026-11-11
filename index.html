@@ -5009,17 +5009,6 @@
           </label>
         </div>
 
-<div id="watcherSafeModeRow" class="flex items-center justify-between">
-          <div class="flex flex-col">
-            <span class="text-[13px] font-semibold text-white">Safe Mode (1 out of 2)</span>
-            <span class="text-[11px] text-[#8f8f8f]">Alternating: joins 1st, skips 2nd, joins 3rd...</span>
-          </div>
-          <label class="dv-toggle-wrap">
-            <input type="checkbox" id="newWatcherSafeMode" class="dv-toggle-input">
-            <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
-          </label>
-        </div>
-
         <div class="flex items-center justify-between">
           <span class="text-[13px] font-semibold text-white">Sound Notification</span>
           <label class="dv-toggle-wrap">
@@ -5546,16 +5535,6 @@
           // or hard-code the reaction count; it varies as users join.
           const reactionEmoji = getSourceReactionEmoji(msg, fullText);
 
-          // Safe Mode check: 1 out of 2 (first enters, next skips, next enters...)
-          if (watcher.safeMode) {
-            const count = watcher.safeModeCount || 0;
-            watcher.safeModeCount = count + 1;
-            saveWatchers();
-            if (count % 2 !== 0) {
-              logDiscordActivity('Safe Mode: Skipped giveaway (1 out of 2) in ' + watcher.name, 'Skipped', undefined, true, account);
-              continue;
-            }
-          }
 
           // Remember this channel for winner announcement
           state.pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
@@ -5597,12 +5576,6 @@
         });
 
         for (const watcher of matchingWatchers) {
-          if (watcher.safeMode) {
-            const count = watcher.safeModeCount || 0;
-            watcher.safeModeCount = count + 1;
-            saveWatchers();
-            if (count % 2 !== 0) continue;
-          }
           state.pendingGiveaways[channelId] = { messageId: messageId, watcherName: watcher.name, ts: Date.now() };
           if (watcher.enabled) scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher, account);
         }
@@ -6465,9 +6438,6 @@
       const w = discordWatchersList.find(x => x.id === id);
       if (w) {
         w.enabled = !w.enabled;
-        if (w.enabled) {
-          w.safeModeCount = 0; // fresh alternating sequence from toggle
-        }
         saveWatchers();
       }
     };
@@ -6499,8 +6469,6 @@
         }
         if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket · 🎟️';
         if (targetWrap) targetWrap.style.display = 'none';
-        const safeModeRow = document.getElementById('watcherSafeModeRow');
-        if (safeModeRow) safeModeRow.style.display = 'none';
         if (channelLabel) channelLabel.textContent = 'Ticket Channel ID';
         if (createBtn) createBtn.textContent = 'Create Claimer';
       } else {
@@ -6511,8 +6479,6 @@
         }
         if (actionLbl) actionLbl.textContent = 'Auto React';
         if (targetWrap) targetWrap.style.display = '';
-        const safeModeRow = document.getElementById('watcherSafeModeRow');
-        if (safeModeRow) safeModeRow.style.display = 'flex';
         if (channelLabel) channelLabel.textContent = 'Channel ID';
         if (createBtn) createBtn.textContent = 'Create Watcher';
       }
@@ -6530,8 +6496,6 @@
       if (cInp) cInp.value = '';
       const tInp = document.getElementById('newWatcherTargetId');
       if (tInp) tInp.value = '';
-      const smInp = document.getElementById('newWatcherSafeMode');
-      if (smInp) smInp.checked = false;
 
     };
 
@@ -6547,7 +6511,6 @@
       const targetID = (document.getElementById('newWatcherTargetId')?.value || '').trim();
       const autoReact = !!document.getElementById('newWatcherAutoReact')?.checked;
       const sound = !!document.getElementById('newWatcherSound')?.checked;
-      const safeMode = !!document.getElementById('newWatcherSafeMode')?.checked;
       const keyword = '';
 
       if (!name) {
@@ -6575,8 +6538,6 @@
         enabled: true,
         autoReact,
         autoGuess: false,
-        safeMode,
-        safeModeCount: 0,
         sound
       });
       saveWatchers();
@@ -6646,7 +6607,6 @@
             <div class="flex items-center justify-between select-none pt-1">
               <div class="flex items-center gap-2">
                 ${w.autoReact ? (isClaimer ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:#5865F2; color:#ffffff;">Auto Claim 🎟️</span>' : '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React</span>') : ''}
-                ${w.safeMode ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:rgba(255,255,255,0.12); color:#ffffff;" title="Safe Mode: 1 out of 2">Safe 1/2</span>' : ''}
                 ${w.autoGuess ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>' : ''}
                 <button type="button" onclick="toggleWatcherSound('${w.id}')" class="dv-pill ${w.sound ? 'active' : 'inactive text-[#8f8f8f]'}" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; cursor:pointer;" title="Toggle sound notification">
                   <svg class="size-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/></svg>
