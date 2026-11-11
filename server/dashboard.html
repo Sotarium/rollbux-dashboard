@@ -823,14 +823,9 @@
                         </button>
                       </div>
                     </div>
-
-                  </div>
-
-                  <!-- Auto Towers -->
-                  <div class="flex flex-col gap-3 w-full mt-2">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between pt-3 border-t border-[rgba(255,255,255,0.06)]">
                       <div class="flex items-center gap-2">
-                        <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Towers</h3>
+                        <h3 class="text-[17px] font-bold text-white tracking-tight">Auto Towers</h3>
                         <span id="towerStatusBadge" class="dv-badge text-[#8f8f8f]">Disabled</span>
                       </div>
                       <label class="dv-toggle-wrap">
@@ -838,30 +833,21 @@
                         <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
                       </label>
                     </div>
-                    <div class="dv-card flex flex-col gap-3 p-5">
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div class="flex flex-col gap-1.5">
-                          <label for="towerBetInput" class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Bet per round</label>
-                          <input type="number" id="towerBetInput" value="50" min="50" max="750000" step="1" class="dv-field font-semibold">
+                    <div class="flex flex-col gap-3">
+                      <div class="grid grid-cols-2 gap-2.5">
+                        <div class="flex items-center gap-2">
+                          <span class="text-[11px] text-[#8f8f8f]">Bet</span>
+                          <input type="number" id="towerBetInput" value="50" min="50" max="750000" step="1" class="dv-field min-w-0 flex-1 font-semibold">
                         </div>
-                        <div class="flex flex-col gap-1.5">
-                          <label for="towerRiskSelect" class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Risk</label>
-                          <select id="towerRiskSelect" class="dv-field font-semibold">
-                            <option value="easy">Easy</option>
-                            <option value="medium">Medium</option>
-                            <option value="hard">Hard</option>
-                            <option value="expert">Expert</option>
-                            <option value="master">Master</option>
-                          </select>
-                        </div>
-                        <div class="flex flex-col gap-1.5">
-                          <label class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Account</label>
-                          <button type="button" id="towerAccountBtn" onclick="openAccountSelectorModal('tower')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
-                            <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
-                            <span id="towerAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
-                          </button>
-                        </div>
+                        <button type="button" id="towerDifficultyBtn" onclick="toggleTowerDifficulty()" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer">
+                          <span class="text-[11px] text-[#8f8f8f]">Diff</span>
+                          <span id="towerDifficultyLabel" class="text-[12px] font-bold text-white">Easy</span>
+                        </button>
                       </div>
+                      <button type="button" id="towerAccountBtn" onclick="openAccountSelectorModal('tower')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
+                        <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                        <span id="towerAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
+                      </button>
                       <div class="flex items-center justify-between pt-1 border-t border-[rgba(255,255,255,0.06)]">
                         <span id="towerFeedback" class="text-[12px] text-[#8f8f8f] truncate flex-1">Ready</span>
                         <button id="towerManualPlayBtn" type="button" class="dv-pill active" style="height:38px; padding:0 22px;">Play once</button>
@@ -3889,7 +3875,26 @@
     const towerFeedback = document.getElementById('towerFeedback');
     const towerManualPlayBtn = document.getElementById('towerManualPlayBtn');
     const towerBetInput = document.getElementById('towerBetInput');
-    const towerRiskSelect = document.getElementById('towerRiskSelect');
+    const towerDifficultyLabel = document.getElementById('towerDifficultyLabel');
+    const towerDifficulties = [
+      { value: 'easy', name: 'Easy' },
+      { value: 'medium', name: 'Medium' },
+      { value: 'hard', name: 'Hard' },
+      { value: 'expert', name: 'Expert' },
+      { value: 'master', name: 'Master' }
+    ];
+    let towerDifficultyIndex = towerDifficulties.findIndex(d => d.value === localStorage.getItem('rollbux_tower_difficulty'));
+    if (towerDifficultyIndex < 0) towerDifficultyIndex = 3;
+    function updateTowerDifficultyUI() {
+      const difficulty = towerDifficulties[towerDifficultyIndex];
+      if (towerDifficultyLabel) towerDifficultyLabel.textContent = difficulty.name;
+      localStorage.setItem('rollbux_tower_difficulty', difficulty.value);
+    }
+    window.toggleTowerDifficulty = function() {
+      towerDifficultyIndex = (towerDifficultyIndex + 1) % towerDifficulties.length;
+      updateTowerDifficultyUI();
+    };
+    updateTowerDifficultyUI();
     let isTowerExecuting = false;
     let towerLoopTimer = null;
     let towerAccountCursor = 0;
@@ -3920,7 +3925,7 @@
       if (towerManualPlayBtn) { towerManualPlayBtn.disabled = true; towerManualPlayBtn.classList.add('opacity-50'); }
       const acc = accountName || targetUsername;
       const bet = Math.max(50, Math.min(750000, Number(towerBetInput?.value) || 50));
-      const difficulty = towerRiskSelect?.value || 'easy';
+      const difficulty = towerDifficulties[towerDifficultyIndex]?.value || 'expert';
       setTowerFeedback(`${acc} : placing ${bet.toFixed(2)} BUX ${difficulty} tower...`, '#acff46');
       try {
         const res = await fetch('/api/tower/play', {
