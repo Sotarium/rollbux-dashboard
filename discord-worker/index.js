@@ -316,6 +316,22 @@ async function sendWebhookTest(siteUser) {
   return results.filter(Boolean).length;
 }
 
+async function getWebhookMetadata(webhookUrl) {
+  const parsed = new URL(String(webhookUrl || ''));
+  const validHost = parsed.protocol === 'https:' && (parsed.hostname === 'discord.com' || parsed.hostname.endsWith('.discord.com') || parsed.hostname === 'discordapp.com' || parsed.hostname.endsWith('.discordapp.com'));
+  if (!validHost || !/^\/api\/webhooks\/\d+\/[^/]+/.test(parsed.pathname)) throw new Error('Invalid Discord webhook URL.');
+  const response = await fetch(`${parsed.origin}${parsed.pathname}`);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.id) throw new Error('Could not read Discord webhook metadata.');
+  let avatar = null;
+  if (data.avatar) {
+    avatar = `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=128`;
+  } else {
+    try { avatar = `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(data.id) % 5n)}.png`; } catch {}
+  }
+  return { id: String(data.id), name: data.name || null, avatar };
+}
+
 async function addReaction(channelId, messageId, emoji, account) {
   const encoded = encodeURIComponent(emoji);
   try {
@@ -575,6 +591,21 @@ const server = http.createServer(async (req, res) => {
       const sent = await sendWebhookTest(siteUser);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true, sent }));
+    } catch (e) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
+  if (url.pathname === '/webhook-info' && req.method === 'POST') {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    try {
+      const data = JSON.parse(body);
+      const metadata = await getWebhookMetadata(data.url);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, ...metadata }));
     } catch (e) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: e.message }));

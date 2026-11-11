@@ -94,6 +94,17 @@
     return data;
   }
 
+  async function fetchDiscordWebhookInfo(webhookUrl) {
+    const res = await fetch(WORKER_URL + '/webhook-info', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-worker-secret': WORKER_SECRET },
+      body: JSON.stringify({ url: webhookUrl })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Could not load webhook profile.');
+    return data;
+  }
+
   function accountForWorkerEvent(event) {
     const accounts = readAccounts();
     const wanted = String(event.account || '').toLowerCase();
@@ -170,6 +181,7 @@
 
   window.pushDiscordConfigToWorker = pushConfig;
   window.testDiscordWorkerWebhooks = testWorkerWebhooks;
+  window.fetchDiscordWebhookInfo = fetchDiscordWebhookInfo;
   window.pullDiscordWorkerActivity = pullActivity;
 
   window.addEventListener('storage', function (e) {
