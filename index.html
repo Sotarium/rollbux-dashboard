@@ -4802,8 +4802,8 @@
         const avatar = webhook.avatar ? '<img src="' + escapeDiscordActivityHtml(webhook.avatar) + '" class="size-8 rounded-full object-cover border border-white/10" alt="Webhook avatar" loading="lazy" onerror="this.style.display=\'none\'">' : '<div class="size-8 rounded-full bg-[#1b1b1b] border border-white/10 flex items-center justify-center text-[11px] text-[#8f8f8f]">W</div>';
         return '<div class="flex items-center justify-between gap-3 p-2.5 rounded-[10px] bg-[#080808] border border-white/5">' +
           '<div class="min-w-0 flex items-center gap-2">' +
-          '<div class="min-w-0"><div class="text-[12px] font-semibold text-white truncate">' + escapeDiscordActivityHtml(webhook.name || 'Discord webhook') + '</div>' + (compact ? '' : '<div class="text-[10px] text-[#8f8f8f] truncate">' + escapeDiscordActivityHtml(webhook.url) + '</div>') + '</div>' +
           (compact ? avatar : '') +
+          '<div class="min-w-0"><div class="text-[12px] font-semibold text-white truncate">' + escapeDiscordActivityHtml(webhook.name || 'Discord webhook') + '</div>' + (compact ? '' : '<div class="text-[10px] text-[#8f8f8f] truncate">' + escapeDiscordActivityHtml(webhook.url) + '</div>') + '</div>' +
           '</div>' +
           '<div class="flex items-center gap-2 shrink-0">' +
           (compact ? '' : avatar) +
