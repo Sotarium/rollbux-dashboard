@@ -4938,6 +4938,7 @@
         name: account.user?.username || account.user?.handle || 'Discord account',
         avatar: account.user?.avatar || '/discord-logo.png',
         active: active && String(active.id) === String(account.id),
+        running: typeof window.isDiscordGatewayRunning === 'function' && window.isDiscordGatewayRunning(),
         stats: stats[String(account.id)] || { joined: 0, guesses: 0, wins: 0, losses: 0 }
       }));
     };
@@ -4964,6 +4965,7 @@
     // dedupe sets, pending giveaway state, and token-bound API actions.
     const discordGatewayStates = new Map();
     let isGatewayRunning = true;
+    window.isDiscordGatewayRunning = () => isGatewayRunning;
     // GUILDS + GUILD_MESSAGES + GUILD_MESSAGE_REACTIONS + MESSAGE_CONTENT.
     const DISCORD_GATEWAY_INTENTS = 1 | 512 | 1024 | 32768;
     const DISCORD_GUESS_LOCK_PREFIX = 'sotarium_giveaway_guess_lock:';
@@ -6500,7 +6502,7 @@
         h(Handle, { type: 'source', position: Position.Right, style: { background: '#54d487', width: 8, height: 8, border: 0 } }),
         h('div', { style: { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 } },
           h('img', { src: data.account.avatar, alt: data.account.name, style: { width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }, onError: e => { e.currentTarget.src = '/discord-logo.png'; } }),
-          h('div', null, h('div', { style: { fontWeight: 800, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 } }, data.account.name), h('div', { style: { color: data.account.active ? '#fff' : '#8f8f8f', fontSize: 10 } }, data.account.active ? 'Active account' : 'Linked account'))),
+          h('div', null, h('div', { style: { fontWeight: 800, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 } }, data.account.name), h('div', { style: { color: data.account.running ? '#54d487' : '#8f8f8f', fontSize: 10 } }, data.account.running ? 'Auto-reacting' : 'Paused'))),
         h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 } },
           h(Metric, { label: 'Joined', value: s.joined, color: '#54d487' }), h(Metric, { label: 'Picked', value: s.guesses, color: '#fff' }),
           h(Metric, { label: 'Won', value: s.wins, color: '#54d487' }), h(Metric, { label: 'Loss', value: s.losses, color: '#ff6868' })));
