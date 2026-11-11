@@ -6587,6 +6587,7 @@
     function AccountNode({ data }) {
       const s = data.account.stats;
       return h('div', { style: { width: 236, background: '#151515', border: data.account.active ? '1px solid rgba(255,255,255,.8)' : '1px solid rgba(255,255,255,.12)', borderRadius: 16, padding: 12, color: '#fff', boxShadow: data.account.active ? '0 0 24px rgba(255,255,255,.1)' : 'none' } },
+        h(Handle, { type: 'target', position: Position.Left, style: { background: '#54d487', width: 8, height: 8, border: 0 } }),
         h(Handle, { type: 'source', position: Position.Right, style: { background: '#54d487', width: 8, height: 8, border: 0 } }),
         h('div', { style: { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 } },
           h('img', { src: data.account.avatar, alt: data.account.name, style: { width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }, onError: e => { e.currentTarget.src = '/discord-logo.png'; } }),
@@ -6596,30 +6597,16 @@
           h(Metric, { label: 'Won', value: s.wins, color: '#54d487' }), h(Metric, { label: 'Loss', value: s.losses, color: '#ff6868' })));
     }
 
-    function HubNode({ data }) {
-      return h('div', { style: { minWidth: 190, padding: '16px 20px', background: '#080808', color: '#fff', border: '1px solid rgba(84,212,135,.6)', borderRadius: 16, textAlign: 'center', boxShadow: '0 0 28px rgba(84,212,135,.12)' } },
-        h(Handle, { type: 'target', position: Position.Left, style: { background: '#54d487', width: 9, height: 9, border: 0 } }),
-        h('div', { style: { fontSize: 11, color: '#54d487', textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 800 } }, 'Discord'),
-        h('div', { style: { fontSize: 16, fontWeight: 800, marginTop: 4 } }, 'Watcher network'),
-        h('div', { style: { fontSize: 11, color: '#8f8f8f', marginTop: 4 } }, data.count + ' linked account' + (data.count === 1 ? '' : 's')));
-    }
-
     function ResumeGraph({ accounts }) {
       const nodes = accounts.map((account, index) => ({ id: 'account-' + account.id, type: 'account', position: { x: 30 + (index % 3) * 270, y: 35 + Math.floor(index / 3) * 220 }, data: { account } }));
-      nodes.push({ id: 'hub', type: 'hub', position: { x: 430, y: Math.max(120, Math.ceil(accounts.length / 3) * 110) }, data: { count: accounts.length } });
-      const edges = accounts.map(account => ({ id: 'edge-' + account.id, source: 'account-' + account.id, target: 'hub', animated: true, style: { stroke: '#54d487', strokeWidth: 1.5 } }));
-      return h('div', { style: { height: '100%', width: '100%' } }, h(ReactFlow, { nodes, edges, nodeTypes: { account: AccountNode, hub: HubNode }, fitView: true, fitViewOptions: { padding: 0.22 }, proOptions: { hideAttribution: false } }, h(Background, { color: '#303030', gap: 22 }), h(Controls, null), h(MiniMap, { nodeColor: '#54d487', maskColor: 'rgba(0,0,0,.55)' })));
+      const edges = accounts.slice(1).map((account, index) => ({ id: 'edge-' + account.id, source: 'account-' + accounts[index].id, target: 'account-' + account.id, animated: true, style: { stroke: '#54d487', strokeWidth: 1.5 } }));
+      return h('div', { style: { height: '100%', width: '100%' } }, h(ReactFlow, { nodes, edges, nodeTypes: { account: AccountNode }, fitView: true, fitViewOptions: { padding: 0.22 }, proOptions: { hideAttribution: false } }, h(Background, { color: '#303030', gap: 22 }), h(Controls, null), h(MiniMap, { nodeColor: '#54d487', maskColor: 'rgba(0,0,0,.55)' })));
     }
 
     function renderDiscordResume() {
       if (!resumeRoot || typeof window.getDiscordResumeData !== 'function') return;
       const accounts = window.getDiscordResumeData();
-      const cards = accounts.length ? accounts.map(account => h('div', { key: account.id, style: { background: '#121212', border: account.active ? '1px solid rgba(255,255,255,.65)' : '1px solid rgba(255,255,255,.08)', borderRadius: 14, padding: 12 } },
-        h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 } }, h('img', { src: account.avatar, alt: account.name, style: { width: 26, height: 26, borderRadius: '50%' } }), h('span', { style: { color: '#fff', fontSize: 13, fontWeight: 800 } }, account.name)),
-        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 5 } }, h(Metric, { label: 'Join', value: account.stats.joined, color: '#54d487' }), h(Metric, { label: 'Guess', value: account.stats.guesses, color: '#fff' }), h(Metric, { label: 'Won', value: account.stats.wins, color: '#54d487' }), h(Metric, { label: 'Loss', value: account.stats.losses, color: '#ff6868' })))) : h('div', { style: { color: '#8f8f8f', padding: 18 } }, 'No Discord accounts linked yet.');
-      resumeRoot.render(h('div', { style: { height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 } },
-        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 10, padding: 16, maxHeight: 210, overflowY: 'auto' } }, cards),
-        h('div', { style: { minHeight: 0, flex: 1, background: '#0d0d0d' } }, accounts.length ? h(ResumeGraph, { accounts }) : h('div', { style: { height: '100%', display: 'grid', placeItems: 'center', color: '#8f8f8f' } }, 'Link a Discord account to build the map.'))));
+      resumeRoot.render(accounts.length ? h(ResumeGraph, { accounts }) : h('div', { style: { height: '100%', display: 'grid', placeItems: 'center', color: '#8f8f8f' } }, 'Link a Discord account to build the map.'));
     }
 
     window.addEventListener('discord-resume-open', renderDiscordResume);
