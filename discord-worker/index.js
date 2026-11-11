@@ -19,6 +19,7 @@ const tenantWatchers = new Map();
 const tenantWebhooks = new Map();
 const tenantWebhookSettings = new Map();
 const processedSelectionPrompts = new Set();
+const activeSelectionLocks = new Set();
 const processedReactions = new Set();
 const processedClaimMessages = new Set();
 let activityLog = [];
@@ -443,18 +444,29 @@ async function handleMessage(msg, account) {
 
     if (isSelectPrompt) {
       const selectionKey = `${siteUser}:${account.id}:${channelId}:${messageId}`;
-      if (processedSelectionPrompts.has(selectionKey)) return;
+      const selectionLockKey = `${siteUser}:${account.id}:${channelId}`;
+      if (processedSelectionPrompts.has(selectionKey) || activeSelectionLocks.has(selectionLockKey)) return;
       processedSelectionPrompts.add(selectionKey);
+      activeSelectionLocks.add(selectionLockKey);
       setTimeout(() => processedSelectionPrompts.delete(selectionKey), 10 * 60 * 1000);
+      setTimeout(() => activeSelectionLocks.delete(selectionLockKey), 10 * 60 * 1000);
       const guess = String(Math.floor(Math.random() * 20) + 1);
       log(`selected — guessing ${guess}`, 'join', account, siteUser);
-      if (!await sendMessage(channelId, guess, account)) processedSelectionPrompts.delete(selectionKey);
+      if (!await sendMessage(channelId, guess, account)) {
+        processedSelectionPrompts.delete(selectionKey);
+        activeSelectionLocks.delete(selectionLockKey);
+      }
       return;
     }
   }
 
   const isResultMessage = /(?:flash\s+giveaway\s+ended|giveaway\s+ended|rain\s+ended|drop\s+ended|secret\s+number|no\s+prize|got\s+it\s+right|got\s+it\s+wrong|correct\s+(?:answer|number)|incorrect|winner|winner\s+is|guessed\s+\d+)/i.test(fullText);
-  if (isResultMessage) return;
+  if (isResultMessage) {
+    for (const key of activeSelectionLocks) {
+      if (key.startsWith(`${siteUser}:`) && key.endsWith(`:${channelId}`)) activeSelectionLocks.delete(key);
+    }
+    return;
+  }
 
   await claimForAllAccounts(msg, matches, account);
 }

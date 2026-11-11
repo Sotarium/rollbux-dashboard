@@ -4837,7 +4837,9 @@
         if (typeof window.pushDiscordConfigToWorker === 'function') window.pushDiscordConfigToWorker();
       }
     }
+    let editingDiscordWebhookIndex = -1;
     window.openWebhooksModal = function() {
+      editingDiscordWebhookIndex = -1;
       const modal = document.getElementById('discordWebhooksModal');
       const form = document.getElementById('discordWebhookForm');
       if (form) form.reset();
@@ -4847,6 +4849,7 @@
       if (modal) { modal.classList.remove('hidden'); modal.style.display = 'flex'; }
     };
     window.closeWebhooksModal = function() {
+      editingDiscordWebhookIndex = -1;
       const modal = document.getElementById('discordWebhooksModal');
       if (modal) { modal.classList.add('hidden'); modal.style.display = 'none'; }
     };
@@ -4854,15 +4857,17 @@
       const webhooks = readDiscordWebhooks();
       const webhook = webhooks[Number(index)];
       if (!webhook) return;
-      const name = prompt('Webhook name', webhook.name || 'Discord webhook');
-      if (name === null) return;
-      const url = prompt('Discord webhook URL', webhook.url || '');
-      if (url === null) return;
-      webhooks[Number(index)] = { ...webhook, name: name.trim() || 'Discord webhook', url: url.trim() };
-      localStorage.setItem(DISCORD_WEBHOOKS_KEY, JSON.stringify(webhooks));
-      renderDiscordWebhooks();
-      if (typeof window.pushDiscordConfigToWorker === 'function') window.pushDiscordConfigToWorker();
-      void hydrateDiscordWebhookAvatars();
+      const modal = document.getElementById('discordWebhooksModal');
+      const nameInput = document.getElementById('discordWebhookName');
+      const urlInput = document.getElementById('discordWebhookUrl');
+      const error = document.getElementById('discordWebhookError');
+      const submit = document.querySelector('#discordWebhookForm button[type="submit"]');
+      editingDiscordWebhookIndex = Number(index);
+      if (nameInput) nameInput.value = webhook.name || '';
+      if (urlInput) urlInput.value = webhook.url || '';
+      if (error) error.classList.add('hidden');
+      if (submit) submit.textContent = 'Update webhook';
+      if (modal) { modal.classList.remove('hidden'); modal.style.display = 'flex'; }
     };
     window.deleteDiscordWebhook = function(index) {
       const webhooks = readDiscordWebhooks();
@@ -4893,6 +4898,7 @@
       const nameInput = document.getElementById('discordWebhookName');
       const urlInput = document.getElementById('discordWebhookUrl');
       const error = document.getElementById('discordWebhookError');
+      const submit = document.querySelector('#discordWebhookForm button[type="submit"]');
       const url = String(urlInput?.value || '').trim();
       let valid = false;
       try {
@@ -4904,12 +4910,19 @@
         return;
       }
       const webhooks = readDiscordWebhooks();
-      webhooks.push({ name: String(nameInput?.value || '').trim() || 'Discord webhook', url, enabled: true, createdAt: Date.now() });
+      const updated = { name: String(nameInput?.value || '').trim() || 'Discord webhook', url, enabled: true, createdAt: Date.now() };
+      if (editingDiscordWebhookIndex >= 0 && webhooks[editingDiscordWebhookIndex]) {
+        webhooks[editingDiscordWebhookIndex] = { ...webhooks[editingDiscordWebhookIndex], ...updated };
+      } else {
+        webhooks.push(updated);
+      }
       localStorage.setItem(DISCORD_WEBHOOKS_KEY, JSON.stringify(webhooks));
+      editingDiscordWebhookIndex = -1;
       if (error) error.classList.add('hidden');
       renderDiscordWebhooks();
       if (nameInput) nameInput.value = '';
       if (urlInput) urlInput.value = '';
+      if (submit) submit.textContent = 'Save webhook';
       syncDiscordWebhookSettingsUI();
       if (typeof window.pushDiscordConfigToWorker === 'function') window.pushDiscordConfigToWorker();
       void hydrateDiscordWebhookAvatars();
@@ -5665,7 +5678,7 @@
           fullTextLower.includes("1–20")
         );
 
-        if (isSelectionPrompt && matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket')) {
+        if (isSelectionPrompt && matchingWatchers.some(w => w.type !== 'claimer' && w.mode !== 'ticket') && typeof window.pushDiscordConfigToWorker !== 'function') {
           const selectionKey = String(channelId) + ':' + String(msg.id || fullText);
           const canGuessThisGiveaway = !state.processedSelectionPrompts.has(selectionKey) &&
             claimGiveawayGuessSlot(selectionKey, myId);
