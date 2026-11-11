@@ -5124,7 +5124,19 @@
           showDashboard();
         });
       } else {
-        showLogin();
+        // localStorage is device-specific. A copied rb_session cookie is the
+        // portable source of truth, so restore the dashboard from it first.
+        fetch('/api/auth/me', { credentials: 'include' })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data?.user) {
+              localStorage.setItem('sotarium_user_profile', JSON.stringify(data.user));
+              showDashboard();
+            } else {
+              showLogin();
+            }
+          })
+          .catch(() => showLogin());
       }
 
       if (loginInput) {

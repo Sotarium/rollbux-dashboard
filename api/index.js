@@ -86,8 +86,10 @@ async function lockSessionTokenToIp(token, ip) {
   return !finalIp || finalIp === ip;
 }
 async function sessionOwnsNetwork(req, session) {
-  const lockIdentity = session?.__sessionToken || (session?.sub ? `user:${session.sub}` : '');
-  return Boolean(lockIdentity) && await lockSessionTokenToIp(lockIdentity, getClientIp(req));
+  // A signed rb_session is intentionally portable across the user's devices.
+  // Do not bind it to the first IP address seen; mobile networks and VPNs
+  // routinely change IPs and must still access the same server-side data.
+  return Boolean(session?.sub || session?.username || session?.email);
 }
 async function resolveRequestSession(req) {
   const cookieSession = currentSession(req);
@@ -213,10 +215,6 @@ export default async function handler(req, res) {
         return;
       }
 
-      if (!(await lockSessionTokenToIp(token, getClientIp(req)))) {
-        sendJson(res, 403, { success: false, error: 'This session is locked to another network. Log in with your own session token.' });
-        return;
-      }
       const rollHeaders = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*',
