@@ -419,7 +419,7 @@ async function handleMessage(msg, account) {
       (Array.isArray(w.keywords) && w.keywords.some(k => fullLower.includes(String(k).toLowerCase())));
 
     if (wantsTicket || w.alwaysClaim) {
-      const emoji = w.claimEmoji || '🎟️';
+      const emoji = w.claimEmoji || (isClaimer ? '🎟️' : '🎉');
       await addReaction(channelId, messageId, emoji, account);
       log(`claim on ${w.name || w.channelID}`, 'claim', account, siteUser);
     }
