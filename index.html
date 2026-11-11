@@ -5002,7 +5002,7 @@
         </div>
 
         <div class="flex items-center justify-between pt-1">
-          <span id="watcherAutoActionLabel" class="text-[13px] font-semibold text-white">Auto React · 🎉</span>
+          <span id="watcherAutoActionLabel" class="text-[13px] font-semibold text-white">Auto React</span>
           <label class="dv-toggle-wrap">
             <input type="checkbox" id="newWatcherAutoReact" checked class="dv-toggle-input">
             <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
@@ -6509,7 +6509,7 @@
         if (help) {
           help.innerHTML = '<b>Watcher mode:</b> Reacts 🎉 immediately to giveaways, with brief retries if needed. Guesses 1–20 when you get picked.';
         }
-        if (actionLbl) actionLbl.textContent = 'Auto React · 🎉';
+        if (actionLbl) actionLbl.textContent = 'Auto React';
         if (targetWrap) targetWrap.style.display = '';
         const safeModeRow = document.getElementById('watcherSafeModeRow');
         if (safeModeRow) safeModeRow.style.display = 'flex';
@@ -6645,7 +6645,7 @@
 
             <div class="flex items-center justify-between select-none pt-1">
               <div class="flex items-center gap-2">
-                ${w.autoReact ? (isClaimer ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:#5865F2; color:#ffffff;">Auto Claim 🎟️</span>' : '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React · 🎉</span>') : ''}
+                ${w.autoReact ? (isClaimer ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:#5865F2; color:#ffffff;">Auto Claim 🎟️</span>' : '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React</span>') : ''}
                 ${w.safeMode ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:rgba(255,255,255,0.12); color:#ffffff;" title="Safe Mode: 1 out of 2">Safe 1/2</span>' : ''}
                 ${w.autoGuess ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>' : ''}
                 <button type="button" onclick="toggleWatcherSound('${w.id}')" class="dv-pill ${w.sound ? 'active' : 'inactive text-[#8f8f8f]'}" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; cursor:pointer;" title="Toggle sound notification">
