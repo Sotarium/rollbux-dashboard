@@ -309,9 +309,13 @@ async function notifyWebhookActivity(siteUser, account, details = {}) {
 async function sendWebhookTest(siteUser) {
   const webhooks = getTenantWebhooks(siteUser).filter(w => w && w.url && w.enabled !== false);
   if (!webhooks.length) return 0;
+  const settings = getTenantWebhookSettings(siteUser);
+  const mentions = [];
+  if (settings.everyone) mentions.push('@everyone');
+  if (settings.here) mentions.push('@here');
   const payload = {
-    content: 'Sotarium webhook test — Rollbux activity notifications are connected.',
-    allowed_mentions: { parse: [] },
+    content: [mentions.join(' '), 'Sotarium webhook test — Rollbux activity notifications are connected.'].filter(Boolean).join('\n'),
+    allowed_mentions: { parse: mentions.length ? ['everyone'] : [] },
     embeds: [{ title: 'Webhook test successful', description: 'This webhook is ready for Rollbux activity alerts.', color: 0x54d487, timestamp: new Date().toISOString() }]
   };
   const results = await Promise.all(webhooks.map(webhook => postWebhook(webhook.url, payload)));
