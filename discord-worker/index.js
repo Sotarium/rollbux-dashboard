@@ -547,7 +547,9 @@ function startGateway(account) {
   });
 
   ws.on('error', err => {
-    log(`ws error: ${err.message}`, 'error', account, account.siteUser);
+    const message = String(err?.message || err);
+    const transientGateway = /Unexpected server response:\s*503/i.test(message);
+    log(`ws error: ${message}`, transientGateway ? 'info' : 'error', account, account.siteUser);
   });
 }
 

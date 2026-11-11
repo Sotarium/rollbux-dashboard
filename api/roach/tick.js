@@ -114,22 +114,28 @@ export default async function handler(req, res) {
     }
 
     const { cycleId, status, secondsRemaining, livePool, joinOpen } = snapshot;
+    const cycleKey = String(cycleId);
     // The live API changes status to JOINING during the two-minute join window.
     // Do not gate joining on a legacy COLLECTING status or a <=60s countdown:
     // cycle_end is intentionally null until the window opens, and cron ticks
     // can arrive anywhere inside the window.
     const joinWindowActive = joinOpen && (status === 'COLLECTING' || status === 'JOINING');
 
-    log(`Cycle: ${cycleId.slice(0, 8)} | Status: ${status} | Join Open: ${joinOpen} | Ends In: ${secondsRemaining ?? 'unknown'}s | Pot: ${livePool}`);
+    log(`Cycle: ${cycleKey.slice(0, 8)} | Status: ${status} | Join Open: ${joinOpen} | Ends In: ${secondsRemaining ?? 'unknown'}s | Pot: ${livePool}`);
 
     // 2. Fetch config and all registered accounts from Upstash
     let configRaw = await redis('get', 'roach:config');
-    let roachConfig = configRaw ? JSON.parse(configRaw) : { auto_messages: false };
+    let roachConfig = { auto_messages: false };
+    try { if (configRaw) roachConfig = JSON.parse(configRaw); } catch { log('Invalid roach:config in Redis; using defaults.'); }
     const autoMessagesEnabled = Boolean(roachConfig.auto_messages);
     log(`Auto Messages setting: ${autoMessagesEnabled ? 'ENABLED' : 'DISABLED'}`);
 
     let accountsRaw = await redis('get', 'roach:accounts');
-    let accounts = accountsRaw ? JSON.parse(accountsRaw) : [];
+    let accounts = [];
+    try {
+      const parsedAccounts = accountsRaw ? JSON.parse(accountsRaw) : [];
+      accounts = Array.isArray(parsedAccounts) ? parsedAccounts : [];
+    } catch { log('Invalid roach:accounts in Redis; ignoring malformed global records.'); }
 
     // Include accounts saved from private user account pages. They are indexed
     // separately so private dashboard data is never merged across users.
@@ -207,7 +213,7 @@ export default async function handler(req, res) {
       }
 
       // Check if this account already joined this cycle
-      const joinedKey = `roach:joined:${cycleId}:${accId}`;
+      const joinedKey = `roach:joined:${cycleKey}:${accId}`;
       let isAccountJoined = (await redis('get', joinedKey)) === '1';
 
       // Sync active rain tick to local player dashboard
@@ -216,7 +222,7 @@ export default async function handler(req, res) {
         handleAction({
           action: 'rain_tick',
           username: accName,
-          cycle_id: cycleId,
+          cycle_id: cycleKey,
           time_left: secondsRemaining ?? 0,
           pot_amount: potBux
         });
@@ -293,7 +299,7 @@ export default async function handler(req, res) {
           log(`[${accName}] Join blocked by Cloudflare/Turnstile challenge (HTTP ${joinRes.status}); manual browser verification is required.`);
           joinStatus = `CHALLENGE_REQUIRED_${joinRes.status}`;
         } else {
-          const errDetail = (joinRes.data && (joinRes.data.message || joinRes.data.error)) || JSON.stringify(joinRes.data);
+          const errDetail = String((joinRes.data && (joinRes.data.message || joinRes.data.error)) || JSON.stringify(joinRes.data));
           log(`[${accName}] Join failed (HTTP ${joinRes.status}): ${errDetail}`);
           joinStatus = `FAILED_${joinRes.status} (${errDetail.slice(0, 30)})`;
         }
@@ -311,7 +317,7 @@ export default async function handler(req, res) {
     // 4. Update overall status in Redis
     const dashboardState = {
       updated_at: new Date().toISOString(),
-      cycle_id: cycleId,
+      cycle_id: cycleKey,
       status,
       seconds_remaining: secondsRemaining,
       join_open: joinOpen,
@@ -323,7 +329,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      cycle_id: cycleId,
+      cycle_id: cycleKey,
       seconds_remaining: secondsRemaining,
       accounts: results,
       logs
