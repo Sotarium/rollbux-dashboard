@@ -20,6 +20,7 @@ const tenantWebhooks = new Map();
 const tenantWebhookSettings = new Map();
 const processedSelectionPrompts = new Set();
 const processedReactions = new Set();
+const processedClaimMessages = new Set();
 let activityLog = [];
 
 function log(msg, type = 'info', account = null, siteUser = null) {
@@ -388,6 +389,36 @@ function matchingWatchers(msg, siteUser) {
   });
 }
 
+async function claimForAllAccounts(msg, matches, sourceAccount) {
+  const siteUser = sourceAccount.siteUser;
+  const channelId = msg.channel_id;
+  const messageId = msg.id;
+  const claimKey = `${siteUser}:${channelId}:${messageId}`;
+  if (processedClaimMessages.has(claimKey)) return;
+  processedClaimMessages.add(claimKey);
+  setTimeout(() => processedClaimMessages.delete(claimKey), 10 * 60 * 1000);
+
+  const claims = [];
+  for (const watcher of matches) {
+    const isClaimer = watcher.type === 'claimer' || watcher.mode === 'ticket';
+    const wantsTicket =
+      (isClaimer
+        ? /ticket|claim|🎟️/i.test(fullTextFromMessage(msg).toLowerCase())
+        : /giveaway|flash\s+giveaway|react\s+(?:with|to\s+enter)|enter\s+to\s+win|🎉|🎊|rain|drop/i.test(fullTextFromMessage(msg).toLowerCase())) ||
+      (Array.isArray(watcher.keywords) && watcher.keywords.some(k => fullTextFromMessage(msg).toLowerCase().includes(String(k).toLowerCase())));
+    if (wantsTicket || watcher.alwaysClaim) {
+      claims.push({ watcher, emoji: watcher.claimEmoji || (isClaimer ? '🎟️' : '🎉') });
+    }
+  }
+  if (!claims.length) return;
+
+  const accounts = [...(getTenantAccounts(siteUser)?.values() || [])].filter(account => account?.token);
+  await Promise.all(accounts.flatMap(account => claims.map(async ({ watcher, emoji }) => {
+    await addReaction(channelId, messageId, emoji, account);
+    log(`claim on ${watcher.name || watcher.channelID}`, 'claim', account, siteUser);
+  })));
+}
+
 async function handleMessage(msg, account) {
   if (!msg) return;
   const siteUser = account.siteUser;
@@ -425,20 +456,7 @@ async function handleMessage(msg, account) {
   const isResultMessage = /(?:flash\s+giveaway\s+ended|giveaway\s+ended|rain\s+ended|drop\s+ended|secret\s+number|no\s+prize|got\s+it\s+right|got\s+it\s+wrong|correct\s+(?:answer|number)|incorrect|winner|winner\s+is|guessed\s+\d+)/i.test(fullText);
   if (isResultMessage) return;
 
-  for (const w of matches) {
-    const isClaimer = w.type === 'claimer' || w.mode === 'ticket';
-    const wantsTicket =
-      (isClaimer
-        ? /ticket|claim|🎟️/i.test(fullLower)
-        : /giveaway|flash\s+giveaway|react\s+(?:with|to\s+enter)|enter\s+to\s+win|🎉|🎊|rain|drop/i.test(fullLower)) ||
-      (Array.isArray(w.keywords) && w.keywords.some(k => fullLower.includes(String(k).toLowerCase())));
-
-    if (wantsTicket || w.alwaysClaim) {
-      const emoji = w.claimEmoji || (isClaimer ? '🎟️' : '🎉');
-      await addReaction(channelId, messageId, emoji, account);
-      log(`claim on ${w.name || w.channelID}`, 'claim', account, siteUser);
-    }
-  }
+  await claimForAllAccounts(msg, matches, account);
 }
 
 function startGateway(account) {
