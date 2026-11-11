@@ -5335,6 +5335,8 @@
       events.forEach(event => {
         const id = String(event.accountId || fallbackId);
         if (!stats[id]) return;
+        const clearedAt = Number(localStorage.getItem('sotarium_discord_resume_cleared_' + id) || 0);
+        if ((Number(event.ts || event.timestamp) || 0) <= clearedAt) return;
         const text = String(event.text || '').toLowerCase();
         const tag = String(event.tag || '').toLowerCase();
         if (tag === 'auto react' && text.includes('joined')) stats[id].joined++;
@@ -5350,6 +5352,13 @@
         running: typeof window.isDiscordGatewayRunning === 'function' && window.isDiscordGatewayRunning(),
         stats: stats[String(account.id)] || { joined: 0, guesses: 0, wins: 0, losses: 0 }
       }));
+    };
+
+    window.clearDiscordResumeAccount = function(accountId) {
+      const id = String(accountId || '');
+      if (!id) return;
+      localStorage.setItem('sotarium_discord_resume_cleared_' + id, String(Date.now()));
+      window.dispatchEvent(new CustomEvent('discord-resume-stats-cleared'));
     };
 
     window.toggleDiscordWatcherActive = function() {
@@ -6877,9 +6886,10 @@
 
     function AccountNode({ data }) {
       const s = data.account.stats;
-      return h('div', { style: { width: 236, background: '#151515', border: data.account.active ? '1px solid rgba(255,255,255,.8)' : '1px solid rgba(255,255,255,.12)', borderRadius: 16, padding: 12, color: '#fff', boxShadow: data.account.active ? '0 0 24px rgba(255,255,255,.1)' : 'none' } },
+      return h('div', { style: { width: 236, background: '#151515', border: data.account.active ? '1px solid rgba(255,255,255,.8)' : '1px solid rgba(255,255,255,.12)', borderRadius: 16, padding: 12, color: '#fff', boxShadow: data.account.active ? '0 0 24px rgba(255,255,255,.1)' : 'none', position: 'relative' } },
         h(Handle, { type: 'target', position: Position.Left, style: { background: '#54d487', width: 8, height: 8, border: 0 } }),
         h(Handle, { type: 'source', position: Position.Right, style: { background: '#54d487', width: 8, height: 8, border: 0 } }),
+        h('button', { type: 'button', title: 'Clear account stats', onClick: event => { event.stopPropagation(); window.clearDiscordResumeAccount(data.account.id); }, style: { position: 'absolute', top: 9, right: 10, border: '1px solid rgba(255,255,255,.12)', borderRadius: 6, padding: '3px 6px', background: '#080808', color: '#8f8f8f', fontSize: 9, fontWeight: 700, cursor: 'pointer' } }, 'Clear'),
         h('div', { style: { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 } },
           h('img', { src: data.account.avatar, alt: data.account.name, style: { width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }, onError: e => { e.currentTarget.src = '/discord-logo.png'; } }),
           h('div', null, h('div', { style: { fontWeight: 800, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 } }, data.account.name), h('div', { style: { color: data.account.running ? '#54d487' : '#8f8f8f', fontSize: 10 } }, data.account.running ? 'Auto-reacting' : 'Paused'))),
@@ -6904,6 +6914,7 @@
     }
 
     window.addEventListener('discord-resume-open', renderDiscordResume);
+    window.addEventListener('discord-resume-stats-cleared', renderDiscordResume);
   </script>
 
   <!-- Custom Vibe-Coded Modal Overlay for Confirm / Prompt / Alert -->
