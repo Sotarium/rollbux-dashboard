@@ -347,20 +347,6 @@ function fullTextFromMessage(msg) {
   return t;
 }
 
-function sourceReactionEmoji(msg, text) {
-  const sourceReaction = Array.isArray(msg?.reactions)
-    ? msg.reactions.find(reaction => reaction?.emoji?.id || reaction?.emoji?.name)
-    : null;
-  if (sourceReaction?.emoji) {
-    const name = String(sourceReaction.emoji.name || '').trim();
-    const id = String(sourceReaction.emoji.id || '').trim();
-    if (id) return (name ? name + ':' : '') + id;
-    if (name) return name;
-  }
-  const explicitEmoji = String(text || '').match(/[🎉🎊🎟️]/u);
-  return explicitEmoji ? explicitEmoji[0] : '🎉';
-}
-
 function matchingWatchers(msg, siteUser) {
   const watchers = getTenantWatchers(siteUser);
   const channelId = String(msg.channel_id || '');
@@ -417,7 +403,7 @@ async function handleMessage(msg, account) {
       (Array.isArray(w.keywords) && w.keywords.some(k => fullLower.includes(String(k).toLowerCase())));
 
     if (wantsTicket || w.alwaysClaim) {
-      const emoji = w.claimEmoji || (isClaimer ? '🎟️' : sourceReactionEmoji(msg, fullText));
+      const emoji = w.claimEmoji || '🎟️';
       await addReaction(channelId, messageId, emoji, account);
       log(`claim on ${w.name || w.channelID}`, 'claim', account, siteUser);
     }
