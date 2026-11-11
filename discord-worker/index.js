@@ -405,13 +405,18 @@ async function handleMessage(msg, account) {
     }
   }
 
+  const isResultMessage = /(?:flash\s+giveaway\s+ended|giveaway\s+ended|rain\s+ended|drop\s+ended|secret\s+number|no\s+prize|got\s+it\s+right|got\s+it\s+wrong|correct\s+(?:answer|number)|incorrect|winner|winner\s+is|guessed\s+\d+)/i.test(fullText);
+  if (isResultMessage) return;
+
   for (const w of matches) {
+    const isClaimer = w.type === 'claimer' || w.mode === 'ticket';
     const wantsTicket =
-      /giveaway|ticket|react|emoji|🎉|🎟️|rain|drop/i.test(fullLower) ||
+      (isClaimer
+        ? /ticket|claim|🎟️/i.test(fullLower)
+        : /giveaway|flash\s+giveaway|react\s+(?:with|to\s+enter)|enter\s+to\s+win|🎉|🎊|rain|drop/i.test(fullLower)) ||
       (Array.isArray(w.keywords) && w.keywords.some(k => fullLower.includes(String(k).toLowerCase())));
 
     if (wantsTicket || w.alwaysClaim) {
-      const isClaimer = w.type === 'claimer' || w.mode === 'ticket';
       const emoji = w.claimEmoji || (isClaimer ? '🎟️' : sourceReactionEmoji(msg, fullText));
       await addReaction(channelId, messageId, emoji, account);
       log(`claim on ${w.name || w.channelID}`, 'claim', account, siteUser);
