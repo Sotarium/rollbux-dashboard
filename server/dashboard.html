@@ -6554,12 +6554,11 @@
 
 
   <!-- Embedded Discord résumé map powered by React Flow (@xyflow/react). -->
-  <div id="discordResumeModal" class="hidden fixed inset-0 z-[99998] items-center justify-center bg-black/80 backdrop-blur-md p-4">
+  <div id="discordResumeModal" class="hidden fixed inset-0 z-[99998] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
     <div class="w-full max-w-[1180px] h-[min(88vh,820px)] rounded-[22px] bg-[#101010] border border-white/10 shadow-2xl flex flex-col overflow-hidden">
       <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-white/10">
         <div>
           <h3 class="text-[20px] font-bold text-white">Discord Account Resume</h3>
-          <p class="text-[12px] text-[#8f8f8f] mt-1">A per-account map of joins, guesses, wins, and losses.</p>
         </div>
         <button type="button" onclick="closeDiscordResume()" class="dv-icon-btn" title="Close">
           <svg class="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -6572,7 +6571,7 @@
   <script type="module">
     import React from 'https://esm.sh/react@18.3.1';
     import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
-    import { ReactFlow, Background, Controls, Handle, Position, useNodesState, useEdgesState } from 'https://esm.sh/@xyflow/react@12.3.1?deps=react@18.3.1,react-dom@18.3.1';
+    import { ReactFlow, Background, Handle, Position, useNodesState, useEdgesState } from 'https://esm.sh/@xyflow/react@12.3.1?deps=react@18.3.1,react-dom@18.3.1';
 
     const resumeRootElement = document.getElementById('discordResumeRoot');
     const resumeRoot = resumeRootElement ? createRoot(resumeRootElement) : null;
@@ -6603,7 +6602,7 @@
       const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
       const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
       const nodeTypes = React.useMemo(() => ({ account: AccountNode }), []);
-      return h('div', { style: { height: '100%', width: '100%' } }, h(ReactFlow, { nodes, edges, onNodesChange, onEdgesChange, nodeTypes, nodesDraggable: true, nodeDragThreshold: 1, panOnDrag: false, fitView: true, fitViewOptions: { padding: 0.35 }, minZoom: 0.35, maxZoom: 1.4, proOptions: { hideAttribution: false } }, h(Background, { color: '#303030', gap: 22 }), h(Controls, null)));
+      return h('div', { style: { height: '100%', width: '100%' } }, h(ReactFlow, { nodes, edges, onNodesChange, onEdgesChange, nodeTypes, nodesDraggable: true, nodeDragThreshold: 1, panOnDrag: false, fitView: true, fitViewOptions: { padding: 0.35 }, minZoom: 0.35, maxZoom: 1.4, proOptions: { hideAttribution: true } }, h(Background, { color: '#303030', gap: 22 })));
     }
 
     function renderDiscordResume() {
