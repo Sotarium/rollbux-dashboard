@@ -623,7 +623,8 @@ export default async function handler(req, res) {
             token_preview: a.token ? `${a.token.slice(0, 8)}...${a.token.slice(-6)}` : '',
             created_at: a.created_at,
             cart,
-            live_balance: liveBal
+            live_balance: liveBal,
+            is_live: liveBal !== null
           };
         }));
 
@@ -2529,4 +2530,3 @@ export default async function handler(req, res) {
   res.statusCode = 404;
   res.end(JSON.stringify({ error: 'Not found' }));
 }
-

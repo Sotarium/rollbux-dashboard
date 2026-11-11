@@ -280,8 +280,10 @@
 
         connectedAccounts.innerHTML = accounts.map(account => {
           const avatarSrc = account.avatar_url || 'https://rollbux.com/icons/avatar.png';
+          const isLive = account.is_live === true;
+          const statusColor = isLive ? '#54d487' : '#f55e5e';
           return `
-            <div data-v-322fcb82="" class="bets-element bet-negative" bis_skin_checked="1">
+            <div data-v-322fcb82="" class="bets-element bet-negative" style="border-top:2px solid ${statusColor}; box-shadow:0 -8px 18px -16px ${statusColor};" bis_skin_checked="1">
               <div data-v-322fcb82="" class="element-user user-null" bis_skin_checked="1">
                 <div data-v-322fcb82="" class="user-avatar avatar-clickable" bis_skin_checked="1">
                   <div data-v-7359c309="" data-v-322fcb82="" class="avatar-image" bis_skin_checked="1">
