@@ -17,6 +17,19 @@
     return part && part !== 'index.html' ? part.toLowerCase() : '';
   }
 
+  async function resolveSiteUser() {
+    const local = siteUser();
+    if (local) return local;
+    try {
+      const response = await fetch('/api/auth/me', { credentials: 'include' });
+      const data = await response.json().catch(() => null);
+      const username = data?.user?.username || data?.user?.email;
+      return username ? String(username).toLowerCase() : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
   function readAccounts() {
     try {
       const raw = JSON.parse(localStorage.getItem('sotarium_discord_accounts') || '[]');
@@ -58,7 +71,7 @@
   }
 
   async function pushConfig() {
-    const user = siteUser();
+    const user = await resolveSiteUser();
     if (!user) return;
     try {
       await fetch(WORKER_URL + '/config', {
@@ -81,7 +94,7 @@
   }
 
   async function testWorkerWebhooks() {
-    const user = siteUser();
+    const user = await resolveSiteUser();
     if (!user) throw new Error('No site user found.');
     await pushConfig();
     const res = await fetch(WORKER_URL + '/test-webhook', {
@@ -149,7 +162,7 @@
   }
 
   async function pullActivity() {
-    const user = siteUser();
+    const user = await resolveSiteUser();
     if (!user) return;
     try {
       const res = await fetch(WORKER_URL + '/status?user=' + encodeURIComponent(user), {
