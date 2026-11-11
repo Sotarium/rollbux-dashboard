@@ -2162,6 +2162,91 @@ export default async function handler(req, res) {
     return;
   }
 
+  // ── Tower API ───────────────────────────────────────────────────────────────
+  function towerHeaders(sessionToken) {
+    return {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${sessionToken}`,
+      "Cookie": `authjs.session-token=${sessionToken}`,
+      "Origin": "https://rollbux.com",
+      "Referer": "https://rollbux.com/games/tower"
+    };
+  }
+
+  // POST /api/tower/play — one complete, server-verified Tower path.
+  if (pathname === '/api/tower/play' && req.method === 'POST') {
+    if (!isAllowedIp(req)) { res.statusCode = 403; res.end('Forbidden'); return; }
+    try {
+      const payload = req.body || await parseBody(req);
+      const targetName = (payload.username || '').toLowerCase().trim();
+      const difficultyMap = {
+        easy: { columns: 4 }, medium: { columns: 3 }, hard: { columns: 2 },
+        expert: { columns: 3 }, master: { columns: 4 }
+      };
+      const difficulty = difficultyMap[String(payload.difficulty || 'easy').toLowerCase()] ? String(payload.difficulty).toLowerCase() : 'easy';
+      const columns = difficultyMap[difficulty].columns;
+      const sessionToken = await getMinesSessionToken(targetName);
+      const headers = towerHeaders(sessionToken);
+
+      const balanceRes = await fetch('https://rollbux.com/_api/users/me/balance', { headers });
+      const balanceData = await balanceRes.json().catch(() => ({}));
+      const liveBalanceMicro = Number(balanceData?.data?.token_balance || 0);
+      const requestedMicro = Math.floor(Math.max(50, Math.min(750000, Number(payload.bet_bux) || 50)) * 1000000);
+      const betMicro = Math.min(requestedMicro, liveBalanceMicro);
+      if (!Number.isFinite(betMicro) || betMicro < 50_000_000) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ success: false, error: `Balance too low (${(Math.max(0, liveBalanceMicro) / 1000000).toFixed(2)} BUX, min 50 BUX)` }));
+        return;
+      }
+
+      const suppliedPath = Array.isArray(payload.selected_columns) ? payload.selected_columns : [];
+      const selectedColumns = Array.from({ length: 9 }, (_, row) => {
+        const candidate = Number(suppliedPath[row]);
+        return Number.isInteger(candidate) && candidate >= 0 && candidate < columns
+          ? candidate
+          : Math.floor(Math.random() * columns);
+      });
+      const idKey = crypto.randomUUID ? crypto.randomUUID() : `tower_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const rbRes = await fetch('https://rollbux.com/_api/games/tower/start', {
+        method: 'POST',
+        headers: { ...headers, 'Idempotency-Key': idKey },
+        body: JSON.stringify({ amount_micro_tokens: betMicro, difficulty, selected_columns: selectedColumns })
+      });
+      const rbText = await rbRes.text();
+      let rbData = {};
+      try { rbData = JSON.parse(rbText); } catch {}
+      if (!rbRes.ok) {
+        const err = rbData?.message || (typeof rbData?.error === 'string' ? rbData.error : (rbData?.error?.message || rbText.slice(0, 240) || 'Tower play failed'));
+        res.statusCode = rbRes.status || 400;
+        res.end(JSON.stringify({ success: false, error: err, details: rbData }));
+        return;
+      }
+      const result = rbData?.data || rbData || {};
+      const payoutMicro = Number(result?.current_payout?.value ?? result?.payout ?? result?.amount ?? 0);
+      const payoutBux = payoutMicro / 1000000;
+      const won = payoutBux > (betMicro / 1000000) || result?.won === true || result?.status === 'completed' && payoutBux > 0;
+      res.setHeader('Content-Type', 'application/json');
+      res.statusCode = 200;
+      res.end(JSON.stringify({
+        success: true,
+        account: targetName,
+        difficulty,
+        bet_bux: (betMicro / 1000000).toFixed(2),
+        payout_bux: payoutBux.toFixed(2),
+        won,
+        status: result?.status || rbData?.status || 'completed',
+        selected_columns: selectedColumns,
+        data: rbData
+      }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ success: false, error: e.message }));
+    }
+    return;
+  }
+
   // ── Mines API Helpers ──────────────────────────────────────────────────────
   async function getMinesSessionToken(targetName) {
     const name = (targetName || '').toLowerCase().trim();

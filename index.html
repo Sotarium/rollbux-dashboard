@@ -826,6 +826,49 @@
 
                   </div>
 
+                  <!-- Auto Towers -->
+                  <div class="flex flex-col gap-3 w-full mt-2">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <h3 class="text-[20px] font-bold text-white tracking-tight">Auto Towers</h3>
+                        <span id="towerStatusBadge" class="dv-badge text-[#8f8f8f]">Disabled</span>
+                      </div>
+                      <label class="dv-toggle-wrap">
+                        <input type="checkbox" id="towerMasterToggle" class="dv-toggle-input">
+                        <div class="dv-toggle-track"><div class="dv-toggle-thumb"></div></div>
+                      </label>
+                    </div>
+                    <div class="dv-card flex flex-col gap-3 p-5">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="flex flex-col gap-1.5">
+                          <label for="towerBetInput" class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Bet per round</label>
+                          <input type="number" id="towerBetInput" value="50" min="50" max="750000" step="1" class="dv-field font-semibold">
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                          <label for="towerRiskSelect" class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Risk</label>
+                          <select id="towerRiskSelect" class="dv-field font-semibold">
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                            <option value="expert">Expert</option>
+                            <option value="master">Master</option>
+                          </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                          <label class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Account</label>
+                          <button type="button" id="towerAccountBtn" onclick="openAccountSelectorModal('tower')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
+                            <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                            <span id="towerAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="flex items-center justify-between pt-1 border-t border-[rgba(255,255,255,0.06)]">
+                        <span id="towerFeedback" class="text-[12px] text-[#8f8f8f] truncate flex-1">Ready</span>
+                        <button id="towerManualPlayBtn" type="button" class="dv-pill active" style="height:38px; padding:0 22px;">Play once</button>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- Game Modes: Auto Chicken, Auto Tip & Auto Sell (Square Card Grid) -->
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-5 w-full mt-2">
                     <!-- Auto Chicken Card (Square Aspect) -->
@@ -3226,6 +3269,11 @@
         key: 'rollbux_mines_account',
         title: 'Auto Mines'
       },
+      tower: {
+        get labelEl() { return document.getElementById('towerAccountLabel'); },
+        key: 'rollbux_tower_account',
+        title: 'Auto Towers'
+      },
       chicken: {
         get labelEl() { return document.getElementById('chickenAccountLabel'); },
         key: 'rollbux_chicken_account',
@@ -3310,7 +3358,7 @@
     }
 
     function initAccountButtons() {
-      ['upgrader', 'chicken', 'battle', 'mines', 'tip', 'sell', 'rains', 'results', 'rain'].forEach(mode => {
+      ['upgrader', 'chicken', 'battle', 'mines', 'tower', 'tip', 'sell', 'rains', 'results', 'rain'].forEach(mode => {
         const current = getSelectedAccountsForMode(mode);
         updateAccountButtonLabel(mode, current);
 
@@ -3830,6 +3878,110 @@
         const selectedList = getSelectedAccountsForMode('mines');
         const target = (selectedList && selectedList.length > 0 && selectedList[0] !== 'ALL') ? selectedList[0] : targetUsername;
         executeMinesRound(target);
+      });
+    }
+
+    // ==========================================
+    // AUTO TOWERS CONTROLLER
+    // ==========================================
+    const towerMasterToggle = document.getElementById('towerMasterToggle');
+    const towerStatusBadge = document.getElementById('towerStatusBadge');
+    const towerFeedback = document.getElementById('towerFeedback');
+    const towerManualPlayBtn = document.getElementById('towerManualPlayBtn');
+    const towerBetInput = document.getElementById('towerBetInput');
+    const towerRiskSelect = document.getElementById('towerRiskSelect');
+    let isTowerExecuting = false;
+    let towerLoopTimer = null;
+    let towerAccountCursor = 0;
+
+    function setTowerFeedback(msg, color = '#9aa3a8') {
+      if (towerFeedback) {
+        towerFeedback.textContent = msg;
+        towerFeedback.style.color = color;
+      }
+    }
+
+    function syncTowerStatusBadge() {
+      if (!towerStatusBadge || !towerMasterToggle) return;
+      if (towerMasterToggle.checked) {
+        towerStatusBadge.textContent = 'Active';
+        towerStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#acff46]/10 border border-[#acff46]/30 text-[#acff46]';
+        scheduleTowerLoop();
+      } else {
+        towerStatusBadge.textContent = 'Disabled';
+        towerStatusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 text-red-400';
+        if (towerLoopTimer) { clearTimeout(towerLoopTimer); towerLoopTimer = null; }
+      }
+    }
+
+    async function executeTowerRound(accountName) {
+      if (isTowerExecuting) return;
+      isTowerExecuting = true;
+      if (towerManualPlayBtn) { towerManualPlayBtn.disabled = true; towerManualPlayBtn.classList.add('opacity-50'); }
+      const acc = accountName || targetUsername;
+      const bet = Math.max(50, Math.min(750000, Number(towerBetInput?.value) || 50));
+      const difficulty = towerRiskSelect?.value || 'easy';
+      setTowerFeedback(`${acc} : placing ${bet.toFixed(2)} BUX ${difficulty} tower...`, '#acff46');
+      try {
+        const res = await fetch('/api/tower/play', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: acc, bet_bux: bet, difficulty })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          const detail = typeof data.error === 'string' ? data.error : (data.error?.message || 'Tower play failed');
+          setTowerFeedback(`${acc} : ${detail}`, '#ff6b6b');
+          return;
+        }
+        const payout = Number(data.payout_bux) || 0;
+        const won = data.won === true || payout > bet;
+        setTowerFeedback(`${acc} : ${won ? `Won ${payout.toFixed(2)} BUX` : 'Lost'} — ${difficulty}`, won ? '#acff46' : '#ff6b6b');
+        if (typeof window.pushGameHistory === 'function') {
+          window.pushGameHistory({ account: acc, mode: 'Towers', success: won, betBux: bet, amountBux: payout });
+        }
+      } catch (e) {
+        setTowerFeedback(`${acc} : Network error`, '#ff6b6b');
+      } finally {
+        isTowerExecuting = false;
+        if (towerManualPlayBtn) { towerManualPlayBtn.disabled = false; towerManualPlayBtn.classList.remove('opacity-50'); }
+        scheduleTowerLoop();
+      }
+    }
+
+    function scheduleTowerLoop() {
+      if (!towerMasterToggle?.checked || isTowerExecuting) return;
+      if (towerLoopTimer) clearTimeout(towerLoopTimer);
+      towerLoopTimer = setTimeout(async () => {
+        if (!towerMasterToggle?.checked) return;
+        const accounts = await getRegisteredAccountsList(true).catch(() => []);
+        const selected = getSelectedAccountsForMode('tower').map(s => s.toLowerCase().trim());
+        const candidates = (selected.includes('all') || selected.length === 0)
+          ? accounts
+          : accounts.filter(a => selected.includes((a.name || '').toLowerCase().trim()));
+        if (!candidates.length) {
+          await executeTowerRound(targetUsername);
+          return;
+        }
+        const candidate = candidates[towerAccountCursor % candidates.length];
+        towerAccountCursor = (towerAccountCursor + 1) % candidates.length;
+        await executeTowerRound(candidate.name || targetUsername);
+      }, 5000);
+    }
+
+    if (towerMasterToggle) {
+      towerMasterToggle.checked = localStorage.getItem('rollbux_tower_active') === 'true';
+      syncTowerStatusBadge();
+      towerMasterToggle.addEventListener('change', () => {
+        localStorage.setItem('rollbux_tower_active', towerMasterToggle.checked ? 'true' : 'false');
+        syncTowerStatusBadge();
+      });
+    }
+    if (towerManualPlayBtn) {
+      towerManualPlayBtn.addEventListener('click', () => {
+        const selected = getSelectedAccountsForMode('tower');
+        const target = selected.length && selected[0] !== 'ALL' ? selected[0] : targetUsername;
+        executeTowerRound(target);
       });
     }
 
