@@ -116,11 +116,13 @@
       });
       if (!res.ok) return;
       const payload = await res.json();
-      const incoming = Array.isArray(payload.activity) ? payload.activity.map(normalizeWorkerEvent).filter(Boolean) : [];
+      const clearedAt = Number(localStorage.getItem('sotarium_discord_activity_cleared_at') || 0);
+      const incoming = (Array.isArray(payload.activity) ? payload.activity.map(normalizeWorkerEvent).filter(Boolean) : [])
+        .filter(event => (Number(event.ts) || 0) > clearedAt);
       let existing = [];
       try { existing = JSON.parse(localStorage.getItem('sotarium_discord_activity_v2') || '[]'); } catch (e) {}
       if (!Array.isArray(existing)) existing = [];
-      existing = existing.filter(event => !isTransportEvent(event));
+      existing = existing.filter(event => !isTransportEvent(event) && (Number(event.ts || event.timestamp) || 0) > clearedAt);
       const merged = [...incoming, ...existing];
       const seen = new Set();
       const deduped = merged.filter(event => {

@@ -4686,6 +4686,7 @@
 
     window.clearDiscordActivity = function() {
       localStorage.removeItem(DISCORD_ACTIVITY_KEY);
+      localStorage.setItem('sotarium_discord_activity_cleared_at', String(Date.now()));
       const list = document.getElementById('discordActivityList');
       if (list) list.innerHTML = '<div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]"><span>No recent activity. Active watchers will log events here.</span></div>';
       applyDiscordActivityFilter();
