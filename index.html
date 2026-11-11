@@ -4508,6 +4508,13 @@
     };
 
     window.removeDiscordAccount = function(id) {
+      const account = readDiscordAccounts().find(a => String(a.id) === String(id));
+      const accountName = account?.user?.username || account?.user?.handle || 'this Discord account';
+      const confirmed = typeof window.vibeConfirm === 'function'
+        ? window.vibeConfirm(`Remove ${accountName} from linked Discord accounts?`, 'Remove Discord Account')
+        : Promise.resolve(true);
+      return Promise.resolve(confirmed).then(ok => {
+        if (!ok) return;
       const removedState = discordGatewayStates.get(String(id));
       if (removedState) {
         clearInterval(removedState.heartbeat);
@@ -4519,6 +4526,7 @@
       persistDiscordAccounts(accounts, accounts[0]?.id || null);
       syncDiscordGwUI();
       syncDiscordCustomProfile();
+      });
     };
 
     function renderDiscordAccountPills() {
@@ -4532,10 +4540,16 @@
         const name = String(a.user?.username || a.user?.handle || 'Discord account').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         const avatar = String(a.user?.avatar || '/discord-logo.png').replace(/"/g, '&quot;');
         const selected = active && String(active.id) === id;
-        return '<button type="button" aria-pressed="' + selected + '" title="' + name + (selected ? ' (active)' : '') + '" onclick="selectDiscordAccount(\'' + id.replace(/[^a-zA-Z0-9_-]/g, '') + '\')" class="flex shrink-0 items-center gap-2 px-2.5 py-1.5 rounded-[11px] border transition ' + (selected ? 'bg-white/10 border-white/60 text-white' : 'bg-[#080808] hover:bg-[#1d1d1d] border-[rgba(255,255,255,0.10)] text-[#cfcfcf]') + '">' +
+        const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '');
+        return '<div class="flex shrink-0 items-center gap-1 rounded-[11px] border ' + (selected ? 'bg-white/10 border-white/60' : 'bg-[#080808] border-[rgba(255,255,255,0.10)]') + '">' +
+          '<button type="button" aria-pressed="' + selected + '" title="' + name + (selected ? ' (active)' : '') + '" onclick="selectDiscordAccount(\'' + safeId + '\')" class="flex items-center gap-2 px-2.5 py-1.5 rounded-[11px] transition ' + (selected ? 'text-white' : 'hover:bg-[#1d1d1d] text-[#cfcfcf]') + '">' +
           '<img src="' + avatar + '" class="size-7 rounded-full object-cover" alt="' + name + '" onerror="this.onerror=null; this.src=\'/discord-logo.png\';" />' +
           '<span class="max-w-[140px] truncate text-[13px] font-bold">' + name + '</span>' +
-          '</button>';
+          '</button>' +
+          '<button type="button" aria-label="Remove ' + name + '" title="Remove account" onclick="event.stopPropagation(); removeDiscordAccount(\'' + safeId + '\')" class="mr-1 flex size-6 shrink-0 items-center justify-center rounded-[7px] text-[#ff4b4b] hover:bg-[#ff4b4b]/20 hover:text-white transition active:scale-90" >' +
+          '<svg class="size-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 01-1-1h-4a1 1 0 01-1 1v3M4 7h16" /></svg>' +
+          '</button>' +
+          '</div>';
       }).join('');
     }
 
@@ -4556,7 +4570,9 @@
         const id = String(a.id).replace(/[^a-zA-Z0-9_-]/g, '');
         return '<div class="flex items-center gap-2 p-2 rounded-[9px] ' + (selected ? 'bg-[#5865F2]/15 border border-[#5865F2]/35' : 'bg-[#080808] border border-white/5') + '">' +
           '<button type="button" class="flex-1 min-w-0 text-left text-[12px] font-semibold text-white truncate" onclick="selectDiscordAccount(\'' + id + '\')">' + name + (selected ? ' <span class="text-[#54d487]">(active)</span>' : '') + '</button>' +
-          '<button type="button" class="text-[11px] text-[#8f8f8f] hover:text-red-400" onclick="removeDiscordAccount(\'' + id + '\')">Remove</button></div>';
+          '<button type="button" aria-label="Remove ' + name + '" title="Remove account" onclick="event.stopPropagation(); removeDiscordAccount(\'' + id + '\')" class="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#ff4b4b] hover:bg-[#ff4b4b]/20 hover:text-white transition active:scale-90">' +
+          '<svg class="size-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 01-1-1h-4a1 1 0 01-1 1v3M4 7h16" /></svg>' +
+          '</button></div>';
       }).join('');
       list.innerHTML = accountCards + '<div class="flex items-center justify-between gap-3 p-3 rounded-[10px] bg-[#121212] border border-[rgba(255,255,255,0.14)]">' +
         '<span class="text-[12px] font-semibold text-white">Add another Discord account</span>' +
