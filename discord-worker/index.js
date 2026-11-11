@@ -542,7 +542,10 @@ function startGateway(account) {
     clearInterval(account.heartbeat);
     account.ws = null;
     const closeReason = Buffer.isBuffer(reason) ? reason.toString('utf8') : String(reason || '').trim();
-    log(`gateway closed code=${code}${closeReason ? ` reason=${closeReason.slice(0, 160)}` : ''} — reconnect 5s`, 'info', account, account.siteUser);
+    const authenticationFailure = Number(code) === 4004 || Number(code) === 4013 || Number(code) === 4014;
+    account.authFailed = authenticationFailure;
+    log(`gateway closed code=${code}${closeReason ? ` reason=${closeReason.slice(0, 160)}` : ''}${authenticationFailure ? ' — relink this account' : ' — reconnect 5s'}`, authenticationFailure ? 'error' : 'info', account, account.siteUser);
+    if (authenticationFailure) return;
     clearTimeout(account.reconnect);
     account.reconnect = setTimeout(() => startGateway(account), 5000);
   });
@@ -682,8 +685,10 @@ const server = http.createServer(async (req, res) => {
           const existing = accMap.get(id);
           if (existing) {
             existing.token = a.token;
+            existing.authFailed = false;
             if (a.user?.id) existing.user = a.user;
             else await ensureAccountUser(existing);
+            if (!existing.ws) startGateway(existing);
           } else {
             const entry = {
               ...a,
