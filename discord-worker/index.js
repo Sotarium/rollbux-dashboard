@@ -538,10 +538,11 @@ function startGateway(account) {
     }
   });
 
-  ws.on('close', () => {
+  ws.on('close', (code, reason) => {
     clearInterval(account.heartbeat);
     account.ws = null;
-    log('gateway closed — reconnect 5s', 'info', account, account.siteUser);
+    const closeReason = Buffer.isBuffer(reason) ? reason.toString('utf8') : String(reason || '').trim();
+    log(`gateway closed code=${code}${closeReason ? ` reason=${closeReason.slice(0, 160)}` : ''} — reconnect 5s`, 'info', account, account.siteUser);
     clearTimeout(account.reconnect);
     account.reconnect = setTimeout(() => startGateway(account), 5000);
   });
