@@ -6602,7 +6602,7 @@
       const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
       const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
       const nodeTypes = React.useMemo(() => ({ account: AccountNode }), []);
-      return h('div', { style: { height: '100%', width: '100%' } }, h(ReactFlow, { nodes, edges, onNodesChange, onEdgesChange, nodeTypes, nodesDraggable: true, nodeDragThreshold: 1, panOnDrag: false, fitView: true, fitViewOptions: { padding: 0.35 }, minZoom: 0.35, maxZoom: 1.4, proOptions: { hideAttribution: true } }, h(Background, { color: '#303030', gap: 22 })));
+      return h('div', { style: { height: '100%', width: '100%' } }, h(ReactFlow, { nodes, edges, onNodesChange, onEdgesChange, nodeTypes, nodesDraggable: true, nodeDragThreshold: 1, panOnDrag: true, selectionOnDrag: false, fitView: true, fitViewOptions: { padding: 0.35 }, minZoom: 0.35, maxZoom: 1.4, proOptions: { hideAttribution: true } }, h(Background, { color: '#303030', gap: 22 })));
     }
 
     function renderDiscordResume() {
