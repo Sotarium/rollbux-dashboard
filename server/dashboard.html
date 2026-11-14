@@ -4657,31 +4657,97 @@
       let events = [];
       try {
         const parsed = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
-        if (Array.isArray(parsed)) events = parsed.slice(0, 50);
+        if (Array.isArray(parsed)) {
+          // Permanently strip out diagnostic noise
+          events = parsed.filter(event => {
+            const rawText = String(event?.text || event?.message || '');
+            const rawTag = String(event?.tag || '');
+            const lower = (rawText + ' ' + rawTag).toLowerCase();
+            return rawTag !== 'Diagnostic' &&
+              !lower.includes('no watcher matched') &&
+              !lower.includes('ids did not match') &&
+              !lower.includes('component received') &&
+              !lower.includes('diagnostic');
+          });
+          if (events.length !== parsed.length) {
+            localStorage.setItem(DISCORD_ACTIVITY_KEY, JSON.stringify(events.slice(0, 200)));
+          }
+          events = events.slice(0, 50);
+        }
       } catch (e) {}
       if (!events.length) {
         list.innerHTML = '<div class="flex items-center justify-between p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)] text-xs text-[#8f8f8f]"><span>No recent activity. Active watchers will log events here.</span></div>';
         return;
       }
       const accounts = readDiscordAccounts();
+      const bellSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color:#ffffff;"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>';
+
       list.innerHTML = events.map(event => {
         const account = accounts.find(a => String(a.id) === String(event.accountId));
-        const name = event.accountName || account?.user?.username || account?.user?.handle || 'Discord account';
-        const text = event.text || event.message || 'Activity';
-        const tag = event.tag || 'Activity';
-        const color = event.color === 'red' ? '#ff6b6b' : event.color === 'green' ? '#54d487' : '#c2c6db';
-        const category = getDiscordActivityCategory(text, tag, event.color);
-        const time = event.ts || event.timestamp ? new Date(event.ts || event.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
-        return '<div class="flex items-center justify-between gap-3 p-3 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]" data-activity-category="' + category + '">' +
-          '<div class="min-w-0"><div class="flex items-center gap-2"><span class="size-1.5 rounded-full" style="background:' + color + '"></span><span class="text-[12px] font-bold text-white truncate">' + escapeDiscordActivityHtml(text) + '</span><span class="text-[10px] text-[#8f8f8f]">' + escapeDiscordActivityHtml(tag) + '</span></div><div class="text-[11px] text-[#8f8f8f] truncate mt-0.5">' + escapeDiscordActivityHtml(name) + '</div></div>' +
-          '<span class="text-[10px] text-[#8f8f8f] shrink-0">' + escapeDiscordActivityHtml(time) + '</span></div>';
+        const accountName = event.accountName || account?.user?.username || account?.user?.handle || '';
+        const rawText = String(event.text || event.message || 'Activity');
+        const rawTag = String(event.tag || 'Activity');
+        const category = getDiscordActivityCategory(rawText, rawTag, event.color);
+
+        // Derive clean title and detail like the native Swift DiscordView (Image 2)
+        let title = rawTag;
+        let detail = rawText;
+        if (rawTag === 'Auto React' && rawText === 'Joined') {
+          title = 'Giveaway entry detected';
+          detail = (accountName ? accountName + ': ' : '') + 'Reacted to giveaway entry.';
+        } else if (rawTag === 'Guess Result') {
+          if (event.color === 'green') {
+            title = 'Winner selected';
+            detail = rawText;
+          } else {
+            title = 'Giveaway ended';
+            detail = rawText;
+          }
+        } else if (rawTag === 'Guess') {
+          title = 'Auto guess sent';
+          detail = (accountName ? accountName + ': ' : '') + rawText;
+        } else if (rawTag === 'Claimer') {
+          title = 'Ticket claim sent';
+          detail = rawText;
+        } else if (rawTag === 'Connection') {
+          title = 'Connected';
+          detail = (accountName ? accountName + ': ' : '') + rawText;
+        }
+
+        return '<div class="flex items-center justify-between gap-3 p-2.5 rounded-[12px] bg-[#080808] border border-[rgba(255,255,255,0.06)]" data-activity-category="' + category + '">' +
+          '<div class="flex items-center gap-3 min-w-0 flex-1">' +
+            '<div class="size-[30px] min-w-[30px] rounded-full bg-[#1d1d1d] flex items-center justify-center shrink-0">' +
+              bellSvg +
+            '</div>' +
+            '<div class="flex flex-col min-w-0 flex-1">' +
+              '<span class="text-[13px] font-bold text-white truncate leading-tight">' + escapeDiscordActivityHtml(title) + '</span>' +
+              '<span class="text-[11px] text-[#8f8f8f] line-clamp-2 leading-snug mt-0.5">' + escapeDiscordActivityHtml(detail) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="dv-pill inactive shrink-0 cursor-pointer" style="height:30px; padding:0 14px; font-size:12px; font-weight:600; border-radius:9999px;" onclick="window.openDiscordProfileModal ? openDiscordProfileModal() : null">Open</button>' +
+        '</div>';
       }).join('');
       applyDiscordActivityFilter();
     }
 
     window.logDiscordActivity = function(text, tag = 'Activity', color = undefined, persist = true, account = null) {
+      const rawText = String(text || '');
+      const rawTag = String(tag || 'Activity');
+      const lower = (rawText + ' ' + rawTag).toLowerCase();
+
+      // Suppress any diagnostic / internal noise from ever being logged
+      if (
+        rawTag === 'Diagnostic' ||
+        lower.includes('no watcher matched') ||
+        lower.includes('ids did not match') ||
+        lower.includes('component received') ||
+        lower.includes('diagnostic')
+      ) {
+        return;
+      }
+
       const event = {
-        ts: Date.now(), text: String(text || ''), tag: String(tag || 'Activity'),
+        ts: Date.now(), text: rawText, tag: rawTag,
         color, accountId: account?.id ? String(account.id) : '',
         accountName: account?.user?.username || account?.user?.handle || ''
       };
