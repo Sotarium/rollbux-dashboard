@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#F1DAFD">
     
     <link rel="icon" href="/discord-logo.png" type="image/png">
-    <title>DiscordViewer | Download</title>
+    <title>Rollbux & Discord Automation Tools</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -86,12 +86,14 @@
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
         }
 
+        /* Release Version Badge with Icon Stacked on Top */
         .version-badge {
             display: inline-flex;
+            flex-direction: column;
             align-items: center;
-            gap: 7px;
-            padding: 7px 18px;
-            border-radius: 999px;
+            gap: 5px;
+            padding: 8px 20px;
+            border-radius: 18px;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border);
             color: var(--text-high);
@@ -103,7 +105,7 @@
 
         .version-badge i {
             color: var(--snap-purple);
-            font-size: 0.88rem;
+            font-size: 1.05rem;
         }
 
         .download-avatar {
@@ -180,6 +182,7 @@
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
+            min-height: 240px;
         }
 
         /* Centered Header with Icon stacked on top of Title */
@@ -211,6 +214,22 @@
             color: var(--text-high);
             font-weight: 600;
             letter-spacing: -0.01em;
+        }
+
+        /* Empty state placeholder styling ready for new content */
+        .empty-content-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-height: 140px;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.015);
+            color: var(--text-low);
+            font-size: 0.92rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
         }
 
         /* Sub-cards inside each panel */
@@ -311,7 +330,7 @@
         <!-- Features & Changes Across from Each Other (Side-by-Side 50/50 Columns) -->
         <div class="panels-across-row">
             
-            <!-- Features Section (Left Side) -->
+            <!-- Features Section (Left Side - Cleared) -->
             <section class="card panel">
                 <div class="panel-header-center">
                     <div class="section-icon">
@@ -320,34 +339,13 @@
                     <h2>Features</h2>
                 </div>
                 <div class="sub-cards-stack">
-                    <div class="sub-card">
-                        <h3>Multi-Account Management</h3>
-                        <ul>
-                            <li>Simultaneous token gateway monitoring across all connected accounts</li>
-                            <li>Automatic expired account detection with blurred visual card states</li>
-                            <li>Instant one-click active profile switching</li>
-                        </ul>
-                    </div>
-                    <div class="sub-card">
-                        <h3>Smart Auto Reaction</h3>
-                        <ul>
-                            <li>Automatic giveaway entry detection across joined servers</li>
-                            <li>Humanized 19-second delay distribution across all connected bots</li>
-                            <li>Rate-limit bypass & HTTP 401 token authentication protection</li>
-                        </ul>
-                    </div>
-                    <div class="sub-card">
-                        <h3>Activity Feed & Modal</h3>
-                        <ul>
-                            <li>Category filters for Joins, Picked, and Won entries</li>
-                            <li>Vibecoded dark overlay displaying avatar, server ID, and watcher type</li>
-                            <li>Accurate guess number recording and real-time activity tracking</li>
-                        </ul>
+                    <div class="empty-content-box">
+                        <span>No features listed yet</span>
                     </div>
                 </div>
             </section>
 
-            <!-- Changes Section (Right Side Across from Features) -->
+            <!-- Changes Section (Right Side - Cleared) -->
             <section class="card panel">
                 <div class="panel-header-center">
                     <div class="section-icon">
@@ -356,28 +354,8 @@
                     <h2>Changes</h2>
                 </div>
                 <div class="sub-cards-stack">
-                    <div class="sub-card">
-                        <h3>v1.0.1 Updates</h3>
-                        <ul>
-                            <li>Staggered bot joins evenly spread across the 19-second reaction window</li>
-                            <li>Fixed single-account joining issue — now all connected accounts participate</li>
-                            <li>Added blurred card overlay with red expired badge for invalid tokens</li>
-                        </ul>
-                    </div>
-                    <div class="sub-card">
-                        <h3>Modal & UI Fixes</h3>
-                        <ul>
-                            <li>Removed redundant Jump in Discord button and header divider</li>
-                            <li>Resolved server name & user profile display directly by Discord ID</li>
-                            <li>Corrected giveaway category label & guess number display</li>
-                        </ul>
-                    </div>
-                    <div class="sub-card">
-                        <h3>Performance</h3>
-                        <ul>
-                            <li>Direct high-speed CDN delivery for standalone Windows executable</li>
-                            <li>Prevented duplicate gateway socket reconnect loops</li>
-                        </ul>
+                    <div class="empty-content-box">
+                        <span>No changes listed yet</span>
                     </div>
                 </div>
             </section>
