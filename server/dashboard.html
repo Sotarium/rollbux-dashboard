@@ -5802,21 +5802,33 @@
       if (state.reactionKeys.has(emojiKey)) return true;
       state.reactionKeys.add(emojiKey);
       const encodedEmoji = rawEmoji.includes('%') ? rawEmoji : encodeURIComponent(rawEmoji);
+      const accDisplayName = account?.user?.username || account?.user?.handle || account?.id || 'Account';
       try {
         const url = 'https://discord.com/api/v10/channels/' + encodeURIComponent(channelId) + '/messages/' + encodeURIComponent(messageId) + '/reactions/' + encodedEmoji + '/@me';
-        const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': token } });
+        // Discord API requires clean raw token without extra spaces or accidental Bearer prefix for user tokens
+        const cleanToken = String(token).replace(/^Bearer\s+/i, '').trim();
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Authorization': cleanToken
+          }
+        });
         if (res.ok || res.status === 204) {
           logDiscordActivity('Joined', 'Auto React', 'green', true, account, channelId, watcher?.serverID || '', messageId, watcher?.name || '', watcher?.type || 'Auto React');
           if (soundEnabled && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
           return true;
         }
         state.reactionKeys.delete(emojiKey);
-        logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error', 'red', true, account, channelId, watcher?.serverID || '', messageId);
+        if (res.status === 401) {
+          logDiscordActivity(`${accDisplayName}: Token invalid/expired (HTTP 401). Please re-link this account.`, 'Error', 'red', true, account, channelId, watcher?.serverID || '', messageId);
+        } else {
+          logDiscordActivity(`${accDisplayName}: Failed reaction on ${messageId.slice(-6)} (HTTP ${res.status})`, 'Error', 'red', true, account, channelId, watcher?.serverID || '', messageId);
+        }
         return false;
       } catch (err) {
         state.reactionKeys.delete(emojiKey);
         console.error('[Discord Gateway] Reaction error:', err);
-        logDiscordActivity('Reaction request failed on ' + messageId.slice(-6), 'Error', 'red', true, account, channelId, watcher?.serverID || '', messageId);
+        logDiscordActivity(`${accDisplayName}: Reaction network error on ${messageId.slice(-6)}`, 'Error', 'red', true, account, channelId, watcher?.serverID || '', messageId);
         return false;
       }
     }
@@ -5833,7 +5845,7 @@
       return explicitEmoji ? explicitEmoji[0] : '🎉';
     }
 
-    function scheduleDiscordReaction(channelId, messageId, emoji, watcher, account) {
+    function scheduleDiscordReaction(channelId, messageId, emoji, watcher, account, delayMs = 0) {
       const state = getDiscordGatewayState(account);
       if (!state) return;
       const soundEnabled = watcher?.sound !== false;
@@ -5841,7 +5853,11 @@
       if (state.reactionSchedules.has(scheduleKey)) return;
       state.reactionSchedules.add(scheduleKey);
       (async () => {
-        const retryDelays = [0, 1500, 3000, 5000];
+        // Initial staggered delay across the 19-second window
+        if (delayMs > 0) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+        const retryDelays = [0, 2000, 4000];
         for (const delay of retryDelays) {
           if (delay) await new Promise(resolve => setTimeout(resolve, delay));
           const ok = await triggerDiscordReaction(channelId, messageId, emoji, soundEnabled, account, watcher);
@@ -6142,13 +6158,16 @@
           // Remember this channel for winner announcement
           state.pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
 
-          // React immediately for every connected account that has this watcher enabled
+          // React for every connected account, staggered evenly across 19 seconds
           if (watcher.enabled) {
-            const allAccounts = readDiscordAccounts();
-            allAccounts.forEach(acc => {
-              if (acc && acc.token) {
-                scheduleDiscordReaction(channelId, msg.id, reactionEmoji, watcher, acc);
-              }
+            const allAccounts = readDiscordAccounts().filter(acc => acc && acc.token);
+            const total = allAccounts.length;
+            const maxWindowMs = 19000;
+            const step = total > 1 ? Math.floor(maxWindowMs / total) : 0;
+            allAccounts.forEach((acc, idx) => {
+              // Account 0 reacts immediately; subsequent accounts stagger by 19s / N
+              const delay = idx * step;
+              scheduleDiscordReaction(channelId, msg.id, reactionEmoji, watcher, acc, delay);
             });
           }
         }
@@ -6188,11 +6207,13 @@
         for (const watcher of matchingWatchers) {
           state.pendingGiveaways[channelId] = { messageId: messageId, watcherName: watcher.name, ts: Date.now() };
           if (watcher.enabled) {
-            const allAccounts = readDiscordAccounts();
-            allAccounts.forEach(acc => {
-              if (acc && acc.token) {
-                scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher, acc);
-              }
+            const allAccounts = readDiscordAccounts().filter(acc => acc && acc.token);
+            const total = allAccounts.length;
+            const maxWindowMs = 19000;
+            const step = total > 1 ? Math.floor(maxWindowMs / total) : 0;
+            allAccounts.forEach((acc, idx) => {
+              const delay = idx * step;
+              scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher, acc, delay);
             });
           }
         }
