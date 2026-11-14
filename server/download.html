@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="/sotarium-favicon.png?v=20261111">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -17,139 +17,111 @@
     html, body {
       width: 100%;
       height: 100%;
-      overflow: hidden;
-      background-color: #ffffff;
+      background-color: #fafafa;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-    }
-    .canvas-scene {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      min-height: 550px;
-      background-color: #ffffff;
-      background-image: url('https://buxshop.vercel.app/assets/grass_hills_clean.png?v=15');
-      background-repeat: no-repeat;
-      background-position: bottom center;
-      background-size: 100% auto;
+      color: #0d0d11;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      perspective: 1200px;
+      padding: 24px;
+      position: relative;
       overflow: hidden;
     }
 
-    /* Floating 3D Coins matching buxshop */
-    .floating-coin-wrapper {
+    /* Subtle sleek dot grid on soft light background */
+    .bg-pattern {
       position: absolute;
-      z-index: 15;
-      width: clamp(76px, 7.5vw, 115px);
-      height: clamp(76px, 7.5vw, 115px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-    }
-    .coin-img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.18)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
-    }
-    .floating-coin-wrapper:hover .coin-img {
-      transform: scale(1.08) translateY(-4px);
-      filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.24)) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.14));
-    }
-    .coin-top-left {
-      top: 18%;
-      left: 8%;
-      animation: floatCoin1 5.5s ease-in-out infinite;
-    }
-    .coin-bottom-left {
-      top: 65%;
-      left: 14%;
-      width: clamp(92px, 9.2vw, 138px);
-      height: clamp(92px, 9.2vw, 138px);
-      animation: floatCoin2 6.5s ease-in-out infinite;
-    }
-    .coin-top-right {
-      top: 18%;
-      right: 8%;
-      animation: floatCoin3 6s ease-in-out infinite;
-    }
-    .coin-bottom-right {
-      top: 65%;
-      right: 14%;
-      width: clamp(94px, 9.4vw, 140px);
-      height: clamp(94px, 9.4vw, 140px);
-      animation: floatCoin4 7s ease-in-out infinite;
-    }
-    @keyframes floatCoin1 {
-      0%, 100% { transform: translateY(0px) rotate(2deg); }
-      50% { transform: translateY(-10px) rotate(-1deg); }
-    }
-    @keyframes floatCoin2 {
-      0%, 100% { transform: translateY(0px) rotate(-2deg); }
-      50% { transform: translateY(-12px) rotate(1deg); }
-    }
-    @keyframes floatCoin3 {
-      0%, 100% { transform: translateY(0px) rotate(-1deg); }
-      50% { transform: translateY(-9px) rotate(2deg); }
-    }
-    @keyframes floatCoin4 {
-      0%, 100% { transform: translateY(0px) rotate(1deg); }
-      50% { transform: translateY(-11px) rotate(-2deg); }
+      inset: 0;
+      background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 60%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 60%, transparent 100%);
     }
 
-    /* Center Content */
-    .center-content {
+    /* Ambient soft pastel glow */
+    .bg-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(241, 218, 253, 0.45) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+      filter: blur(50px);
+    }
+
+    .card {
       position: relative;
-      z-index: 20;
-      text-align: center;
-      margin-top: -5vh;
-      padding: 0 20px;
-      user-select: none;
+      z-index: 10;
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 28px;
+      padding: 38px 32px;
+      box-shadow: 
+        0 20px 48px -12px rgba(0, 0, 0, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
-      max-width: 440px;
-      width: 100%;
+      text-align: center;
+      gap: 20px;
     }
 
     .version-bubble {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
       padding: 5px 14px;
-      background: rgba(255, 255, 255, 0.9);
-      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: #f3f3f6;
+      border: 1px solid #e5e5eb;
       border-radius: 9999px;
       font-size: 12px;
       font-weight: 700;
-      color: #333333;
+      color: #63636e;
       font-family: 'JetBrains Mono', monospace;
       letter-spacing: -0.01em;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-      backdrop-filter: blur(8px);
-    }
-    .version-bubble .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background-color: #34c759;
     }
 
-    .main-title {
-      font-size: clamp(2.6rem, 4.6vw, 4.2rem);
+    .app-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 20px;
+      background: #0d0d11;
+      padding: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+    }
+    .app-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .text-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title {
+      font-size: 26px;
       font-weight: 800;
-      letter-spacing: -0.035em;
-      color: #111111;
-      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: #0d0d11;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #71717a;
+      font-weight: 500;
+      line-height: 1.4;
     }
 
     .download-btn {
@@ -158,33 +130,34 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      padding: 12px 34px;
+      width: 100%;
+      height: 52px;
       background-color: #F1DAFD;
-      color: #2b113a;
+      color: #260f33;
       font-family: inherit;
       font-size: 15px;
       font-weight: 700;
       letter-spacing: -0.01em;
       text-decoration: none;
-      border-radius: 12px;
+      border-radius: 14px;
       cursor: pointer;
-      border: 1px solid rgba(180, 120, 210, 0.28);
+      border: 1px solid rgba(180, 120, 210, 0.3);
       box-shadow: 
-        0 8px 24px rgba(241, 218, 253, 0.5),
-        0 2px 6px rgba(0, 0, 0, 0.06);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        0 8px 22px rgba(241, 218, 253, 0.65),
+        0 2px 4px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       overflow: hidden;
       outline: none;
     }
     .download-btn:hover {
       background-color: #f7e8fe;
-      transform: translateY(-2px) scale(1.02);
+      transform: translateY(-2px);
       box-shadow: 
-        0 12px 30px rgba(241, 218, 253, 0.75),
-        0 4px 10px rgba(0, 0, 0, 0.08);
+        0 12px 28px rgba(241, 218, 253, 0.85),
+        0 4px 8px rgba(0, 0, 0, 0.06);
     }
     .download-btn:active {
-      transform: translateY(1px) scale(0.99);
+      transform: scale(0.985);
     }
     .download-btn svg {
       width: 19px;
@@ -211,55 +184,40 @@
       left: 100%;
     }
 
-    @media (max-width: 768px) {
-      .coin-top-left { left: 4%; top: 16%; }
-      .coin-bottom-left { left: 6%; top: 68%; }
-      .coin-top-right { right: 4%; top: 16%; }
-      .coin-bottom-right { right: 6%; top: 68%; }
-      .main-title { font-size: 2.3rem; }
+    .specs-pill {
+      font-size: 11px;
+      color: #8e8e99;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
 
-  <main class="canvas-scene">
+  <div class="bg-pattern"></div>
+  <div class="bg-glow"></div>
 
-    <!-- Floating 4K 3D Coins from BuxShop scene -->
-    <div class="floating-coin-wrapper coin-top-left">
-      <img src="https://buxshop.vercel.app/assets/coin_solana_4k.png" alt="Solana" class="coin-img" draggable="false">
+  <div class="card">
+    <div class="version-bubble">v1.0.0</div>
+
+    <div class="app-icon">
+      <img src="/discord-logo.png" alt="DiscordViewer">
     </div>
 
-    <div class="floating-coin-wrapper coin-bottom-left">
-      <img src="https://buxshop.vercel.app/assets/coin_ltc_exact_4k.png?v=11" alt="Litecoin" class="coin-img" draggable="false">
+    <div class="text-group">
+      <h1 class="title">DiscordViewer</h1>
+      <p class="subtitle">Standalone Windows client with real-time multi-account monitoring</p>
     </div>
 
-    <div class="floating-coin-wrapper coin-top-right">
-      <img src="https://buxshop.vercel.app/assets/coin_ethereum_4k.png" alt="Ethereum" class="coin-img" draggable="false">
-    </div>
+    <a href="/download/file" download="DiscordViewer.exe" class="download-btn">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+      </svg>
+      <span>Download</span>
+      <div class="btn-shine"></div>
+    </a>
 
-    <div class="floating-coin-wrapper coin-bottom-right">
-      <img src="https://buxshop.vercel.app/assets/coin_bitcoin_4k.png" alt="Bitcoin" class="coin-img" draggable="false">
-    </div>
-
-    <!-- Center Hero Content -->
-    <div class="center-content">
-      <div class="version-bubble">
-        <span class="dot"></span>
-        <span>v1.0.0</span>
-      </div>
-
-      <h1 class="main-title">DiscordViewer</h1>
-
-      <a href="/download/file" download="DiscordViewer.exe" class="download-btn">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-        </svg>
-        <span>Download</span>
-        <div class="btn-shine"></div>
-      </a>
-    </div>
-
-  </main>
+    <span class="specs-pill">Windows 10 / 11 (64-bit) • 155 MB</span>
+  </div>
 
 </body>
 </html>
