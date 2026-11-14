@@ -401,6 +401,76 @@
       font-variant-numeric: normal !important;
       font-feature-settings: "zero" 0 !important;
     }
+
+    /* Sotarium Fullscreen Auto-Updater Modal (from Sotarium.exe / Cue-main) */
+    .update-fullscreen-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999999;
+      background-color: #121315;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      user-select: none;
+    }
+    .update-screen-card {
+      width: min(440px, 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+    }
+    .update-screen-title {
+      font-size: 26px;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+    }
+    .update-screen-desc {
+      font-size: 13px;
+      color: #8b929e;
+      line-height: 1.5;
+      max-width: 360px;
+    }
+    .update-white-button {
+      width: 100%;
+      height: 44px;
+      background-color: #ffffff;
+      color: #000000;
+      border: none;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, filter 0.15s ease, background-color 0.15s ease;
+      outline: none;
+      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+    }
+    .update-white-button:hover:not(:disabled) {
+      filter: brightness(0.95);
+      transform: translateY(-1px);
+    }
+    .update-white-button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    @keyframes fadeInCenter {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
   </style>
 </head>
 
@@ -7483,5 +7553,169 @@
     </div>
   </div>
 
+  <!-- Fullscreen Sotarium Auto-Updater Modal (from Sotarium.exe / Cue-main) -->
+  <div id="updateFullscreenOverlay" class="update-fullscreen-overlay" style="display:none;">
+    <div class="update-screen-card" id="updateScreenCard">
+      
+      <!-- Phase 1: Update Detected (Prompt) -->
+      <div id="updatePhasePrompt" style="display:flex; flex-direction:column; align-items:center; gap:16px; width:100%;">
+        <img src="/sotarium-favicon.png?v=20261111" alt="Sotarium Icon" style="width:68px; height:68px; object-fit:contain;" />
+        <div>
+          <h1 class="update-screen-title">Update Detected.</h1>
+          <p class="update-screen-desc" style="margin-top:6px;">
+            A new version <strong style="color:#acff46;" id="updateLatestVersionLabel">v1.0.1</strong> is available.
+            Sotarium will download and relaunch automatically.
+          </p>
+        </div>
+        <button class="update-white-button" id="updateNowBtn" type="button" onclick="startSotariumAppUpdate()">Update Now</button>
+        <button type="button" onclick="dismissSotariumAppUpdate()" style="background:none; border:none; color:#555; font-size:12px; cursor:pointer; margin-top:-4px;">
+          Skip for now
+        </button>
+      </div>
+
+      <!-- Phase 2: Downloading Progress -->
+      <div id="updatePhaseDownloading" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%;">
+        <img src="/sotarium-favicon.png?v=20261111" alt="Sotarium Icon" style="width:68px; height:68px; object-fit:contain;" />
+        <div>
+          <h1 class="update-screen-title" id="updateDownloadingTitle">Downloading update…</h1>
+          <p class="update-screen-desc" id="updateProgressText" style="margin-top:6px;">0%</p>
+        </div>
+        <div style="width:100%; height:6px; background:rgba(255,255,255,0.06); border-radius:9999px; overflow:hidden; margin-top:12px;">
+          <div id="updateProgressBar" style="height:100%; width:0%; background:#acff46; transition:width 0.2s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Phase 3: Successfully Updated (Done) -->
+      <div id="updatePhaseDone" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; width:100%; text-align:center; animation:fadeInCenter 0.3s ease-out;">
+        <img src="/checkmark.png" alt="Done" style="width:76px; height:76px; object-fit:contain;" onerror="this.src='/sotarium-favicon.png?v=20261111';" />
+        <h1 class="update-screen-title" style="font-size:24px; font-style:normal; text-align:center; width:100%;">
+          Updated! Relaunching…
+        </h1>
+      </div>
+
+      <!-- Phase 4: Update Failed (Error) -->
+      <div id="updatePhaseError" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%;">
+        <img src="/sotarium-favicon.png?v=20261111" alt="Sotarium Icon" style="width:68px; height:68px; object-fit:contain;" />
+        <div>
+          <h1 class="update-screen-title">Update Failed</h1>
+          <p class="update-screen-desc" id="updateErrorMsg" style="margin-top:6px; color:#ff5555;">Download failed.</p>
+        </div>
+        <button class="update-white-button" type="button" onclick="dismissSotariumAppUpdate()">Continue Anyway</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Sotarium / DiscordViewer Auto-Updater Client Bridge
+    (function initSotariumAutoUpdater() {
+      const CURRENT_CLIENT_VERSION = 'v1.0.0';
+      let pendingUpdateData = null;
+
+      window.setUpdateProgress = function(percent) {
+        const bar = document.getElementById('updateProgressBar');
+        const txt = document.getElementById('updateProgressText');
+        if (bar) bar.style.width = Math.min(percent, 99) + '%';
+        if (txt) txt.textContent = Math.round(percent) + '%';
+      };
+
+      window.setUpdateDone = function() {
+        const pDownload = document.getElementById('updatePhaseDownloading');
+        const pDone = document.getElementById('updatePhaseDone');
+        if (pDownload) pDownload.style.display = 'none';
+        if (pDone) pDone.style.display = 'flex';
+      };
+
+      window.setUpdateError = function(errMsg) {
+        const pDownload = document.getElementById('updatePhaseDownloading');
+        const pError = document.getElementById('updatePhaseError');
+        const msg = document.getElementById('updateErrorMsg');
+        if (pDownload) pDownload.style.display = 'none';
+        if (msg) msg.textContent = errMsg || 'Download failed.';
+        if (pError) pError.style.display = 'flex';
+      };
+
+      window.showUpdateDetectedModal = function(latestTag, dlUrl) {
+        pendingUpdateData = { tag: latestTag, dlUrl: dlUrl };
+        const overlay = document.getElementById('updateFullscreenOverlay');
+        const lbl = document.getElementById('updateLatestVersionLabel');
+        const pPrompt = document.getElementById('updatePhasePrompt');
+        const pDown = document.getElementById('updatePhaseDownloading');
+        const pDone = document.getElementById('updatePhaseDone');
+        const pErr = document.getElementById('updatePhaseError');
+
+        if (lbl) lbl.textContent = latestTag.startsWith('v') ? latestTag : 'v' + latestTag;
+        if (pPrompt) pPrompt.style.display = 'flex';
+        if (pDown) pDown.style.display = 'none';
+        if (pDone) pDone.style.display = 'none';
+        if (pErr) pErr.style.display = 'none';
+        if (overlay) overlay.style.display = 'flex';
+      };
+
+      window.dismissSotariumAppUpdate = function() {
+        const overlay = document.getElementById('updateFullscreenOverlay');
+        if (overlay) overlay.style.display = 'none';
+      };
+
+      window.startSotariumAppUpdate = function() {
+        const pPrompt = document.getElementById('updatePhasePrompt');
+        const pDown = document.getElementById('updatePhaseDownloading');
+        const title = document.getElementById('updateDownloadingTitle');
+        if (pPrompt) pPrompt.style.display = 'none';
+        if (pDown) pDown.style.display = 'flex';
+        if (title && pendingUpdateData?.tag) {
+          title.textContent = 'Downloading ' + (pendingUpdateData.tag.startsWith('v') ? pendingUpdateData.tag : 'v' + pendingUpdateData.tag) + '…';
+        }
+
+        // Notify native C# host or fallback fetch
+        if (window.chrome && window.chrome.webview) {
+          window.chrome.webview.postMessage(JSON.stringify({
+            action: 'start-update',
+            tag: pendingUpdateData?.tag,
+            dlUrl: pendingUpdateData?.dlUrl
+          }));
+        }
+      };
+
+      // Handle native WebView messages from C# host
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.addEventListener('message', function(event) {
+          try {
+            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            if (data.action === 'show-update') {
+              window.showUpdateDetectedModal(data.tag, data.dlUrl);
+            } else if (data.action === 'update-progress') {
+              window.setUpdateProgress(data.percent);
+            } else if (data.action === 'update-done') {
+              window.setUpdateDone();
+            } else if (data.action === 'update-error') {
+              window.setUpdateError(data.error);
+            }
+          } catch(e) {}
+        });
+      }
+
+      // Also directly query GitHub Releases API in case app host is web browser
+      async function checkGitHubReleases() {
+        try {
+          const res = await fetch('https://api.github.com/repos/Sotarium/rollbux-dashboard/releases/latest');
+          if (!res.ok) return;
+          const data = await res.json();
+          const tag = data.tag_name || '';
+          if (tag && tag !== CURRENT_CLIENT_VERSION) {
+            let dl = '';
+            if (Array.isArray(data.assets)) {
+              const a = data.assets.find(x => x.name === 'DiscordViewer.exe');
+              if (a) dl = a.browser_download_url;
+            }
+            window.showUpdateDetectedModal(tag, dl);
+          }
+        } catch(e) {}
+      }
+
+      // Trigger update check
+      setTimeout(checkGitHubReleases, 1200);
+    })();
+  </script>
 </body>
 </html>
