@@ -1184,6 +1184,10 @@
             <button type="submit" class="dv-pill active w-full" style="height:42px;">Save webhook</button>
           </div>
         </form>
+        <div class="flex flex-col gap-2 pt-2 border-t border-white/5">
+          <span class="text-[12px] font-semibold text-white">Configured Webhooks</span>
+          <div id="discordWebhooksModalList" class="flex flex-col gap-2 max-h-[160px] overflow-y-auto pr-1"></div>
+        </div>
         <button type="button" onclick="testDiscordWebhooks()" class="dv-pill inactive w-full" style="height:38px;">Send test notification</button>
         <div id="discordWebhookTestStatus" class="text-[11px] text-[#8f8f8f] text-center"></div>
       </div>
@@ -4896,21 +4900,13 @@
     window.fetchDiscordWebhookInfo = async function(webhookUrl) {
       const url = String(webhookUrl || '').trim();
       if (!url) return null;
-      // First attempt direct GET
-      try {
-        const res = await fetch(url);
-        if (res.ok) {
-          const d = await res.json();
-          return {
-            name: d.name || '',
-            avatar: d.avatar ? 'https://cdn.discordapp.com/avatars/' + d.id + '/' + d.avatar + '.png?size=128' : null
-          };
-        }
-      } catch (e) {}
 
-      // Fallback to server-side proxy
+      // 1. Try server-side proxy on current origin first (if running on http/https)
       try {
-        const res = await fetch('/api/discord/webhook-info', {
+        const proxyBase = (window.location.protocol === 'http:' || window.location.protocol === 'https:')
+          ? window.location.origin
+          : 'https://rollbux.vercel.app';
+        const res = await fetch(proxyBase + '/api/discord/webhook-info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url })
@@ -4925,6 +4921,37 @@
           }
         }
       } catch (e) {}
+
+      // 2. Direct Discord GET attempt
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          const d = await res.json();
+          return {
+            name: d.name || '',
+            avatar: d.avatar ? 'https://cdn.discordapp.com/avatars/' + d.id + '/' + d.avatar + '.png?size=128' : null
+          };
+        }
+      } catch (e) {}
+
+      // 3. Fallback to production Vercel proxy if running on a custom or local origin
+      try {
+        const res = await fetch('https://rollbux.vercel.app/api/discord/webhook-info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        if (res.ok) {
+          const d = await res.json();
+          if (d && d.success) {
+            return {
+              name: d.name || '',
+              avatar: d.avatar || null
+            };
+          }
+        }
+      } catch (e) {}
+
       return null;
     };
 
@@ -4933,6 +4960,8 @@
       const webhooks = readDiscordWebhooks();
       const sectionList = document.getElementById('discordWebhooksSectionList');
       if (sectionList) sectionList.innerHTML = webhookCardsMarkup(webhooks, true);
+      const modalList = document.getElementById('discordWebhooksModalList');
+      if (modalList) modalList.innerHTML = webhookCardsMarkup(webhooks, false);
       syncDiscordWebhookSettingsUI();
 
       // Automatically backfill avatar for any webhook that lacks one
@@ -4960,6 +4989,8 @@
               localStorage.setItem(DISCORD_WEBHOOKS_KEY, JSON.stringify(current));
               const freshSectionList = document.getElementById('discordWebhooksSectionList');
               if (freshSectionList) freshSectionList.innerHTML = webhookCardsMarkup(current, true);
+              const freshModalList = document.getElementById('discordWebhooksModalList');
+              if (freshModalList) freshModalList.innerHTML = webhookCardsMarkup(current, false);
             }
           })();
         }
