@@ -2094,6 +2094,45 @@ export default async function handler(req, res) {
   }
 
 
+  // Direct DiscordViewer Windows executable download
+  if ((pathname === '/download/file' || pathname === '/download/DiscordViewer.exe') && req.method === 'GET') {
+    res.writeHead(302, {
+      'Location': 'https://github.com/Sotarium/rollbux-dashboard/releases/download/v1.0.0/DiscordViewer.exe'
+    });
+    res.end();
+    return;
+  }
+
+  const isDownloadPage = pathname === '/download' || pathname === '/download.html' || matchedPath === '/download' || matchedPath === '/download.html';
+  if (isDownloadPage && req.method === 'GET') {
+    try {
+      const candidates = [
+        path.resolve(process.cwd(), 'server', 'download.html'),
+        path.resolve(process.cwd(), 'download.html'),
+        path.resolve(process.cwd(), 'dist', 'download.html')
+      ];
+      let html = null;
+      for (const p of candidates) {
+        try {
+          if (fs.existsSync(p)) {
+            html = fs.readFileSync(p, 'utf-8');
+            break;
+          }
+        } catch (e) {}
+      }
+      if (html) {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(html);
+        return;
+      }
+    } catch (e) {}
+    res.writeHead(302, {
+      'Location': 'https://github.com/Sotarium/rollbux-dashboard/releases/download/v1.0.0/DiscordViewer.exe'
+    });
+    res.end();
+    return;
+  }
+
   const isHistoryPage = pathname === '/history' || pathname === '/history.html' || matchedPath === '/history' || matchedPath === '/history.html' || url.pathname === '/history' || url.pathname === '/history.html';
 
   // Serve the History HTML page (/history)

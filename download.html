@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download DiscordViewer Windows</title>
+  <link rel="icon" type="image/png" href="/discord-logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #080808;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-card {
+      background: rgba(18, 18, 18, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .glow-btn {
+      position: relative;
+      background: #ffffff;
+      color: #000000;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+    }
+    .glow-btn:hover {
+      background: #f0f0f0;
+      transform: translateY(-1px);
+      box-shadow: 0 0 35px rgba(255, 255, 255, 0.3);
+    }
+    .glow-btn:active {
+      transform: scale(0.98);
+    }
+    .tag-badge {
+      background: rgba(84, 212, 135, 0.12);
+      border: 1px solid rgba(84, 212, 135, 0.3);
+      color: #54d487;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center p-4 selection:bg-white/20">
+
+  <!-- Background Ambient Glow -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[650px] h-[500px] bg-white/[0.03] rounded-full blur-[140px]"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#5865F2]/[0.03] rounded-full blur-[150px]"></div>
+  </div>
+
+  <main class="relative z-10 w-full max-w-[500px] flex flex-col items-center">
+    
+    <!-- App Logo & Title -->
+    <div class="flex flex-col items-center text-center mb-6">
+      <div class="relative size-20 rounded-[22px] bg-[#121212] border border-white/10 p-3.5 shadow-2xl flex items-center justify-center mb-4">
+        <img src="/discord-logo.png" alt="DiscordViewer Logo" class="size-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" />
+      </div>
+      <h1 class="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">DiscordViewer</h1>
+      <p class="text-xs sm:text-sm text-[#8f8f8f] mt-1.5 font-medium">Native Windows Dashboard & Giveaway Watcher</p>
+    </div>
+
+    <!-- Main Download Card -->
+    <div class="glass-card w-full rounded-[24px] p-6 sm:p-7 shadow-2xl flex flex-col gap-5">
+      
+      <!-- Version & Status -->
+      <div class="flex items-center justify-between pb-3.5 border-b border-white/[0.06]">
+        <div class="flex items-center gap-2">
+          <span class="tag-badge px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">v1.0.0 Release</span>
+          <span class="text-[11px] text-[#8f8f8f] font-semibold">Windows 10 / 11 (x64)</span>
+        </div>
+        <span class="mono text-[11px] font-medium text-[#8f8f8f]">155 MB</span>
+      </div>
+
+      <!-- Features summary -->
+      <div class="flex flex-col gap-2.5 py-1">
+        <div class="flex items-center gap-3 text-xs text-[#cfcfcf]">
+          <svg class="size-4 text-[#54d487] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>Multi-account Discord Gateway joining & reaction auto-entry</span>
+        </div>
+        <div class="flex items-center gap-3 text-xs text-[#cfcfcf]">
+          <svg class="size-4 text-[#54d487] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>19-second humanized reaction delay distribution</span>
+        </div>
+        <div class="flex items-center gap-3 text-xs text-[#cfcfcf]">
+          <svg class="size-4 text-[#54d487] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>Self-contained standalone single executable — no install required</span>
+        </div>
+      </div>
+
+      <!-- Direct Download CTA -->
+      <div class="flex flex-col gap-2.5 pt-2">
+        <a id="downloadBtn" href="/download/file" download="DiscordViewer.exe" class="glow-btn flex items-center justify-center gap-3 w-full h-[50px] rounded-[14px] font-bold text-sm tracking-wide">
+          <svg class="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Download DiscordViewer.exe</span>
+        </a>
+        
+        <p class="text-center text-[11px] text-[#666666] mt-1">
+          Direct safe download from GitHub CDN • Virus-free single portable binary
+        </p>
+      </div>
+
+      <!-- Quick Run Instructions -->
+      <div class="rounded-[14px] bg-[#0c0c0c] border border-white/5 p-3.5 flex flex-col gap-1.5 text-xs">
+        <span class="font-bold text-white text-[11px] uppercase tracking-wider text-[#8f8f8f]">How to run:</span>
+        <ol class="list-decimal list-inside text-[#9f9f9f] text-[11px] leading-relaxed space-y-1">
+          <li>Download <span class="text-white font-mono">DiscordViewer.exe</span> to your Downloads or Desktop.</li>
+          <li>Double click to launch immediately (no prerequisites or install needed).</li>
+          <li>Log in or link your Discord tokens in the Dashboard.</li>
+        </ol>
+      </div>
+
+    </div>
+
+    <!-- Navigation link back -->
+    <div class="mt-6 flex items-center gap-4 text-xs font-semibold text-[#8f8f8f]">
+      <a href="/" class="hover:text-white transition">← Back to Dashboard</a>
+      <span>•</span>
+      <a href="https://github.com/Sotarium/rollbux-dashboard/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">Release Notes</a>
+    </div>
+
+  </main>
+
+</body>
+</html>

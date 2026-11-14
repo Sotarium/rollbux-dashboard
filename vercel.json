@@ -13,6 +13,18 @@
   ],
   "rewrites": [
     {
+      "source": "/download",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/download.html",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/download/file",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/@:username",
       "destination": "/index.html"
     },
