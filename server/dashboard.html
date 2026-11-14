@@ -1059,7 +1059,7 @@
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
                   <!-- Upgrader Plan Lock / Floating Pay Gate -->
-                  <div id="upgraderPlanGate" class="absolute inset-0 z-30 flex flex-col items-center justify-start pt-12 pb-8 px-6 min-h-[520px]" style="display:none; background: rgba(5, 5, 5, 0.40); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 20px;">
+                  <div id="upgraderPlanGate" class="absolute inset-0 z-30 flex flex-col items-center justify-start pt-10 pb-8 px-6 min-h-[520px]" style="display:flex; background: rgba(5, 5, 5, 0.40); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 20px;">
                     <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center">
                       <!-- 52px Circle with exact lucide-crown SVG provided -->
                       <div class="flex items-center justify-center mb-4" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, #2a2a2d 0%, #161618 100%); border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
@@ -1426,6 +1426,7 @@
 
 
     document.addEventListener('DOMContentLoaded', () => {
+      if (typeof window.checkUpgraderPlan === 'function') window.checkUpgraderPlan();
       const inp = document.getElementById('vibeDialogInput');
       if (inp) {
         inp.addEventListener('keydown', (e) => {
@@ -5757,6 +5758,44 @@
   </div>
 
   <script>
+    window.checkUpgraderPlan = function() {
+      const isUpgrader = localStorage.getItem('rollbux_upgrader_unlocked') === 'true';
+      const gate = document.getElementById('upgraderPlanGate');
+      const content = document.getElementById('discordViewContent');
+      const viewDiscord = document.getElementById('viewDiscord');
+      if (!gate) return;
+      if (isUpgrader) {
+        gate.style.display = 'none';
+        if (content) {
+          content.style.filter = 'none';
+          content.style.pointerEvents = 'auto';
+          content.style.userSelect = 'auto';
+        }
+        if (viewDiscord) {
+          viewDiscord.style.overflow = 'visible';
+          viewDiscord.style.maxHeight = 'none';
+        }
+      } else {
+        gate.style.display = 'flex';
+        if (content) {
+          content.style.filter = 'blur(12px)';
+          content.style.pointerEvents = 'none';
+          content.style.userSelect = 'none';
+        }
+        if (viewDiscord) {
+          viewDiscord.style.overflow = 'hidden';
+          viewDiscord.style.maxHeight = '85vh';
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+
+    window.unlockUpgraderPlan = function() {
+      localStorage.setItem('rollbux_upgrader_unlocked', 'true');
+      window.checkUpgraderPlan();
+      if (typeof renderDiscordWatchers === 'function') renderDiscordWatchers();
+    };
+
     // Navigation Tab Switcher between RollBux and Discord
     window.switchNavTab = function(tab) {
       const rollbuxBtn = document.getElementById('navTabRollbux');
@@ -7758,40 +7797,7 @@
       checkGitHubReleases();
     })();
   
-            function checkUpgraderPlan() {
-      const isUpgrader = localStorage.getItem('rollbux_upgrader_unlocked') === 'true';
-      const gate = document.getElementById('upgraderPlanGate');
-      const content = document.getElementById('discordViewContent');
-      const viewDiscord = document.getElementById('viewDiscord');
-      if (!gate || !content) return;
-      if (isUpgrader) {
-        gate.style.display = 'none';
-        content.style.filter = 'none';
-        content.style.pointerEvents = 'auto';
-        content.style.userSelect = 'auto';
-        if (viewDiscord) {
-          viewDiscord.style.overflow = 'visible';
-          viewDiscord.style.maxHeight = 'none';
-        }
-        document.body.style.overflow = 'auto';
-      } else {
-        gate.style.display = 'flex';
-        content.style.filter = 'blur(12px)';
-        content.style.pointerEvents = 'none';
-        content.style.userSelect = 'none';
-        if (viewDiscord) {
-          viewDiscord.style.overflow = 'hidden';
-          viewDiscord.style.maxHeight = '85vh';
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
-
-    function unlockUpgraderPlan() {
-      localStorage.setItem('rollbux_upgrader_unlocked', 'true');
-      checkUpgraderPlan();
-      if (typeof renderDiscordWatchers === 'function') renderDiscordWatchers();
-    }
+            // checkUpgraderPlan defined above
 
 </script>
 </body>
