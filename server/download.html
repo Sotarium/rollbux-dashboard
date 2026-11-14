@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="/sotarium-favicon.png?v=20261111">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -15,8 +15,8 @@
       padding: 0;
     }
     body {
-      background-color: #000000;
-      color: #ffffff;
+      background-color: #ffffff;
+      color: #111111;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       display: flex;
@@ -31,21 +31,21 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 18px;
-      max-width: 420px;
+      gap: 16px;
+      max-width: 380px;
       width: 100%;
     }
     .title {
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 800;
-      letter-spacing: -0.02em;
-      color: #ffffff;
+      letter-spacing: -0.03em;
+      color: #0f0f11;
     }
     .subtitle {
-      font-size: 13px;
-      color: #71717a;
+      font-size: 14px;
+      color: #6e6e78;
       font-weight: 500;
-      margin-top: -8px;
+      margin-top: -6px;
     }
     .download-btn {
       display: inline-flex;
@@ -55,44 +55,40 @@
       width: 100%;
       height: 52px;
       background-color: #F1DAFD;
-      color: #1a0b26;
-      font-size: 14px;
-      font-weight: 800;
+      color: #2b113a;
+      font-size: 15px;
+      font-weight: 700;
       letter-spacing: -0.01em;
       text-decoration: none;
       border-radius: 14px;
       cursor: pointer;
-      border: none;
+      border: 1px solid rgba(180, 120, 210, 0.25);
       transition: all 0.18s ease;
-      box-shadow: 0 4px 20px rgba(241, 218, 253, 0.18);
+      box-shadow: 0 4px 16px rgba(241, 218, 253, 0.45);
     }
     .download-btn:hover {
-      background-color: #f7e8fe;
+      background-color: #ebd0f9;
       transform: translateY(-1px);
-      box-shadow: 0 6px 26px rgba(241, 218, 253, 0.32);
+      box-shadow: 0 6px 20px rgba(241, 218, 253, 0.65);
     }
     .download-btn:active {
       transform: scale(0.985);
     }
     .download-btn svg {
-      width: 18px;
-      height: 18px;
-      stroke-width: 2.4;
-    }
-    .meta-info {
-      font-size: 12px;
-      color: #52525b;
-      font-family: 'JetBrains Mono', monospace;
+      width: 19px;
+      height: 19px;
+      stroke-width: 2.3;
     }
     .back-link {
-      margin-top: 10px;
-      font-size: 12px;
-      color: #52525b;
+      margin-top: 6px;
+      font-size: 13px;
+      color: #8a8a93;
       text-decoration: none;
+      font-weight: 500;
       transition: color 0.15s;
     }
     .back-link:hover {
-      color: #a1a1aa;
+      color: #111111;
     }
   </style>
 </head>
@@ -100,7 +96,7 @@
 
   <div class="container">
     <h1 class="title">DiscordViewer</h1>
-    <p class="subtitle">Windows desktop executable • 155 MB</p>
+    <p class="subtitle">Windows executable</p>
 
     <a href="/download/file" download="DiscordViewer.exe" class="download-btn">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,8 +105,7 @@
       <span>Download</span>
     </a>
 
-    <span class="meta-info">v1.0.0 • DiscordViewer.exe</span>
-    <a href="/" class="back-link">← Back to Dashboard</a>
+    <a href="/" class="back-link">← Back</a>
   </div>
 
 </body>
