@@ -4661,10 +4661,87 @@
       const m = String(messageId || '').trim();
       if (c) {
         const guildPart = (s && s !== '*' && s !== '@me') ? s : '@me';
-        const url = 'https://discord.com/channels/' + guildPart + '/' + c + (m ? '/' + m : '');
-        window.open(url, '_blank');
+        window.open('https://discord.com/channels/' + guildPart + '/' + c + (m ? '/' + m : ''), '_blank');
       } else {
         window.open('https://discord.com/channels/@me', '_blank');
+      }
+    };
+
+    window.openDiscordActivityDetailModal = function(index) {
+      let events = [];
+      try {
+        const parsed = JSON.parse(localStorage.getItem(DISCORD_ACTIVITY_KEY) || '[]');
+        if (Array.isArray(parsed)) events = parsed;
+      } catch (e) {}
+      const event = events[Number(index)];
+      if (!event) return;
+
+      const accounts = readDiscordAccounts();
+      const account = accounts.find(a => String(a.id) === String(event.accountId));
+      const displayName = account?.user?.username || event.accountName || 'Discord User';
+      const avatarUrl = account?.user?.avatar || '/discord-3d.png';
+
+      const avatarEl = document.getElementById('activityDetailAvatar');
+      if (avatarEl) {
+        avatarEl.src = avatarUrl;
+        avatarEl.onerror = () => { avatarEl.src = '/discord-logo.png'; };
+      }
+      const userEl = document.getElementById('activityDetailUser');
+      if (userEl) userEl.textContent = displayName;
+
+      const serverEl = document.getElementById('activityDetailServer');
+      if (serverEl) serverEl.textContent = event.serverId || 'Rollbux';
+
+      const watcherEl = document.getElementById('activityDetailWatcher');
+      const wType = event.watcherType || event.tag || 'Auto React';
+      const wName = event.watcherName ? ` (${event.watcherName})` : '';
+      if (watcherEl) watcherEl.textContent = wType + wName;
+
+      // Numbers row for guess & selection events
+      const numbersRow = document.getElementById('activityDetailNumbersRow');
+      const numbersVal = document.getElementById('activityDetailNumbers');
+      const guessVal = event.guess;
+      const secretVal = event.secretNum;
+      if (guessVal || secretVal) {
+        if (numbersRow) numbersRow.style.display = 'flex';
+        let str = '';
+        if (secretVal && guessVal) str = `Secret: ${secretVal}  •  Guessed: ${guessVal}`;
+        else if (guessVal) str = `Guessed: ${guessVal}`;
+        else str = `Secret Number: ${secretVal}`;
+        if (numbersVal) numbersVal.textContent = str;
+      } else {
+        if (numbersRow) numbersRow.style.display = 'none';
+      }
+
+      // Format Date & Time
+      const dateEl = document.getElementById('activityDetailDate');
+      if (dateEl) {
+        const ts = event.ts || Date.now();
+        const d = new Date(ts);
+        const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
+        dateEl.textContent = d.toLocaleString('en-US', options);
+      }
+
+      // Configure Discord Channel jump button
+      const openBtn = document.getElementById('activityDetailDiscordBtn');
+      if (openBtn) {
+        openBtn.onclick = () => {
+          window.openDiscordActivityChannel(event.serverId, event.channelId, event.messageId);
+        };
+      }
+
+      const modal = document.getElementById('activityDetailModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+      }
+    };
+
+    window.closeDiscordActivityDetailModal = function() {
+      const modal = document.getElementById('activityDetailModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
       }
     };
 
@@ -4699,7 +4776,7 @@
       const accounts = readDiscordAccounts();
       const bellSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color:#ffffff;"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>';
 
-      list.innerHTML = events.map(event => {
+      list.innerHTML = events.map((event, index) => {
         const account = accounts.find(a => String(a.id) === String(event.accountId));
         const accountName = event.accountName || account?.user?.username || account?.user?.handle || '';
         const rawText = String(event.text || event.message || 'Activity');
@@ -4741,13 +4818,13 @@
               '<span class="text-[11px] text-[#8f8f8f] line-clamp-2 leading-snug mt-0.5">' + escapeDiscordActivityHtml(detail) + '</span>' +
             '</div>' +
           '</div>' +
-          '<button type="button" class="dv-pill inactive shrink-0 cursor-pointer" style="height:30px; padding:0 14px; font-size:12px; font-weight:600; border-radius:9999px;" onclick="window.openDiscordActivityChannel(\'\' + (event.serverId || \'\'), \'\' + (event.channelId || \'\'), \'\' + (event.messageId || \'\'))">Open</button>' +
+          '<button type="button" class="dv-pill inactive shrink-0 cursor-pointer" style="height:30px; padding:0 14px; font-size:12px; font-weight:600; border-radius:9999px;" onclick="window.openDiscordActivityDetailModal(' + index + ')">Open</button>' +
         '</div>';
       }).join('');
       applyDiscordActivityFilter();
     }
 
-    window.logDiscordActivity = function(text, tag = 'Activity', color = undefined, persist = true, account = null, channelId = null, serverId = null, messageId = null) {
+    window.logDiscordActivity = function(text, tag = 'Activity', color = undefined, persist = true, account = null, channelId = null, serverId = null, messageId = null, watcherName = null, watcherType = null, guess = null, secretNum = null) {
       const rawText = String(text || '');
       const rawTag = String(tag || 'Activity');
       const lower = (rawText + ' ' + rawTag).toLowerCase();
@@ -4769,7 +4846,11 @@
         accountName: account?.user?.username || account?.user?.handle || '',
         channelId: channelId ? String(channelId) : '',
         serverId: serverId ? String(serverId) : '',
-        messageId: messageId ? String(messageId) : ''
+        messageId: messageId ? String(messageId) : '',
+        watcherName: watcherName ? String(watcherName) : '',
+        watcherType: watcherType ? String(watcherType) : '',
+        guess: (guess !== null && guess !== undefined) ? String(guess) : '',
+        secretNum: (secretNum !== null && secretNum !== undefined) ? String(secretNum) : ''
       };
       if (persist !== false) {
         let events = [];
@@ -5664,7 +5745,7 @@
       return true;
     }
 
-    async function triggerDiscordReaction(channelId, messageId, emoji, soundEnabled = true, account = null) {
+    async function triggerDiscordReaction(channelId, messageId, emoji, soundEnabled = true, account = null, watcher = null) {
       const token = account?.token || getActiveDiscordToken();
       const state = getDiscordGatewayState(account);
       if (!token || !channelId || !messageId || !state) return false;
@@ -5677,17 +5758,17 @@
         const url = 'https://discord.com/api/v10/channels/' + encodeURIComponent(channelId) + '/messages/' + encodeURIComponent(messageId) + '/reactions/' + encodedEmoji + '/@me';
         const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': token } });
         if (res.ok || res.status === 204) {
-          logDiscordActivity('Joined', 'Auto React', 'green', true, account, channelId, undefined, messageId);
+          logDiscordActivity('Joined', 'Auto React', 'green', true, account, channelId, watcher?.serverID || '', messageId, watcher?.name || '', watcher?.type || 'Auto React');
           if (soundEnabled && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
           return true;
         }
         state.reactionKeys.delete(emojiKey);
-        logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error', 'red', true, account);
+        logDiscordActivity('Failed reaction on ' + messageId.slice(-6) + ' (HTTP ' + res.status + ')', 'Error', 'red', true, account, channelId, watcher?.serverID || '', messageId);
         return false;
       } catch (err) {
         state.reactionKeys.delete(emojiKey);
         console.error('[Discord Gateway] Reaction error:', err);
-        logDiscordActivity('Reaction request failed on ' + messageId.slice(-6), 'Error', 'red', true, account);
+        logDiscordActivity('Reaction request failed on ' + messageId.slice(-6), 'Error', 'red', true, account, channelId, watcher?.serverID || '', messageId);
         return false;
       }
     }
@@ -5715,7 +5796,7 @@
         const retryDelays = [0, 1500, 3000, 5000];
         for (const delay of retryDelays) {
           if (delay) await new Promise(resolve => setTimeout(resolve, delay));
-          const ok = await triggerDiscordReaction(channelId, messageId, emoji, soundEnabled, account);
+          const ok = await triggerDiscordReaction(channelId, messageId, emoji, soundEnabled, account, watcher);
           if (ok) break;
         }
         state.reactionSchedules.delete(scheduleKey);
@@ -5726,8 +5807,8 @@
       const token = account?.token || getActiveDiscordToken();
       if (!token) return;
       try {
-        await triggerDiscordReaction(channelId, messageId, '🎟️', watcher.sound !== false, account);
-        logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer', undefined, true, account, channelId, watcher.serverID, messageId);
+        await triggerDiscordReaction(channelId, messageId, '🎟️', watcher.sound !== false, account, watcher);
+        logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer', undefined, true, account, channelId, watcher.serverID, messageId, watcher.name, 'Claimer');
       } catch (e) {
         console.error('[Discord Gateway] Ticket Claim error:', e);
       }
@@ -5912,7 +5993,9 @@
             // Repeats across different giveaways are allowed; only duplicate
             // handling for this specific giveaway is locked above.
             const guess = Math.floor(Math.random() * 20) + 1;
-            logDiscordActivity('Guessed ' + guess, 'Guess', 'green', true, account, channelId, guildId, msg.id);
+            const wName = matchingWatchers[0]?.name || '';
+            const wType = matchingWatchers[0]?.type || 'Watcher';
+            logDiscordActivity('Guessed ' + guess, 'Guess', 'green', true, account, channelId, guildId, msg.id, wName, wType, guess);
             void sendDiscordMessage(channelId, String(guess), account);
             if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
             if (!state.pendingGiveaways[channelId]) {
@@ -5950,7 +6033,9 @@
               const hasWon = fullTextLower.includes('won') || (!hasNoPrize && secretNum && reportedGuess && secretNum === reportedGuess);
 
               const resultColor = hasWon ? 'green' : 'red';
-              logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '!', 'Guess Result', resultColor, true, account, channelId, guildId, msg.id);
+              const wName = matchingWatchers[0]?.name || pending?.watcherName || '';
+              const wType = matchingWatchers[0]?.type || 'Watcher';
+              logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '!', 'Guess Result', resultColor, true, account, channelId, guildId, msg.id, wName, wType, reportedGuess, secretNum);
               if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
               delete state.pendingGiveaways[channelId];
             }
@@ -7232,5 +7317,52 @@
       </div>
     </div>
   </div>
+  <!-- Vibe-Coded Gray Overlay Activity Detail Modal -->
+  <div id="activityDetailModal" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 select-none">
+    <div class="dv-modal w-full max-w-[380px] p-6 flex flex-col gap-4 shadow-2xl border border-white/10 bg-[#161616] rounded-[22px] animate-in fade-in zoom-in-95 duration-150">
+      <!-- Close Button -->
+      <div class="flex items-center justify-between pb-1 border-b border-white/[0.08]">
+        <span class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Activity Detail</span>
+        <button onclick="closeDiscordActivityDetailModal()" type="button" class="dv-close-btn" title="Close">
+          <svg class="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Avatar & Account Display Name at Top (No @ handle) -->
+      <div class="flex flex-col items-center justify-center py-2 text-center">
+        <div class="relative size-[68px] rounded-full overflow-hidden border border-white/15 shadow-lg mb-2.5 bg-[#232328] flex items-center justify-center">
+          <img id="activityDetailAvatar" src="" class="size-full object-cover" alt="Avatar" />
+        </div>
+        <h4 id="activityDetailUser" class="text-[17px] font-bold text-white leading-tight"></h4>
+      </div>
+
+      <!-- Info Rows -->
+      <div class="flex flex-col gap-2.5 p-3.5 rounded-[14px] bg-[#0c0c0c] border border-white/5">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-[#8f8f8f] font-semibold">Server:</span>
+          <span id="activityDetailServer" class="text-white font-medium truncate max-w-[200px]"></span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-[#8f8f8f] font-semibold">Watcher:</span>
+          <span id="activityDetailWatcher" class="text-white font-medium truncate max-w-[200px]"></span>
+        </div>
+        <div id="activityDetailNumbersRow" class="flex items-center justify-between text-xs" style="display:none;">
+          <span class="text-[#8f8f8f] font-semibold">Result:</span>
+          <span id="activityDetailNumbers" class="text-[#54d487] font-bold"></span>
+        </div>
+        <div class="flex items-center justify-between text-xs pt-1 border-t border-white/5">
+          <span class="text-[#8f8f8f] font-semibold">Time:</span>
+          <span id="activityDetailDate" class="text-[#cfcfcf] text-[11px]"></span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-2.5 pt-1">
+        <button type="button" onclick="closeDiscordActivityDetailModal()" class="dv-pill inactive w-full" style="height:38px;">Close</button>
+        <button type="button" id="activityDetailDiscordBtn" class="dv-pill active w-full" style="height:38px;">Jump in Discord</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
