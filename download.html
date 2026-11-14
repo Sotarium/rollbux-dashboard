@@ -109,7 +109,6 @@
             letter-spacing: -0.01em;
         }
 
-        /* Desktop Nav Menu */
         .site-nav-menu {
             display: flex;
             align-items: center;
@@ -137,7 +136,6 @@
             font-weight: 600;
         }
 
-        /* Mobile Hamburger Toggle Button */
         .site-nav-toggle {
             display: none;
             background: rgba(255, 255, 255, 0.05);
@@ -162,54 +160,41 @@
             width: 100%;
             max-width: 1360px;
             padding: 0 28px;
-            margin: 36px 0 80px;
+            margin: 40px 0 80px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
         }
 
-        /* Header Hero Card: Horizontal Layout on PC */
+        /* Centered Header Hero Download Section */
         .header-card {
             background: var(--panel-bg);
-            padding: 36px 44px;
-            border-radius: 24px;
+            padding: 52px 32px 46px;
+            border-radius: 28px;
             border: 1px solid var(--border);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            gap: 32px;
+            text-align: center;
+            gap: 14px;
             position: relative;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            min-width: 0;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
         }
 
         .download-avatar {
-            width: 82px;
-            height: 82px;
-            border-radius: 20px;
+            width: 86px;
+            height: 86px;
+            border-radius: 22px;
             object-fit: cover;
             background: #101014;
-            padding: 14px;
+            padding: 15px;
             border: 1px solid var(--border);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            flex-shrink: 0;
-        }
-
-        .header-text {
-            display: flex;
-            flex-direction: column;
-            text-align: left;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
         }
 
         .header-card h1 {
-            margin: 0;
-            font-size: 2.1rem;
+            margin: 4px 0 0;
+            font-size: 2.2rem;
             font-weight: 600;
             color: var(--text-high);
             letter-spacing: -0.02em;
@@ -217,19 +202,22 @@
 
         .header-card p {
             color: var(--text-low);
-            margin: 6px 0 0;
-            font-size: 1.02rem;
+            margin: 0;
+            font-size: 1.05rem;
+            max-width: 540px;
         }
 
         .hero-actions {
+            margin-top: 14px;
             display: flex;
             gap: 12px;
             align-items: center;
-            flex-shrink: 0;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 13px 24px;
+            padding: 13px 26px;
             border-radius: 12px;
             font-size: 0.95rem;
             font-weight: 600;
@@ -269,11 +257,21 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
+        /* Two-Column Side-by-Side (Across from Each Other) Section */
+        .panels-across-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            align-items: stretch;
+        }
+
         .card {
             background: var(--panel-bg);
             padding: 32px;
-            border-radius: 22px;
+            border-radius: 24px;
             border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
         }
 
         .panel h2 {
@@ -290,28 +288,25 @@
             color: var(--snap-purple);
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
+        /* Sub-cards inside each panel */
+        .sub-cards-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
         }
 
-        .grid.two {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-        }
-
-        .panel .card {
+        .panel .sub-card {
             background: var(--sub-panel-bg);
             border-radius: 16px;
             border: 1px solid var(--border);
-            padding: 22px 24px;
+            padding: 20px 22px;
         }
 
         h3 {
-            margin: 0 0 14px;
+            margin: 0 0 12px;
             color: var(--snap-purple);
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 600;
         }
 
@@ -322,9 +317,9 @@
         }
 
         li {
-            margin-bottom: 9px;
-            line-height: 1.55;
-            font-size: 0.95rem;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            font-size: 0.94rem;
         }
 
         li:last-child {
@@ -365,24 +360,11 @@
                 width: 100%;
                 padding: 0 16px;
                 margin: 20px 0 60px;
-            }
-
-            .header-card {
-                flex-direction: column;
-                text-align: center;
-                padding: 36px 20px 28px;
-                gap: 20px;
-            }
-
-            .header-left {
-                flex-direction: column;
-                align-items: center;
                 gap: 16px;
             }
 
-            .header-text {
-                align-items: center;
-                text-align: center;
+            .header-card {
+                padding: 38px 20px 30px;
             }
 
             .header-card h1 {
@@ -400,8 +382,9 @@
                 justify-content: center;
             }
 
-            .grid, .grid.two {
+            .panels-across-row {
                 grid-template-columns: 1fr;
+                gap: 16px;
             }
 
             .card {
@@ -412,7 +395,7 @@
 </head>
 <body class="has-nav">
 
-    <!-- Top Navigation Bar with Burger Toggle on Mobile -->
+    <!-- Top Navigation Bar -->
     <nav class="site-nav">
         <div class="site-nav-inner">
             <a href="/" class="site-nav-brand">
@@ -430,18 +413,14 @@
         </div>
     </nav>
 
-    <!-- Main Viewport Content: Large on PC, Centered & Responsive on Mobile -->
+    <!-- Main Viewport Content -->
     <div class="viewport-wrapper">
 
-        <!-- Header Hero Card -->
+        <!-- Centered Download Hero Section -->
         <header class="header-card">
-            <div class="header-left">
-                <img src="/discord-logo.png" class="download-avatar" alt="DiscordViewer">
-                <div class="header-text">
-                    <h1>DiscordViewer Download</h1>
-                    <p>Version 1.0.0 release details and direct standalone Windows executable.</p>
-                </div>
-            </div>
+            <img src="/discord-logo.png" class="download-avatar" alt="DiscordViewer">
+            <h1>DiscordViewer Download</h1>
+            <p>Version 1.0.0 release details and direct standalone Windows executable.</p>
             <div class="hero-actions">
                 <a href="/download/file" download="DiscordViewer.exe" class="btn primary">
                     <i class="fa-solid fa-download"></i> Download Latest
@@ -455,80 +434,72 @@
             </div>
         </header>
 
-        <!-- Features Panel -->
-        <section class="card panel">
-            <h2><i class="fa-solid fa-star"></i> Features</h2>
-            <div class="grid">
-                <div class="card">
-                    <h3>Multi-Account</h3>
-                    <ul>
-                        <li>Simultaneous account monitoring</li>
-                        <li>Token validity live checks</li>
-                        <li>Blurred expired card overlay</li>
-                        <li>Independent Gateway sockets</li>
-                        <li>One-click account switching</li>
-                    </ul>
+        <!-- Features & Changes Across from Each Other (Side-by-Side 50/50 Columns) -->
+        <div class="panels-across-row">
+            
+            <!-- Features Section (Left Side) -->
+            <section class="card panel">
+                <h2><i class="fa-solid fa-star"></i> Features</h2>
+                <div class="sub-cards-stack">
+                    <div class="sub-card">
+                        <h3>Multi-Account</h3>
+                        <ul>
+                            <li>Simultaneous account monitoring</li>
+                            <li>Token validity live checks</li>
+                            <li>Blurred expired card overlay</li>
+                            <li>Independent Gateway sockets</li>
+                            <li>One-click account switching</li>
+                        </ul>
+                    </div>
+                    <div class="sub-card">
+                        <h3>Auto Reaction</h3>
+                        <ul>
+                            <li>Instant giveaway detection</li>
+                            <li>19s humanized reaction distribution</li>
+                            <li>Staggered bot joins</li>
+                            <li>Bypass spam rate-limits</li>
+                            <li>Custom reaction retry handling</li>
+                        </ul>
+                    </div>
+                    <div class="sub-card">
+                        <h3>Dashboard & Logs</h3>
+                        <ul>
+                            <li>Native WebView2 hardware accelerated</li>
+                            <li>Detailed activity modal view</li>
+                            <li>Live Joins / Picked / Won filters</li>
+                            <li>Guess number result tracking</li>
+                            <li>Zero-install standalone binary</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Auto Reaction</h3>
-                    <ul>
-                        <li>Instant giveaway detection</li>
-                        <li>19s humanized reaction distribution</li>
-                        <li>Staggered bot joins</li>
-                        <li>Bypass spam rate-limits</li>
-                        <li>Custom reaction retry handling</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h3>Dashboard & Logs</h3>
-                    <ul>
-                        <li>Native WebView2 hardware accelerated</li>
-                        <li>Detailed activity modal view</li>
-                        <li>Live Joins / Picked / Won filters</li>
-                        <li>Guess number result tracking</li>
-                        <li>Zero-install standalone binary</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Changes Panel -->
-        <section class="card panel">
-            <h2><i class="fa-solid fa-wrench"></i> Changes</h2>
-            <div class="grid two">
-                <div class="card">
-                    <h3>Added</h3>
-                    <ul>
-                        <li>19-second bot reaction join distribution</li>
-                        <li>Blurred card overlay for expired accounts</li>
-                        <li>Activity modal showing guess number & accurate category</li>
-                        <li>High-speed CDN direct download endpoint</li>
-                    </ul>
+            <!-- Changes Section (Right Side Across from Features) -->
+            <section class="card panel">
+                <h2><i class="fa-solid fa-wrench"></i> Changes</h2>
+                <div class="sub-cards-stack">
+                    <div class="sub-card">
+                        <h3>Added</h3>
+                        <ul>
+                            <li>19-second bot reaction join distribution</li>
+                            <li>Blurred card overlay for expired accounts</li>
+                            <li>Activity modal showing guess number & accurate category</li>
+                            <li>High-speed CDN direct download endpoint</li>
+                        </ul>
+                    </div>
+                    <div class="sub-card">
+                        <h3>Fixed</h3>
+                        <ul>
+                            <li>Fixed HTTP 401 reaction errors on invalidated tokens</li>
+                            <li>Fixed single bot joining — now all accounts join evenly</li>
+                            <li>Prevented duplicate gateway socket reconnect loops</li>
+                            <li>Streamlined activity modal layout without Jump button</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Fixed</h3>
-                    <ul>
-                        <li>Fixed HTTP 401 reaction errors on invalidated tokens</li>
-                        <li>Fixed single bot joining — now all accounts join evenly</li>
-                        <li>Prevented duplicate gateway socket reconnect loops</li>
-                        <li>Streamlined activity modal layout without Jump button</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Notes Panel -->
-        <section class="card panel">
-            <h2><i class="fa-solid fa-circle-info"></i> Notes</h2>
-            <div class="panel">
-                <div class="card">
-                    <ul>
-                        <li>Standalone single-file executable (<strong style="color:var(--text-high);">DiscordViewer.exe</strong>, 155 MB). No installer or runtime setup required.</li>
-                        <li>Runs natively on Windows 10 & 11 (64-bit).</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+        </div>
 
     </div>
 
