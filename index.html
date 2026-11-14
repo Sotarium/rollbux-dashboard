@@ -1059,30 +1059,23 @@
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
                   <!-- Upgrader Plan Lock / Floating Pay Gate -->
-                  <div id="upgraderPlanGate" class="absolute inset-0 z-30 flex flex-col items-center justify-center p-6" style="display:none; background: rgba(10, 10, 10, 0.45); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 20px;">
-                    <div class="flex flex-col items-center max-w-[420px] w-full mx-auto p-8 rounded-2xl bg-[#141416]/90 border border-[rgba(255,255,255,0.12)] shadow-[0_20px_60px_rgba(0,0,0,0.85)] text-center transform transition-all duration-300">
-                      <!-- Crown Icon from Sell Bux pay gate in glowing ring -->
-                      <div class="relative mb-5 flex items-center justify-center">
-                        <div class="absolute inset-0 rounded-full bg-white/5 blur-md"></div>
-                        <div class="relative size-20 rounded-full bg-gradient-to-b from-[#242426] to-[#18181a] border border-[rgba(255,255,255,0.16)] flex items-center justify-center shadow-xl">
-                          <img src="/upgrader_badge.png" alt="Upgrader Plan Crown" class="size-12 object-contain drop-shadow" />
-                        </div>
+                  <div id="upgraderPlanGate" class="absolute inset-0 z-30 flex items-center justify-center p-6 min-h-[500px]" style="display:none; background: rgba(5, 5, 5, 0.40); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 20px;">
+                    <div class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center">
+                      <!-- Crown Icon filling the whole circular container -->
+                      <div class="relative size-20 rounded-full bg-gradient-to-b from-[#2a2a2d] to-[#161618] border border-white/15 flex items-center justify-center mb-5 shadow-xl overflow-hidden p-2">
+                        <img src="/upgrader_badge.png" alt="Upgrader Plan Crown" class="size-full object-contain" />
                       </div>
 
-                      <h2 class="text-3xl font-extrabold text-white tracking-tight mb-2">Upgrader Plan</h2>
-                      <p class="text-[13px] text-[#9ca3af] leading-relaxed mb-6">Automated Discord ticket claimers, giveaway watchers, and real-time alerts are exclusive to Upgrader Plan members.</p>
+                      <h2 class="text-2xl font-bold text-white tracking-tight mb-4">Upgrader Plan</h2>
                       
-                      <!-- Price Pill matching Sell Bux style -->
-                      <div class="inline-flex items-center gap-3 bg-black/40 border border-[rgba(255,255,255,0.10)] rounded-xl px-5 py-2.5 mb-6 shadow-inner">
-                        <span class="text-sm font-bold text-white tracking-wide">50 Rollbux</span>
-                        <span class="text-xs text-[#555]">•</span>
+                      <!-- Price Pill: Crypto ($0.33 USD) -->
+                      <div class="inline-flex items-center justify-center bg-black/50 border border-white/10 rounded-xl px-5 py-2 mb-6 shadow-inner">
                         <span class="text-sm font-bold text-[#38bdf8]">$0.33 USD</span>
                       </div>
 
-                      <!-- Action Button -->
-                      <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3.5 px-6 rounded-xl bg-white text-black font-bold text-[14px] hover:bg-[#eaeaea] hover:scale-[1.01] active:scale-[0.99] transition duration-150 shadow-xl flex items-center justify-center gap-2 cursor-pointer">
-                        <img src="/upgrader_badge.png" class="size-4 object-contain inline-block" />
-                        <span>Get Upgrader Plan</span>
+                      <!-- Action Button without crown icon -->
+                      <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3.5 px-6 rounded-xl bg-white text-black font-bold text-sm hover:bg-[#eaeaea] hover:scale-[1.01] active:scale-[0.99] transition duration-150 shadow-xl cursor-pointer">
+                        Upgrade Plan
                       </button>
                     </div>
                   </div>
@@ -5773,9 +5766,9 @@
       const INACT_NAV = BASE_NAV + 'background:transparent;color:#8f8f8f;';
 
       if (tab === 'discord') {
-        if (typeof checkUpgraderPlan === 'function') checkUpgraderPlan();
         if (rollbuxView) rollbuxView.style.display = 'none';
         if (discordView) discordView.style.display = 'flex';
+        if (typeof checkUpgraderPlan === 'function') checkUpgraderPlan();
         if (typeof renderDiscordWatchers === 'function') renderDiscordWatchers();
         if (typeof startDiscordGateway === 'function') startDiscordGateway();
         if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = INACT_NAV; }
@@ -7762,7 +7755,7 @@
       checkGitHubReleases();
     })();
   
-    function checkUpgraderPlan() {
+        function checkUpgraderPlan() {
       const isUpgrader = localStorage.getItem('rollbux_upgrader_unlocked') === 'true';
       const gate = document.getElementById('upgraderPlanGate');
       const content = document.getElementById('discordViewContent');
@@ -7774,7 +7767,7 @@
         content.style.userSelect = 'auto';
       } else {
         gate.style.display = 'flex';
-        content.style.filter = 'blur(10px)';
+        content.style.filter = 'blur(12px)';
         content.style.pointerEvents = 'none';
         content.style.userSelect = 'none';
       }
