@@ -60,107 +60,12 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        body.has-nav {
-            padding-top: 68px;
-        }
-
-        /* Top Navigation Bar */
-        .site-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1200;
-            background: rgba(21, 21, 26, 0.88);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .site-nav-inner {
-            width: 100%;
-            max-width: 1360px;
-            margin: 0 auto;
-            padding: 14px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-        }
-
-        .site-nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: var(--text-high);
-        }
-
-        .site-nav-logo {
-            width: 32px;
-            height: 32px;
-            border-radius: 9px;
-            object-fit: contain;
-        }
-
-        .site-nav-brand-text {
-            font-size: 1.25rem;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        }
-
-        .site-nav-menu {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .site-nav-link {
-            color: var(--text-mid);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            padding: 7px 16px;
-            border-radius: 10px;
-            transition: var(--transition);
-        }
-
-        .site-nav-link:hover {
-            color: var(--text-high);
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .site-nav-link.primary {
-            color: #120d1c;
-            background: var(--snap-purple);
-            font-weight: 600;
-        }
-
-        .site-nav-toggle {
-            display: none;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            color: var(--text-high);
-            font-size: 1.2rem;
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-        }
-
-        .site-nav-toggle:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
         /* Widescreen PC Viewport Wrapper */
         .viewport-wrapper {
             width: 100%;
             max-width: 1360px;
             padding: 0 28px;
-            margin: 40px 0 80px;
+            margin: 48px 0 80px;
             display: flex;
             flex-direction: column;
             gap: 24px;
@@ -169,7 +74,7 @@
         /* Centered Header Hero Download Section */
         .header-card {
             background: var(--panel-bg);
-            padding: 52px 32px 46px;
+            padding: 46px 32px 42px;
             border-radius: 28px;
             border: 1px solid var(--border);
             display: flex;
@@ -179,6 +84,26 @@
             gap: 14px;
             position: relative;
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+        }
+
+        .version-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-mid);
+            font-size: 0.86rem;
+            font-weight: 600;
+            user-select: none;
+            letter-spacing: 0.01em;
+        }
+
+        .version-badge i {
+            color: var(--snap-purple);
+            font-size: 0.8rem;
         }
 
         .download-avatar {
@@ -217,9 +142,9 @@
         }
 
         .btn {
-            padding: 13px 26px;
+            padding: 14px 28px;
             border-radius: 12px;
-            font-size: 0.95rem;
+            font-size: 0.96rem;
             font-weight: 600;
             cursor: pointer;
             border: 1px solid var(--border);
@@ -245,16 +170,6 @@
 
         .btn.primary:hover {
             box-shadow: 0 6px 28px rgba(241, 218, 253, 0.45);
-        }
-
-        .btn.ghost {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-mid);
-        }
-
-        .btn.ghost:hover {
-            color: var(--text-high);
-            background: rgba(255, 255, 255, 0.08);
         }
 
         /* Two-Column Side-by-Side (Across from Each Other) Section */
@@ -328,43 +243,15 @@
 
         /* Responsive Mobile Styles */
         @media (max-width: 900px) {
-            .site-nav-toggle {
-                display: flex;
-            }
-
-            .site-nav-menu {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: #15151a;
-                border-bottom: 1px solid var(--border);
-                flex-direction: column;
-                padding: 16px 20px;
-                gap: 8px;
-                box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
-            }
-
-            .site-nav-menu.is-open {
-                display: flex;
-            }
-
-            .site-nav-link {
-                width: 100%;
-                text-align: center;
-                padding: 10px 14px;
-            }
-
             .viewport-wrapper {
                 width: 100%;
                 padding: 0 16px;
-                margin: 20px 0 60px;
+                margin: 24px 0 60px;
                 gap: 16px;
             }
 
             .header-card {
-                padding: 38px 20px 30px;
+                padding: 36px 20px 30px;
             }
 
             .header-card h1 {
@@ -373,8 +260,6 @@
 
             .hero-actions {
                 width: 100%;
-                flex-direction: column;
-                gap: 10px;
             }
 
             .hero-actions .btn {
@@ -393,43 +278,23 @@
         }
     </style>
 </head>
-<body class="has-nav">
-
-    <!-- Top Navigation Bar -->
-    <nav class="site-nav">
-        <div class="site-nav-inner">
-            <a href="/" class="site-nav-brand">
-                <img src="/discord-logo.png" class="site-nav-logo" alt="DiscordViewer">
-                <span class="site-nav-brand-text">DiscordViewer</span>
-            </a>
-            <button class="site-nav-toggle" id="navToggleBtn" type="button" aria-label="Toggle navigation">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <div class="site-nav-menu" id="navMenu">
-                <a href="/" class="site-nav-link">Dashboard</a>
-                <a href="/download" class="site-nav-link primary">Download</a>
-                <a href="https://github.com/Sotarium/rollbux-dashboard" target="_blank" rel="noopener noreferrer" class="site-nav-link">GitHub</a>
-            </div>
-        </div>
-    </nav>
+<body>
 
     <!-- Main Viewport Content -->
     <div class="viewport-wrapper">
 
         <!-- Centered Download Hero Section -->
         <header class="header-card">
+            <div class="version-badge">
+                <i class="fa-solid fa-tag"></i>
+                <span>Release v1.0.0</span>
+            </div>
             <img src="/discord-logo.png" class="download-avatar" alt="DiscordViewer">
             <h1>DiscordViewer Download</h1>
             <p>Version 1.0.0 release details and direct standalone Windows executable.</p>
             <div class="hero-actions">
                 <a href="/download/file" download="DiscordViewer.exe" class="btn primary">
                     <i class="fa-solid fa-download"></i> Download Latest
-                </a>
-                <a href="/" class="btn ghost">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
-                </a>
-                <a href="https://github.com/Sotarium/rollbux-dashboard/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="btn ghost">
-                    <i class="fa-solid fa-tag"></i> Release v1.0.0
                 </a>
             </div>
         </header>
@@ -503,14 +368,5 @@
 
     </div>
 
-    <script>
-        const navToggle = document.getElementById('navToggleBtn');
-        const navMenu = document.getElementById('navMenu');
-        if (navToggle && navMenu) {
-            navToggle.addEventListener('click', () => {
-                navMenu.classList.toggle('is-open');
-            });
-        }
-    </script>
 </body>
 </html>
