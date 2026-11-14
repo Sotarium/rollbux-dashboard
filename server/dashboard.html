@@ -416,7 +416,8 @@
       user-select: none;
     }
     .update-screen-card {
-      width: min(440px, 100%);
+      width: min(560px, 92vw);
+      max-width: 560px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -429,6 +430,8 @@
       font-style: italic;
       letter-spacing: 0.5px;
       color: #ffffff;
+      white-space: nowrap;
+      overflow: visible;
     }
     .update-screen-desc {
       font-size: 13px;
@@ -7609,8 +7612,16 @@
   <script>
     // Sotarium / DiscordViewer Auto-Updater Client Bridge
     (function initSotariumAutoUpdater() {
-      const CURRENT_CLIENT_VERSION = 'v1.0.0';
+      // Dynamic client version: inject via window.__DV_VERSION__ or localStorage cache
+      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.1';
       let pendingUpdateData = null;
+
+      window.setAppCurrentVersion = function(ver) {
+        if (!ver) return;
+        const norm = ver.startsWith('v') ? ver : 'v' + ver;
+        CURRENT_CLIENT_VERSION = norm;
+        try { localStorage.setItem('__dv_installed_ver', norm); } catch(e) {}
+      };
 
       window.setUpdateProgress = function(percent) {
         const bar = document.getElementById('updateProgressBar');
@@ -7624,6 +7635,9 @@
         const pDone = document.getElementById('updatePhaseDone');
         if (pDownload) pDownload.style.display = 'none';
         if (pDone) pDone.style.display = 'flex';
+        if (pendingUpdateData?.tag) {
+          window.setAppCurrentVersion(pendingUpdateData.tag);
+        }
       };
 
       window.setUpdateError = function(errMsg) {
@@ -7713,8 +7727,8 @@
         } catch(e) {}
       }
 
-      // Trigger update check
-      setTimeout(checkGitHubReleases, 1200);
+      // Trigger update check immediately
+      checkGitHubReleases();
     })();
   </script>
 </body>
