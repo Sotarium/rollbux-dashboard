@@ -1,223 +1,439 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download DiscordViewer</title>
-  <link rel="icon" type="image/png" href="/sotarium-favicon.png?v=20261111">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    html, body {
-      width: 100%;
-      height: 100%;
-      background-color: #fafafa;
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      color: #0d0d11;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#F1DAFD">
+    
+    <link rel="icon" href="/discord-logo.png" type="image/png">
+    <title>DiscordViewer | Download</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --app-bg: #0f0f12;
+            --panel-bg: #1a1a20;
+            --sub-panel-bg: #14141a;
+            --snap-purple: #F1DAFD;
+            --text-high: #e8e8e8;
+            --text-mid: #aaaaaa;
+            --text-low: #666666;
+            --border: rgba(255, 255, 255, 0.06);
+            --transition: all 0.15s ease;
+        }
 
-    /* Subtle sleek dot grid on soft light background */
-    .bg-pattern {
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
-      background-size: 24px 24px;
-      pointer-events: none;
-      mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 60%, transparent 100%);
-      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 60%, transparent 100%);
-    }
+        * {
+            box-sizing: border-box;
+            scrollbar-color: rgba(241, 218, 253, 0.65) rgba(255, 255, 255, 0.08);
+            scrollbar-width: thin;
+        }
 
-    /* Ambient soft pastel glow */
-    .bg-glow {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 600px;
-      height: 480px;
-      background: radial-gradient(circle, rgba(241, 218, 253, 0.45) 0%, rgba(255, 255, 255, 0) 70%);
-      pointer-events: none;
-      filter: blur(50px);
-    }
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        *::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        *::-webkit-scrollbar-thumb {
+            background: rgba(241, 218, 253, 0.55);
+            border-radius: 999px;
+            border: 2px solid rgba(15, 15, 18, 0.6);
+        }
+        *::-webkit-scrollbar-thumb:hover {
+            background: rgba(241, 218, 253, 0.75);
+        }
 
-    .card {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      max-width: 440px;
-      background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: 28px;
-      padding: 38px 32px;
-      box-shadow: 
-        0 20px 48px -12px rgba(0, 0, 0, 0.08),
-        0 1px 3px rgba(0, 0, 0, 0.04);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 20px;
-    }
+        body {
+            margin: 0;
+            background-color: var(--app-bg);
+            color: var(--text-high);
+            font-family: 'Fredoka', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    .version-bubble {
-      display: inline-flex;
-      align-items: center;
-      padding: 5px 14px;
-      background: #f3f3f6;
-      border: 1px solid #e5e5eb;
-      border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #63636e;
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: -0.01em;
-    }
+        body.has-nav {
+            padding-top: 62px;
+        }
 
-    .app-icon {
-      width: 68px;
-      height: 68px;
-      border-radius: 20px;
-      background: #0d0d11;
-      padding: 13px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
-    }
-    .app-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
+        /* Top Nav matching Snapmation */
+        .site-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1200;
+            background: rgba(26, 26, 32, 0.82);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
 
-    .text-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+        .site-nav-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    .title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      color: #0d0d11;
-    }
+        .site-nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-high);
+        }
 
-    .subtitle {
-      font-size: 13px;
-      color: #71717a;
-      font-weight: 500;
-      line-height: 1.4;
-    }
+        .site-nav-logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
 
-    .download-btn {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      height: 52px;
-      background-color: #F1DAFD;
-      color: #260f33;
-      font-family: inherit;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      text-decoration: none;
-      border-radius: 14px;
-      cursor: pointer;
-      border: 1px solid rgba(180, 120, 210, 0.3);
-      box-shadow: 
-        0 8px 22px rgba(241, 218, 253, 0.65),
-        0 2px 4px rgba(0, 0, 0, 0.04);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      overflow: hidden;
-      outline: none;
-    }
-    .download-btn:hover {
-      background-color: #f7e8fe;
-      transform: translateY(-2px);
-      box-shadow: 
-        0 12px 28px rgba(241, 218, 253, 0.85),
-        0 4px 8px rgba(0, 0, 0, 0.06);
-    }
-    .download-btn:active {
-      transform: scale(0.985);
-    }
-    .download-btn svg {
-      width: 19px;
-      height: 19px;
-      stroke-width: 2.3;
-    }
+        .site-nav-brand-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
 
-    .btn-shine {
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.45) 50%,
-        transparent 100%
-      );
-      transition: left 0.6s ease;
-      pointer-events: none;
-    }
-    .download-btn:hover .btn-shine {
-      left: 100%;
-    }
+        .site-nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .specs-pill {
-      font-size: 11px;
-      color: #8e8e99;
-      font-weight: 600;
-    }
-  </style>
+        .site-nav-link {
+            color: var(--text-mid);
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .site-nav-link:hover {
+            color: var(--text-high);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .site-nav-link.primary {
+            color: #120d1c;
+            background: var(--snap-purple);
+            font-weight: 600;
+        }
+
+        .viewport-wrapper {
+            width: 92%;
+            max-width: 820px;
+            margin: 36px 0 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .header-card {
+            background: var(--panel-bg);
+            padding: 46px 42px 38px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            text-align: center;
+            position: relative;
+        }
+
+        .download-avatar {
+            width: 76px;
+            height: 76px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+            object-fit: cover;
+            background: #14141a;
+            padding: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .header-card h1 {
+            margin: 0;
+            font-size: 1.9rem;
+            font-weight: 600;
+            color: var(--text-high);
+            letter-spacing: -0.01em;
+        }
+
+        .header-card p {
+            color: var(--text-low);
+            margin: 8px 0 0;
+            font-size: 0.96rem;
+        }
+
+        .hero-actions {
+            margin-top: 22px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn.primary {
+            background: var(--snap-purple);
+            color: #120d1c;
+            border-color: transparent;
+            box-shadow: 0 4px 18px rgba(241, 218, 253, 0.22);
+        }
+
+        .btn.primary:hover {
+            box-shadow: 0 6px 24px rgba(241, 218, 253, 0.35);
+        }
+
+        .btn.ghost {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-mid);
+        }
+
+        .btn.ghost:hover {
+            color: var(--text-high);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .card {
+            background: var(--panel-bg);
+            padding: 28px;
+            border-radius: 22px;
+            border: 1px solid var(--border);
+        }
+
+        .panel h2 {
+            margin: 0 0 16px;
+            font-size: 1.22rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-high);
+            font-weight: 600;
+        }
+
+        .panel h2 i {
+            color: var(--snap-purple);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .grid.two {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .panel .card {
+            background: var(--sub-panel-bg);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 18px 20px;
+        }
+
+        h3 {
+            margin: 0 0 12px;
+            color: var(--snap-purple);
+            font-size: 1.02rem;
+            font-weight: 600;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--text-mid);
+        }
+
+        li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+
+        li:last-child {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 860px) {
+            .grid, .grid.two {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .viewport-wrapper {
+                margin: 24px 0 60px;
+                width: 94%;
+            }
+            .header-card {
+                padding: 38px 20px 30px;
+            }
+            .download-avatar {
+                width: 64px;
+                height: 64px;
+            }
+            .header-card h1 {
+                font-size: 1.6rem;
+            }
+            .hero-actions {
+                flex-direction: column;
+            }
+            .hero-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
-<body>
+<body class="has-nav">
 
-  <div class="bg-pattern"></div>
-  <div class="bg-glow"></div>
+    <!-- Top Navigation Bar (Snapmation style) -->
+    <nav class="site-nav">
+        <div class="site-nav-inner">
+            <a href="/" class="site-nav-brand">
+                <img src="/discord-logo.png" class="site-nav-logo" alt="DiscordViewer">
+                <span class="site-nav-brand-text">DiscordViewer</span>
+            </a>
+            <div class="site-nav-menu">
+                <a href="/" class="site-nav-link">Dashboard</a>
+                <a href="/download" class="site-nav-link primary">Download</a>
+                <a href="https://github.com/Sotarium/rollbux-dashboard" target="_blank" rel="noopener noreferrer" class="site-nav-link">GitHub</a>
+            </div>
+        </div>
+    </nav>
 
-  <div class="card">
-    <div class="version-bubble">v1.0.0</div>
+    <!-- Main Viewport Content -->
+    <div class="viewport-wrapper">
 
-    <div class="app-icon">
-      <img src="/discord-logo.png" alt="DiscordViewer">
+        <!-- Header Hero Card -->
+        <header class="header-card">
+            <img src="/discord-logo.png" class="download-avatar" alt="DiscordViewer">
+            <h1>DiscordViewer Download</h1>
+            <p>Version 1.0.0 release details and direct standalone executable.</p>
+            <div class="hero-actions">
+                <a href="/download/file" download="DiscordViewer.exe" class="btn primary">
+                    <i class="fa-solid fa-download"></i> Download Latest
+                </a>
+                <a href="/" class="btn ghost">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="https://github.com/Sotarium/rollbux-dashboard/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="btn ghost">
+                    <i class="fa-solid fa-tag"></i> Release v1.0.0
+                </a>
+            </div>
+        </header>
+
+        <!-- Features Panel -->
+        <section class="card panel">
+            <h2><i class="fa-solid fa-star"></i> Features</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Multi-Account</h3>
+                    <ul>
+                        <li>Simultaneous account monitoring</li>
+                        <li>Token validity live checks</li>
+                        <li>Blurred expired card overlay</li>
+                        <li>Independent Gateway sockets</li>
+                        <li>One-click account switching</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Auto Reaction</h3>
+                    <ul>
+                        <li>Instant giveaway detection</li>
+                        <li>19s humanized reaction distribution</li>
+                        <li>Staggered bot joins</li>
+                        <li>Bypass spam rate-limits</li>
+                        <li>Custom reaction retry handling</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Dashboard & Logs</h3>
+                    <ul>
+                        <li>Native WebView2 hardware accelerated</li>
+                        <li>Detailed activity modal view</li>
+                        <li>Live Joins / Picked / Won filters</li>
+                        <li>Guess number result tracking</li>
+                        <li>Zero-install standalone binary</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Changes Panel -->
+        <section class="card panel">
+            <h2><i class="fa-solid fa-wrench"></i> Changes</h2>
+            <div class="grid two">
+                <div class="card">
+                    <h3>Added</h3>
+                    <ul>
+                        <li>19-second bot reaction join distribution</li>
+                        <li>Blurred card overlay for expired accounts</li>
+                        <li>Activity modal showing guess number & accurate category</li>
+                        <li>High-speed CDN direct download endpoint</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Fixed</h3>
+                    <ul>
+                        <li>Fixed HTTP 401 reaction errors on invalidated tokens</li>
+                        <li>Fixed single bot joining — now all accounts join evenly</li>
+                        <li>Prevented duplicate gateway socket reconnect loops</li>
+                        <li>Streamlined activity modal layout without Jump button</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notes Panel -->
+        <section class="card panel">
+            <h2><i class="fa-solid fa-circle-info"></i> Notes</h2>
+            <div class="panel">
+                <div class="card">
+                    <ul>
+                        <li>Standalone single-file executable (<strong style="color:var(--text-high);">DiscordViewer.exe</strong>, 155 MB). No installer or runtime setup required.</li>
+                        <li>Runs natively on Windows 10 & 11 (64-bit).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
     </div>
-
-    <div class="text-group">
-      <h1 class="title">DiscordViewer</h1>
-      <p class="subtitle">Standalone Windows client with real-time multi-account monitoring</p>
-    </div>
-
-    <a href="/download/file" download="DiscordViewer.exe" class="download-btn">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-      </svg>
-      <span>Download</span>
-      <div class="btn-shine"></div>
-    </a>
-
-    <span class="specs-pill">Windows 10 / 11 (64-bit) • 155 MB</span>
-  </div>
 
 </body>
 </html>
