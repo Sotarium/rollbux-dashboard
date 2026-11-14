@@ -1059,21 +1059,24 @@
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
                   <!-- Upgrader Plan Lock / Floating Pay Gate -->
-                  <div id="upgraderPlanGate" class="absolute inset-0 z-30 flex items-center justify-center p-6 min-h-[500px]" style="display:none; background: rgba(5, 5, 5, 0.40); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 20px;">
-                    <div class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center">
-                      <!-- Crown Icon filling the whole circular container -->
-                      <div class="relative size-20 rounded-full bg-gradient-to-b from-[#2a2a2d] to-[#161618] border border-white/15 flex items-center justify-center mb-5 shadow-xl overflow-hidden p-2">
-                        <img src="/upgrader_badge.png" alt="Upgrader Plan Crown" class="size-full object-contain" />
+                  <div id="upgraderPlanGate" class="absolute inset-0 z-30 flex flex-col items-center justify-start pt-12 pb-8 px-6 min-h-[520px]" style="display:none; background: rgba(5, 5, 5, 0.40); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 20px;">
+                    <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center">
+                      <!-- 52px Circle with exact lucide-crown SVG provided -->
+                      <div class="flex items-center justify-center mb-4" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, #2a2a2d 0%, #161618 100%); border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-crown" aria-hidden="true" style="color: rgb(255, 255, 255);">
+                          <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"></path>
+                          <path d="M5 21h14"></path>
+                        </svg>
                       </div>
 
-                      <h2 class="text-2xl font-bold text-white tracking-tight mb-4">Upgrader Plan</h2>
+                      <h1 class="text-2xl font-bold text-white tracking-tight mb-4">Upgrader Plan</h1>
                       
                       <!-- Price Pill: Crypto ($0.33 USD) -->
                       <div class="inline-flex items-center justify-center bg-black/50 border border-white/10 rounded-xl px-5 py-2 mb-6 shadow-inner">
                         <span class="text-sm font-bold text-[#38bdf8]">$0.33 USD</span>
                       </div>
 
-                      <!-- Action Button without crown icon -->
+                      <!-- Action Button -->
                       <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3.5 px-6 rounded-xl bg-white text-black font-bold text-sm hover:bg-[#eaeaea] hover:scale-[1.01] active:scale-[0.99] transition duration-150 shadow-xl cursor-pointer">
                         Upgrade Plan
                       </button>
@@ -7755,21 +7758,32 @@
       checkGitHubReleases();
     })();
   
-        function checkUpgraderPlan() {
+            function checkUpgraderPlan() {
       const isUpgrader = localStorage.getItem('rollbux_upgrader_unlocked') === 'true';
       const gate = document.getElementById('upgraderPlanGate');
       const content = document.getElementById('discordViewContent');
+      const viewDiscord = document.getElementById('viewDiscord');
       if (!gate || !content) return;
       if (isUpgrader) {
         gate.style.display = 'none';
         content.style.filter = 'none';
         content.style.pointerEvents = 'auto';
         content.style.userSelect = 'auto';
+        if (viewDiscord) {
+          viewDiscord.style.overflow = 'visible';
+          viewDiscord.style.maxHeight = 'none';
+        }
+        document.body.style.overflow = 'auto';
       } else {
         gate.style.display = 'flex';
         content.style.filter = 'blur(12px)';
         content.style.pointerEvents = 'none';
         content.style.userSelect = 'none';
+        if (viewDiscord) {
+          viewDiscord.style.overflow = 'hidden';
+          viewDiscord.style.maxHeight = '85vh';
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
 
