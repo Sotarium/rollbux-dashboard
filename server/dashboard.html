@@ -1057,7 +1057,29 @@
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <!-- VIEW 2: DISCORD (Exact DiscordViewer-Dashboard-11 DiscordView) -->
                 <!-- ══════════════════════════════════════════════════════════ -->
-                <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none;">
+                <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
+                  <!-- Upgrader Plan Lock / Pay Gate -->
+                  <div id="upgraderPlanGate" class="w-full flex flex-col items-center justify-center text-center py-20 px-6 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#121214] mb-4" style="display:none;">
+                    <div class="flex flex-col items-center max-w-md mx-auto">
+                      <div class="size-20 rounded-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.10)] flex items-center justify-center mb-5 shadow-2xl">
+                        <img src="/upgrader_badge.png" alt="Upgrader Plan Crown" class="size-12 object-contain" />
+                      </div>
+                      <h2 class="text-3xl font-extrabold text-white tracking-tight mb-2">Upgrader Plan</h2>
+                      <p class="text-sm text-[#8f8f8f] mb-6">Discord watchers, ticket claimers, and auto-giveaways are exclusive to Upgrader Plan members.</p>
+                      <div class="flex items-center gap-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-5 py-2.5 mb-6">
+                        <span class="text-sm font-bold text-white">50 Rollbux</span>
+                        <span class="text-xs text-[#555]">•</span>
+                        <span class="text-sm font-bold text-[#38bdf8]">$0.33 USD</span>
+                      </div>
+                      <div class="w-full flex flex-col gap-3">
+                        <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3 px-6 rounded-xl bg-white text-black font-bold text-sm hover:bg-[#e6e6e6] transition shadow-lg flex items-center justify-center gap-2">
+                          <img src="/upgrader_badge.png" class="size-4 object-contain inline-block" />
+                          <span>Get Upgrader Plan</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="discordViewContent" class="w-full flex flex-col gap-6">
                   <!-- Watchers Header -->
                   <div class="flex items-center justify-between w-full mb-2">
                     <div class="flex items-center gap-3">
@@ -1146,6 +1168,7 @@
                       <span class="text-[13px] font-semibold text-white">Add another Discord account</span>
                       <button type="button" class="shrink-0 px-4 py-2 rounded-[8px] bg-white text-black text-[12px] font-bold hover:bg-[#e8e8e8] transition" onclick="openDiscordLoginModal()">+ Add</button>
                     </div>
+                  </div>
                   </div>
                 </div>
 
@@ -5743,6 +5766,7 @@
       const INACT_NAV = BASE_NAV + 'background:transparent;color:#8f8f8f;';
 
       if (tab === 'discord') {
+        if (typeof checkUpgraderPlan === 'function') checkUpgraderPlan();
         if (rollbuxView) rollbuxView.style.display = 'none';
         if (discordView) discordView.style.display = 'flex';
         if (typeof renderDiscordWatchers === 'function') renderDiscordWatchers();
@@ -6166,7 +6190,7 @@
             const guess = Math.floor(Math.random() * 20) + 1;
             const wName = matchingWatchers[0]?.name || '';
             const wType = matchingWatchers[0]?.type || 'Watcher';
-            logDiscordActivity('Guessed ' + guess, 'Guess', 'green', true, account, channelId, guildId, msg.id, wName, wType, guess);
+            // logDiscordActivity removed: giveaway end notification handles it
             void sendDiscordMessage(channelId, String(guess), account);
             if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
             if (!state.pendingGiveaways[channelId]) {
@@ -7730,6 +7754,27 @@
       // Trigger update check immediately
       checkGitHubReleases();
     })();
-  </script>
+  
+    function checkUpgraderPlan() {
+      const isUpgrader = localStorage.getItem('rollbux_upgrader_unlocked') === 'true';
+      const gate = document.getElementById('upgraderPlanGate');
+      const content = document.getElementById('discordViewContent');
+      if (!gate || !content) return;
+      if (isUpgrader) {
+        gate.style.display = 'none';
+        content.style.display = 'flex';
+      } else {
+        gate.style.display = 'flex';
+        content.style.display = 'none';
+      }
+    }
+
+    function unlockUpgraderPlan() {
+      localStorage.setItem('rollbux_upgrader_unlocked', 'true');
+      checkUpgraderPlan();
+      if (typeof renderDiscordWatchers === 'function') renderDiscordWatchers();
+    }
+
+</script>
 </body>
 </html>
