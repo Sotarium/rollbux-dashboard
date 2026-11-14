@@ -11,19 +11,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --app-bg: #0f0f12;
-            --panel-bg: #1a1a20;
-            --sub-panel-bg: #14141a;
+            --app-bg: #0b0b0e;
+            --panel-bg: #15151a;
+            --sub-panel-bg: #101014;
             --snap-purple: #F1DAFD;
-            --text-high: #e8e8e8;
-            --text-mid: #aaaaaa;
-            --text-low: #666666;
-            --border: rgba(255, 255, 255, 0.06);
-            --transition: all 0.15s ease;
+            --text-high: #f0f0f5;
+            --text-mid: #a0a0aa;
+            --text-low: #6a6a75;
+            --border: rgba(255, 255, 255, 0.07);
+            --transition: all 0.16s ease;
         }
 
         * {
@@ -37,7 +37,7 @@
             height: 8px;
         }
         *::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.04);
         }
         *::-webkit-scrollbar-thumb {
             background: rgba(241, 218, 253, 0.55);
@@ -54,77 +54,81 @@
             color: var(--text-high);
             font-family: 'Fredoka', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
         }
 
         body.has-nav {
-            padding-top: 62px;
+            padding-top: 68px;
         }
 
-        /* Top Nav matching Snapmation */
+        /* Top Navigation Bar */
         .site-nav {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1200;
-            background: rgba(26, 26, 32, 0.82);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(21, 21, 26, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border-bottom: 1px solid var(--border);
         }
 
         .site-nav-inner {
-            max-width: 1120px;
+            width: 100%;
+            max-width: 1360px;
             margin: 0 auto;
-            padding: 12px 20px;
+            padding: 14px 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: relative;
         }
 
         .site-nav-brand {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             text-decoration: none;
             color: var(--text-high);
         }
 
         .site-nav-logo {
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
             object-fit: contain;
         }
 
         .site-nav-brand-text {
-            font-size: 1.15rem;
+            font-size: 1.25rem;
             font-weight: 600;
             letter-spacing: -0.01em;
         }
 
+        /* Desktop Nav Menu */
         .site-nav-menu {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .site-nav-link {
             color: var(--text-mid);
             text-decoration: none;
-            font-size: 0.92rem;
+            font-size: 0.95rem;
             font-weight: 500;
-            padding: 6px 14px;
+            padding: 7px 16px;
             border-radius: 10px;
             transition: var(--transition);
         }
 
         .site-nav-link:hover {
             color: var(--text-high);
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.06);
         }
 
         .site-nav-link.primary {
@@ -133,71 +137,111 @@
             font-weight: 600;
         }
 
+        /* Mobile Hamburger Toggle Button */
+        .site-nav-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-high);
+            font-size: 1.2rem;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .site-nav-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Widescreen PC Viewport Wrapper */
         .viewport-wrapper {
-            width: 92%;
-            max-width: 820px;
+            width: 100%;
+            max-width: 1360px;
+            padding: 0 28px;
             margin: 36px 0 80px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 20px;
         }
 
+        /* Header Hero Card: Horizontal Layout on PC */
         .header-card {
             background: var(--panel-bg);
-            padding: 46px 42px 38px;
+            padding: 36px 44px;
             border-radius: 24px;
             border: 1px solid var(--border);
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 32px;
             position: relative;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            min-width: 0;
         }
 
         .download-avatar {
-            width: 76px;
-            height: 76px;
+            width: 82px;
+            height: 82px;
             border-radius: 20px;
-            margin-bottom: 14px;
             object-fit: cover;
-            background: #14141a;
-            padding: 12px;
+            background: #101014;
+            padding: 14px;
             border: 1px solid var(--border);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
         }
 
         .header-card h1 {
             margin: 0;
-            font-size: 1.9rem;
+            font-size: 2.1rem;
             font-weight: 600;
             color: var(--text-high);
-            letter-spacing: -0.01em;
+            letter-spacing: -0.02em;
         }
 
         .header-card p {
             color: var(--text-low);
-            margin: 8px 0 0;
-            font-size: 0.96rem;
+            margin: 6px 0 0;
+            font-size: 1.02rem;
         }
 
         .hero-actions {
-            margin-top: 22px;
             display: flex;
             gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
+            align-items: center;
+            flex-shrink: 0;
         }
 
         .btn {
-            padding: 12px 22px;
+            padding: 13px 24px;
             border-radius: 12px;
-            font-size: 0.92rem;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             border: 1px solid var(--border);
             transition: var(--transition);
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 9px;
             text-decoration: none;
             font-family: inherit;
+            white-space: nowrap;
         }
 
         .btn:hover {
@@ -208,11 +252,11 @@
             background: var(--snap-purple);
             color: #120d1c;
             border-color: transparent;
-            box-shadow: 0 4px 18px rgba(241, 218, 253, 0.22);
+            box-shadow: 0 4px 20px rgba(241, 218, 253, 0.28);
         }
 
         .btn.primary:hover {
-            box-shadow: 0 6px 24px rgba(241, 218, 253, 0.35);
+            box-shadow: 0 6px 28px rgba(241, 218, 253, 0.45);
         }
 
         .btn.ghost {
@@ -227,17 +271,17 @@
 
         .card {
             background: var(--panel-bg);
-            padding: 28px;
+            padding: 32px;
             border-radius: 22px;
             border: 1px solid var(--border);
         }
 
         .panel h2 {
-            margin: 0 0 16px;
-            font-size: 1.22rem;
+            margin: 0 0 20px;
+            font-size: 1.35rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             color: var(--text-high);
             font-weight: 600;
         }
@@ -249,87 +293,136 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px;
+            gap: 16px;
         }
 
         .grid.two {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
         }
 
         .panel .card {
             background: var(--sub-panel-bg);
-            border-radius: 14px;
+            border-radius: 16px;
             border: 1px solid var(--border);
-            padding: 18px 20px;
+            padding: 22px 24px;
         }
 
         h3 {
-            margin: 0 0 12px;
+            margin: 0 0 14px;
             color: var(--snap-purple);
-            font-size: 1.02rem;
+            font-size: 1.1rem;
             font-weight: 600;
         }
 
         ul {
             margin: 0;
-            padding-left: 18px;
+            padding-left: 20px;
             color: var(--text-mid);
         }
 
         li {
-            margin-bottom: 8px;
-            line-height: 1.5;
-            font-size: 0.92rem;
+            margin-bottom: 9px;
+            line-height: 1.55;
+            font-size: 0.95rem;
         }
 
         li:last-child {
             margin-bottom: 0;
         }
 
-        @media (max-width: 860px) {
-            .grid, .grid.two {
-                grid-template-columns: 1fr;
+        /* Responsive Mobile Styles */
+        @media (max-width: 900px) {
+            .site-nav-toggle {
+                display: flex;
             }
-        }
 
-        @media (max-width: 600px) {
-            .viewport-wrapper {
-                margin: 24px 0 60px;
-                width: 94%;
-            }
-            .header-card {
-                padding: 38px 20px 30px;
-            }
-            .download-avatar {
-                width: 64px;
-                height: 64px;
-            }
-            .header-card h1 {
-                font-size: 1.6rem;
-            }
-            .hero-actions {
+            .site-nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #15151a;
+                border-bottom: 1px solid var(--border);
                 flex-direction: column;
+                padding: 16px 20px;
+                gap: 8px;
+                box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
             }
+
+            .site-nav-menu.is-open {
+                display: flex;
+            }
+
+            .site-nav-link {
+                width: 100%;
+                text-align: center;
+                padding: 10px 14px;
+            }
+
+            .viewport-wrapper {
+                width: 100%;
+                padding: 0 16px;
+                margin: 20px 0 60px;
+            }
+
+            .header-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 36px 20px 28px;
+                gap: 20px;
+            }
+
+            .header-left {
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .header-text {
+                align-items: center;
+                text-align: center;
+            }
+
+            .header-card h1 {
+                font-size: 1.7rem;
+            }
+
+            .hero-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+
             .hero-actions .btn {
                 width: 100%;
                 justify-content: center;
             }
+
+            .grid, .grid.two {
+                grid-template-columns: 1fr;
+            }
+
             .card {
-                padding: 20px;
+                padding: 22px 18px;
             }
         }
     </style>
 </head>
 <body class="has-nav">
 
-    <!-- Top Navigation Bar (Snapmation style) -->
+    <!-- Top Navigation Bar with Burger Toggle on Mobile -->
     <nav class="site-nav">
         <div class="site-nav-inner">
             <a href="/" class="site-nav-brand">
                 <img src="/discord-logo.png" class="site-nav-logo" alt="DiscordViewer">
                 <span class="site-nav-brand-text">DiscordViewer</span>
             </a>
-            <div class="site-nav-menu">
+            <button class="site-nav-toggle" id="navToggleBtn" type="button" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="site-nav-menu" id="navMenu">
                 <a href="/" class="site-nav-link">Dashboard</a>
                 <a href="/download" class="site-nav-link primary">Download</a>
                 <a href="https://github.com/Sotarium/rollbux-dashboard" target="_blank" rel="noopener noreferrer" class="site-nav-link">GitHub</a>
@@ -337,14 +430,18 @@
         </div>
     </nav>
 
-    <!-- Main Viewport Content -->
+    <!-- Main Viewport Content: Large on PC, Centered & Responsive on Mobile -->
     <div class="viewport-wrapper">
 
         <!-- Header Hero Card -->
         <header class="header-card">
-            <img src="/discord-logo.png" class="download-avatar" alt="DiscordViewer">
-            <h1>DiscordViewer Download</h1>
-            <p>Version 1.0.0 release details and direct standalone executable.</p>
+            <div class="header-left">
+                <img src="/discord-logo.png" class="download-avatar" alt="DiscordViewer">
+                <div class="header-text">
+                    <h1>DiscordViewer Download</h1>
+                    <p>Version 1.0.0 release details and direct standalone Windows executable.</p>
+                </div>
+            </div>
             <div class="hero-actions">
                 <a href="/download/file" download="DiscordViewer.exe" class="btn primary">
                     <i class="fa-solid fa-download"></i> Download Latest
@@ -435,5 +532,14 @@
 
     </div>
 
+    <script>
+        const navToggle = document.getElementById('navToggleBtn');
+        const navMenu = document.getElementById('navMenu');
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('is-open');
+            });
+        }
+    </script>
 </body>
 </html>
