@@ -1,134 +1,289 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Download DiscordViewer Windows</title>
-  <link rel="icon" type="image/png" href="/discord-logo.png">
+  <link rel="icon" type="image/png" href="/sotarium-favicon.png?v=20261111">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --dv-bg: #070707;
+      --dv-panel: #111112;
+      --dv-card: #0c0c0e;
+      --dv-border: rgba(255, 255, 255, 0.08);
+      --dv-border-hover: rgba(255, 255, 255, 0.18);
+      --dv-accent: #ffffff;
+      --dv-muted: #808085;
+      --dv-green: #54d487;
+    }
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #080808;
-      color: #ffffff;
+      background-color: var(--dv-bg);
+      background-image: 
+        radial-gradient(circle at 50% -10%, rgba(255, 255, 255, 0.06) 0%, transparent 60%),
+        radial-gradient(circle at 85% 90%, rgba(88, 101, 242, 0.035) 0%, transparent 50%);
+      background-attachment: fixed;
+      color: #f3f4f6;
       margin: 0;
       padding: 0;
       min-height: 100vh;
       overflow-x: hidden;
+      letter-spacing: -0.015em;
     }
     .mono {
       font-family: 'JetBrains Mono', monospace;
     }
-    .glass-card {
-      background: rgba(18, 18, 18, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+    .glow-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, #000 70%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, #000 70%, transparent 100%);
     }
-    .glow-btn {
+    .hero-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      backdrop-filter: blur(12px);
+    }
+    .glass-card {
+      background: linear-gradient(180deg, rgba(20, 20, 24, 0.82) 0%, rgba(13, 13, 15, 0.92) 100%);
+      border: 1px solid var(--dv-border);
+      box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.85), 0 0 1px 1px rgba(255, 255, 255, 0.04) inset;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .feature-card {
+      background: rgba(255, 255, 255, 0.022);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .feature-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+    .cta-btn {
       position: relative;
       background: #ffffff;
-      color: #000000;
-      transition: all 0.2s ease;
-      box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+      color: #050505;
+      font-weight: 800;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 0 35px rgba(255, 255, 255, 0.22), 0 4px 14px rgba(0, 0, 0, 0.5);
     }
-    .glow-btn:hover {
-      background: #f0f0f0;
-      transform: translateY(-1px);
-      box-shadow: 0 0 35px rgba(255, 255, 255, 0.3);
+    .cta-btn:hover {
+      background: #f4f4f4;
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px rgba(255, 255, 255, 0.4), 0 8px 24px rgba(0, 0, 0, 0.6);
     }
-    .glow-btn:active {
-      transform: scale(0.98);
+    .cta-btn:active {
+      transform: scale(0.985);
     }
-    .tag-badge {
-      background: rgba(84, 212, 135, 0.12);
-      border: 1px solid rgba(84, 212, 135, 0.3);
-      color: #54d487;
+    .pulse-dot {
+      box-shadow: 0 0 10px #54d487;
+    }
+    .shimmer-text {
+      background: linear-gradient(110deg, #ffffff 0%, #ffffff 40%, #888888 60%, #ffffff 80%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 4s infinite linear;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
   </style>
 </head>
-<body class="flex flex-col items-center justify-center p-4 selection:bg-white/20">
+<body class="selection:bg-white selection:text-black">
 
-  <!-- Background Ambient Glow -->
-  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-    <div class="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[650px] h-[500px] bg-white/[0.03] rounded-full blur-[140px]"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#5865F2]/[0.03] rounded-full blur-[150px]"></div>
+  <!-- Background Grids & Ambient Lights -->
+  <div class="fixed inset-0 pointer-events-none z-0 glow-grid"></div>
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute -top-[150px] left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-white/[0.04] rounded-full blur-[160px]"></div>
+    <div class="absolute top-[40%] left-[10%] w-[450px] h-[450px] bg-[#5865F2]/[0.025] rounded-full blur-[180px]"></div>
+    <div class="absolute bottom-[-100px] right-[10%] w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[170px]"></div>
   </div>
 
-  <main class="relative z-10 w-full max-w-[500px] flex flex-col items-center">
-    
-    <!-- App Logo & Title -->
-    <div class="flex flex-col items-center text-center mb-6">
-      <div class="relative size-20 rounded-[22px] bg-[#121212] border border-white/10 p-3.5 shadow-2xl flex items-center justify-center mb-4">
-        <img src="/discord-logo.png" alt="DiscordViewer Logo" class="size-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" />
-      </div>
-      <h1 class="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">DiscordViewer</h1>
-      <p class="text-xs sm:text-sm text-[#8f8f8f] mt-1.5 font-medium">Native Windows Dashboard & Giveaway Watcher</p>
-    </div>
+  <div class="relative z-10 flex min-h-screen flex-col items-center justify-between px-4 py-8 sm:px-6 sm:py-12">
 
-    <!-- Main Download Card -->
-    <div class="glass-card w-full rounded-[24px] p-6 sm:p-7 shadow-2xl flex flex-col gap-5">
-      
-      <!-- Version & Status -->
-      <div class="flex items-center justify-between pb-3.5 border-b border-white/[0.06]">
-        <div class="flex items-center gap-2">
-          <span class="tag-badge px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">v1.0.0 Release</span>
-          <span class="text-[11px] text-[#8f8f8f] font-semibold">Windows 10 / 11 (x64)</span>
+    <!-- Top Minimalist Brand Header -->
+    <header class="w-full max-w-4xl flex items-center justify-between mb-8 select-none">
+      <a href="/" class="flex items-center gap-3 group">
+        <div class="size-9 rounded-xl bg-[#141417] border border-white/10 flex items-center justify-center p-1.5 shadow-md group-hover:border-white/20 transition">
+          <img src="/sotarium-favicon.png?v=20261111" alt="Logo" class="size-full object-contain" />
         </div>
-        <span class="mono text-[11px] font-medium text-[#8f8f8f]">155 MB</span>
-      </div>
+        <div class="flex flex-col">
+          <span class="text-sm font-bold text-white tracking-tight">DiscordViewer</span>
+          <span class="text-[10px] text-[var(--dv-muted)] font-medium -mt-0.5">Desktop Client</span>
+        </div>
+      </a>
 
-      <!-- Features summary -->
-      <div class="flex flex-col gap-2.5 py-1">
-        <div class="flex items-center gap-3 text-xs text-[#cfcfcf]">
-          <svg class="size-4 text-[#54d487] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-          <span>Multi-account Discord Gateway joining & reaction auto-entry</span>
+      <div class="flex items-center gap-3">
+        <div class="hero-pill hidden sm:flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold text-zinc-300">
+          <span class="size-2 rounded-full bg-[#54d487] pulse-dot animate-pulse"></span>
+          <span>v1.0.0 Stable</span>
         </div>
-        <div class="flex items-center gap-3 text-xs text-[#cfcfcf]">
-          <svg class="size-4 text-[#54d487] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-          <span>19-second humanized reaction delay distribution</span>
-        </div>
-        <div class="flex items-center gap-3 text-xs text-[#cfcfcf]">
-          <svg class="size-4 text-[#54d487] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-          <span>Self-contained standalone single executable — no install required</span>
-        </div>
-      </div>
-
-      <!-- Direct Download CTA -->
-      <div class="flex flex-col gap-2.5 pt-2">
-        <a id="downloadBtn" href="/download/file" download="DiscordViewer.exe" class="glow-btn flex items-center justify-center gap-3 w-full h-[50px] rounded-[14px] font-bold text-sm tracking-wide">
-          <svg class="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-          <span>Download DiscordViewer.exe</span>
+        <a href="/" class="hero-pill hover:bg-white/10 transition px-3.5 py-1.5 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5">
+          <span>Dashboard</span>
+          <svg class="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </a>
+      </div>
+    </header>
+
+    <!-- Main Content Hero & Download Center -->
+    <main class="w-full max-w-xl flex flex-col items-center text-center">
+
+      <!-- Badge Pill -->
+      <div class="hero-pill inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-6 text-xs font-semibold text-zinc-200">
+        <span class="px-1.5 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white uppercase tracking-wider">Windows</span>
+        <span class="text-zinc-400">•</span>
+        <span>Standalone Single-File Binary</span>
+      </div>
+
+      <!-- Hero Title -->
+      <h1 class="text-4xl sm:text-5xl font-black text-white tracking-tight leading-[1.08] mb-4">
+        Run DiscordViewer <br/>
+        <span class="shimmer-text">at maximum speed.</span>
+      </h1>
+
+      <p class="text-sm sm:text-base text-[var(--dv-muted)] max-w-md mb-8 leading-relaxed font-normal">
+        Real-time multi-account Discord gateway, 19s anti-bot staggered auto-entry, and live activity streams packed in one zero-install executable.
+      </p>
+
+      <!-- The Download Glass Card -->
+      <div class="glass-card w-full rounded-[28px] p-6 sm:p-8 flex flex-col gap-6 text-left relative overflow-hidden">
         
-        <p class="text-center text-[11px] text-[#666666] mt-1">
-          Direct safe download from GitHub CDN • Virus-free single portable binary
-        </p>
+        <!-- App Details Row -->
+        <div class="flex items-center justify-between pb-5 border-b border-white/[0.07]">
+          <div class="flex items-center gap-3.5">
+            <div class="relative size-13 rounded-2xl bg-[#09090b] border border-white/10 p-2.5 shadow-inner flex items-center justify-center">
+              <img src="/discord-logo.png" alt="Discord" class="size-8 object-contain" />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-white tracking-tight">DiscordViewer.exe</h3>
+                <span class="px-2 py-0.5 rounded-md bg-[#54d487]/10 text-[#54d487] border border-[#54d487]/25 text-[10px] font-extrabold uppercase tracking-wider">Ready</span>
+              </div>
+              <p class="text-[12px] text-[var(--dv-muted)] mt-0.5">Windows 10 / 11 • 64-bit Architecture</p>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <span class="mono text-xs font-bold text-white block">155.4 MB</span>
+            <span class="text-[11px] text-[var(--dv-muted)]">No installer needed</span>
+          </div>
+        </div>
+
+        <!-- Primary Download CTA -->
+        <div class="flex flex-col gap-3">
+          <a id="downloadBtn" href="/download/file" download="DiscordViewer.exe" class="cta-btn w-full h-[54px] rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide cursor-pointer select-none">
+            <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>Download DiscordViewer for Windows</span>
+          </a>
+
+          <div class="flex items-center justify-between px-1 text-[11px] text-[var(--dv-muted)]">
+            <span class="flex items-center gap-1.5">
+              <svg class="size-3.5 text-[#54d487]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Fast GitHub CDN Direct Link
+            </span>
+            <button type="button" onclick="copySha256()" class="hover:text-white transition flex items-center gap-1 mono text-[10px] cursor-pointer">
+              <span id="shaLabel">SHA256: c045dca...</span>
+              <svg class="size-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 Feature Points -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+          <div class="feature-card rounded-xl p-3.5 flex flex-col gap-1.5">
+            <div class="size-7 rounded-lg bg-white/[0.05] flex items-center justify-center text-white mb-0.5">
+              <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <span class="text-xs font-bold text-white">Instant Launch</span>
+            <p class="text-[11px] text-[var(--dv-muted)] leading-relaxed">Single portable executable. Never installs bloat or background services.</p>
+          </div>
+
+          <div class="feature-card rounded-xl p-3.5 flex flex-col gap-1.5">
+            <div class="size-7 rounded-lg bg-white/[0.05] flex items-center justify-center text-white mb-0.5">
+              <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <span class="text-xs font-bold text-white">19s Distribution</span>
+            <p class="text-[11px] text-[var(--dv-muted)] leading-relaxed">Evenly spaces your tokens across 19 seconds before draw to prevent flags.</p>
+          </div>
+
+          <div class="feature-card rounded-xl p-3.5 flex flex-col gap-1.5">
+            <div class="size-7 rounded-lg bg-white/[0.05] flex items-center justify-center text-white mb-0.5">
+              <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <span class="text-xs font-bold text-white">Native WebView2</span>
+            <p class="text-[11px] text-[var(--dv-muted)] leading-relaxed">Full hardware accelerated WPF shell running your synced dashboard.</p>
+          </div>
+        </div>
+
+        <!-- Setup Step Pills -->
+        <div class="rounded-2xl bg-[#09090b]/80 border border-white/[0.06] p-4 flex flex-col gap-2.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Quick Launch Guide</span>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-zinc-300">
+            <div class="flex items-center gap-2">
+              <span class="size-5 rounded-full bg-white/10 text-[10px] font-bold text-white flex items-center justify-center shrink-0">1</span>
+              <span>Download file</span>
+            </div>
+            <span class="hidden sm:inline text-zinc-600">→</span>
+            <div class="flex items-center gap-2">
+              <span class="size-5 rounded-full bg-white/10 text-[10px] font-bold text-white flex items-center justify-center shrink-0">2</span>
+              <span>Double click to open</span>
+            </div>
+            <span class="hidden sm:inline text-zinc-600">→</span>
+            <div class="flex items-center gap-2">
+              <span class="size-5 rounded-full bg-white/10 text-[10px] font-bold text-white flex items-center justify-center shrink-0">3</span>
+              <span>Link Discord & run</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Quick Run Instructions -->
-      <div class="rounded-[14px] bg-[#0c0c0c] border border-white/5 p-3.5 flex flex-col gap-1.5 text-xs">
-        <span class="font-bold text-white text-[11px] uppercase tracking-wider text-[#8f8f8f]">How to run:</span>
-        <ol class="list-decimal list-inside text-[#9f9f9f] text-[11px] leading-relaxed space-y-1">
-          <li>Download <span class="text-white font-mono">DiscordViewer.exe</span> to your Downloads or Desktop.</li>
-          <li>Double click to launch immediately (no prerequisites or install needed).</li>
-          <li>Log in or link your Discord tokens in the Dashboard.</li>
-        </ol>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-4xl mt-12 pt-6 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--dv-muted)] select-none">
+      <div class="flex items-center gap-2">
+        <span>DiscordViewer © 2026</span>
+        <span>•</span>
+        <span>Release 1.0.0</span>
       </div>
+      <div class="flex items-center gap-5 font-medium">
+        <a href="/" class="hover:text-white transition">Dashboard</a>
+        <a href="https://github.com/Sotarium/rollbux-dashboard/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">GitHub Release</a>
+        <a href="/download/file" class="hover:text-white transition">Direct CDN</a>
+      </div>
+    </footer>
 
-    </div>
+  </div>
 
-    <!-- Navigation link back -->
-    <div class="mt-6 flex items-center gap-4 text-xs font-semibold text-[#8f8f8f]">
-      <a href="/" class="hover:text-white transition">← Back to Dashboard</a>
-      <span>•</span>
-      <a href="https://github.com/Sotarium/rollbux-dashboard/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">Release Notes</a>
-    </div>
-
-  </main>
-
+  <script>
+    const fullSha = 'c045dca78355ad32a3090ba2c90ed7aa2ac63b415a90031703ab8a8099740c4d';
+    function copySha256() {
+      navigator.clipboard.writeText(fullSha).then(() => {
+        const lbl = document.getElementById('shaLabel');
+        if (lbl) {
+          lbl.textContent = 'Copied SHA256!';
+          setTimeout(() => {
+            lbl.textContent = 'SHA256: c045dca...';
+          }, 2000);
+        }
+      });
+    }
+  </script>
 </body>
 </html>
