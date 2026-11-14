@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="/sotarium-favicon.png?v=20261111">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -34,6 +34,26 @@
       gap: 16px;
       max-width: 380px;
       width: 100%;
+    }
+    .version-bubble {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: #f4f4f6;
+      border: 1px solid #e5e5ea;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #55555c;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -0.01em;
+    }
+    .version-bubble .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: #34c759;
     }
     .title {
       font-size: 32px;
@@ -79,22 +99,16 @@
       height: 19px;
       stroke-width: 2.3;
     }
-    .back-link {
-      margin-top: 6px;
-      font-size: 13px;
-      color: #8a8a93;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.15s;
-    }
-    .back-link:hover {
-      color: #111111;
-    }
   </style>
 </head>
 <body>
 
   <div class="container">
+    <div class="version-bubble">
+      <span class="dot"></span>
+      <span>v1.0.0</span>
+    </div>
+
     <h1 class="title">DiscordViewer</h1>
     <p class="subtitle">Windows executable</p>
 
@@ -104,8 +118,6 @@
       </svg>
       <span>Download</span>
     </a>
-
-    <a href="/" class="back-link">← Back</a>
   </div>
 
 </body>
