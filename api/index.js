@@ -205,6 +205,40 @@ export default async function handler(req, res) {
     }
     return;
   }
+
+  // Discord webhook info fetcher for dashboard avatars and names
+  if (pathname === '/api/discord/webhook-info' && req.method === 'POST') {
+    try {
+      const payload = req.body || await parseBody(req);
+      const webhookUrl = String(payload.url || '').trim();
+      let parsed;
+      try { parsed = new URL(webhookUrl); } catch (e) {}
+      if (!parsed || !(parsed.hostname === 'discord.com' || parsed.hostname.endsWith('.discord.com') || parsed.hostname === 'discordapp.com' || parsed.hostname.endsWith('.discordapp.com'))) {
+        sendJson(res, 400, { success: false, error: 'Invalid Discord webhook URL.' });
+        return;
+      }
+      const discordRes = await fetch(webhookUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+          'Accept': 'application/json'
+        }
+      });
+      if (!discordRes.ok) {
+        sendJson(res, 200, { success: false, error: 'Discord rejected this webhook request.' });
+        return;
+      }
+      const data = await discordRes.json();
+      sendJson(res, 200, {
+        success: true,
+        id: data.id,
+        name: data.name,
+        avatar: data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=128` : null
+      });
+    } catch (e) {
+      sendJson(res, 502, { success: false, error: 'Failed to fetch webhook info.' });
+    }
+    return;
+  }
   // Direct Rollbux session token verification & login endpoint
   if (pathname === '/api/verify-session' && req.method === 'POST') {
     try {

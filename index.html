@@ -4651,6 +4651,19 @@
       return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
 
+    window.openDiscordActivityChannel = function(serverId, channelId, messageId) {
+      const s = String(serverId || '').trim();
+      const c = String(channelId || '').trim();
+      const m = String(messageId || '').trim();
+      if (c) {
+        const guildPart = (s && s !== '*' && s !== '@me') ? s : '@me';
+        const url = 'https://discord.com/channels/' + guildPart + '/' + c + (m ? '/' + m : '');
+        window.open(url, '_blank');
+      } else {
+        window.open('https://discord.com/channels/@me', '_blank');
+      }
+    };
+
     function renderDiscordActivity() {
       const list = document.getElementById('discordActivityList');
       if (!list) return;
@@ -4724,13 +4737,13 @@
               '<span class="text-[11px] text-[#8f8f8f] line-clamp-2 leading-snug mt-0.5">' + escapeDiscordActivityHtml(detail) + '</span>' +
             '</div>' +
           '</div>' +
-          '<button type="button" class="dv-pill inactive shrink-0 cursor-pointer" style="height:30px; padding:0 14px; font-size:12px; font-weight:600; border-radius:9999px;" onclick="window.openDiscordProfileModal ? openDiscordProfileModal() : null">Open</button>' +
+          '<button type="button" class="dv-pill inactive shrink-0 cursor-pointer" style="height:30px; padding:0 14px; font-size:12px; font-weight:600; border-radius:9999px;" onclick="window.openDiscordActivityChannel(\'\' + (event.serverId || \'\'), \'\' + (event.channelId || \'\'), \'\' + (event.messageId || \'\'))">Open</button>' +
         '</div>';
       }).join('');
       applyDiscordActivityFilter();
     }
 
-    window.logDiscordActivity = function(text, tag = 'Activity', color = undefined, persist = true, account = null) {
+    window.logDiscordActivity = function(text, tag = 'Activity', color = undefined, persist = true, account = null, channelId = null, serverId = null, messageId = null) {
       const rawText = String(text || '');
       const rawTag = String(tag || 'Activity');
       const lower = (rawText + ' ' + rawTag).toLowerCase();
@@ -4749,7 +4762,10 @@
       const event = {
         ts: Date.now(), text: rawText, tag: rawTag,
         color, accountId: account?.id ? String(account.id) : '',
-        accountName: account?.user?.username || account?.user?.handle || ''
+        accountName: account?.user?.username || account?.user?.handle || '',
+        channelId: channelId ? String(channelId) : '',
+        serverId: serverId ? String(serverId) : '',
+        messageId: messageId ? String(messageId) : ''
       };
       if (persist !== false) {
         let events = [];
@@ -4877,11 +4893,77 @@
           '</div>';
       }).join('');
     }
+    window.fetchDiscordWebhookInfo = async function(webhookUrl) {
+      const url = String(webhookUrl || '').trim();
+      if (!url) return null;
+      // First attempt direct GET
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          const d = await res.json();
+          return {
+            name: d.name || '',
+            avatar: d.avatar ? 'https://cdn.discordapp.com/avatars/' + d.id + '/' + d.avatar + '.png?size=128' : null
+          };
+        }
+      } catch (e) {}
+
+      // Fallback to server-side proxy
+      try {
+        const res = await fetch('/api/discord/webhook-info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        if (res.ok) {
+          const d = await res.json();
+          if (d && d.success) {
+            return {
+              name: d.name || '',
+              avatar: d.avatar || null
+            };
+          }
+        }
+      } catch (e) {}
+      return null;
+    };
+
+    let isBackfillingWebhooks = false;
     function renderDiscordWebhooks() {
       const webhooks = readDiscordWebhooks();
       const sectionList = document.getElementById('discordWebhooksSectionList');
       if (sectionList) sectionList.innerHTML = webhookCardsMarkup(webhooks, true);
       syncDiscordWebhookSettingsUI();
+
+      // Automatically backfill avatar for any webhook that lacks one
+      if (!isBackfillingWebhooks) {
+        const missing = webhooks.some(w => w && w.url && !w.avatar);
+        if (missing) {
+          isBackfillingWebhooks = true;
+          (async () => {
+            let updatedAny = false;
+            const current = readDiscordWebhooks();
+            for (let i = 0; i < current.length; i++) {
+              if (current[i] && current[i].url && !current[i].avatar) {
+                const info = await window.fetchDiscordWebhookInfo(current[i].url);
+                if (info) {
+                  if (info.avatar) { current[i].avatar = info.avatar; updatedAny = true; }
+                  if (info.name && (!current[i].name || current[i].name === 'Discord webhook')) {
+                    current[i].name = info.name;
+                    updatedAny = true;
+                  }
+                }
+              }
+            }
+            isBackfillingWebhooks = false;
+            if (updatedAny) {
+              localStorage.setItem(DISCORD_WEBHOOKS_KEY, JSON.stringify(current));
+              const freshSectionList = document.getElementById('discordWebhooksSectionList');
+              if (freshSectionList) freshSectionList.innerHTML = webhookCardsMarkup(current, true);
+            }
+          })();
+        }
+      }
     }
     let editingDiscordWebhookIndex = -1;
     window.openWebhooksModal = function() {
@@ -4958,8 +5040,33 @@
         if (error) { error.textContent = 'Enter a valid Discord webhook URL.'; error.classList.remove('hidden'); }
         return;
       }
+
+      if (submit) {
+        submit.disabled = true;
+        submit.textContent = 'Fetching info...';
+      }
+
+      let webhookAvatar = null;
+      let fetchedName = '';
+      try {
+        const info = await window.fetchDiscordWebhookInfo(url);
+        if (info) {
+          if (info.avatar) webhookAvatar = info.avatar;
+          if (info.name) fetchedName = info.name;
+        }
+      } catch (e) {}
+
+      const customName = String(nameInput?.value || '').trim();
+      const finalName = customName || fetchedName || 'Discord webhook';
+
       const webhooks = readDiscordWebhooks();
-      const updated = { name: String(nameInput?.value || '').trim() || 'Discord webhook', url, enabled: true, createdAt: Date.now() };
+      const updated = {
+        name: finalName,
+        url,
+        avatar: webhookAvatar || (editingDiscordWebhookIndex >= 0 && webhooks[editingDiscordWebhookIndex]?.avatar ? webhooks[editingDiscordWebhookIndex].avatar : null),
+        enabled: true,
+        createdAt: Date.now()
+      };
       if (editingDiscordWebhookIndex >= 0 && webhooks[editingDiscordWebhookIndex]) {
         webhooks[editingDiscordWebhookIndex] = { ...webhooks[editingDiscordWebhookIndex], ...updated };
       } else {
@@ -4971,7 +5078,10 @@
       renderDiscordWebhooks();
       if (nameInput) nameInput.value = '';
       if (urlInput) urlInput.value = '';
-      if (submit) submit.textContent = 'Save webhook';
+      if (submit) {
+        submit.disabled = false;
+        submit.textContent = 'Save webhook';
+      }
       syncDiscordWebhookSettingsUI();
     });
 
@@ -5073,6 +5183,7 @@
           closeDiscordLoginModal();
           syncDiscordGwUI();
           syncDiscordCustomProfile();
+          if (isGatewayRunning && typeof startDiscordGateway === 'function') startDiscordGateway();
         } else {
           throw new Error(result.error || 'Discord rejected this user token.');
         }
@@ -5535,7 +5646,7 @@
         const url = 'https://discord.com/api/v10/channels/' + encodeURIComponent(channelId) + '/messages/' + encodeURIComponent(messageId) + '/reactions/' + encodedEmoji + '/@me';
         const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': token } });
         if (res.ok || res.status === 204) {
-          logDiscordActivity('Joined', 'Auto React', 'green', true, account);
+          logDiscordActivity('Joined', 'Auto React', 'green', true, account, channelId, undefined, messageId);
           if (soundEnabled && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
           return true;
         }
@@ -5570,7 +5681,7 @@
       if (state.reactionSchedules.has(scheduleKey)) return;
       state.reactionSchedules.add(scheduleKey);
       (async () => {
-        const retryDelays = [2000, 1200, 3000, 6000];
+        const retryDelays = [0, 1500, 3000, 5000];
         for (const delay of retryDelays) {
           if (delay) await new Promise(resolve => setTimeout(resolve, delay));
           const ok = await triggerDiscordReaction(channelId, messageId, emoji, soundEnabled, account);
@@ -5585,7 +5696,7 @@
       if (!token) return;
       try {
         await triggerDiscordReaction(channelId, messageId, '🎟️', watcher.sound !== false, account);
-        logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer', undefined, true, account);
+        logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer', undefined, true, account, channelId, watcher.serverID, messageId);
       } catch (e) {
         console.error('[Discord Gateway] Ticket Claim error:', e);
       }
@@ -5619,7 +5730,7 @@
       if (!state || (state.ws && (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING))) return;
       try {
         state.ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
-        state.ws.onopen = () => updateDiscordLiveBadge('Connected');
+        state.ws.onopen = () => { if (typeof checkDiscordGatewaysLive === 'function') checkDiscordGatewaysLive(); else updateDiscordLiveBadge('Connected'); };
         state.ws.onmessage = event => {
           try {
             const data = JSON.parse(event.data);
@@ -5665,6 +5776,19 @@
       const accounts = readDiscordAccounts();
       if (!accounts.length) { updateDiscordLiveBadge('No accounts'); return; }
       accounts.forEach(startDiscordGatewayForAccount);
+    }
+
+    function checkDiscordGatewaysLive() {
+      const accounts = readDiscordAccounts();
+      if (!accounts.length) { updateDiscordLiveBadge('No accounts'); return; }
+      let openCount = 0;
+      accounts.forEach(acc => {
+        const s = discordGatewayStates.get(String(acc.id));
+        if (s && s.ws && s.ws.readyState === WebSocket.OPEN) openCount++;
+      });
+      if (openCount > 0) {
+        updateDiscordLiveBadge(openCount === accounts.length ? 'Connected' : `${openCount}/${accounts.length} Connected`);
+      }
     }
 
     function stopDiscordGateway() {
@@ -5757,7 +5881,7 @@
             // Repeats across different giveaways are allowed; only duplicate
             // handling for this specific giveaway is locked above.
             const guess = Math.floor(Math.random() * 20) + 1;
-            logDiscordActivity('Guessed ' + guess, 'Guess', 'green', true, account);
+            logDiscordActivity('Guessed ' + guess, 'Guess', 'green', true, account, channelId, guildId, msg.id);
             void sendDiscordMessage(channelId, String(guess), account);
             if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
             if (!state.pendingGiveaways[channelId]) {
@@ -5795,7 +5919,7 @@
               const hasWon = fullTextLower.includes('won') || (!hasNoPrize && secretNum && reportedGuess && secretNum === reportedGuess);
 
               const resultColor = hasWon ? 'green' : 'red';
-              logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '!', 'Guess Result', resultColor, true, account);
+              logDiscordActivity('Guessed ' + (reportedGuess || '?') + ', Number Was ' + (secretNum || '?') + '!', 'Guess Result', resultColor, true, account, channelId, guildId, msg.id);
               if (matchingWatchers.some(w => w.sound !== false) && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
               delete state.pendingGiveaways[channelId];
             }
@@ -5990,28 +6114,66 @@
       if (modalTokenBtnText) modalTokenBtnText.textContent = 'Link';
     }
 
-    // Auto verify & refresh Discord user on load if token exists
-    (function autoFetchDiscordUser() {
-      const savedToken = localStorage.getItem('sotarium_discord_token');
-      if (savedToken) {
+    // Auto verify & refresh all linked Discord accounts on load and keep gateways running
+    (function autoFetchDiscordUsers() {
+      const accounts = readDiscordAccounts();
+      if (!accounts.length) {
+        const savedToken = localStorage.getItem('sotarium_discord_token');
+        if (savedToken) {
+          fetch('/api/discord/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: savedToken })
+          }).then(r => r.ok ? r.json() : null).then(result => {
+            const d = result?.user;
+            if (d) {
+              const u = {
+                id: d.id,
+                username: d.global_name || d.username,
+                handle: d.username,
+                avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '/discord-3d.png'
+              };
+              localStorage.setItem('sotarium_discord_user', JSON.stringify(u));
+              persistDiscordAccounts([{ id: String(u.id), token: savedToken, user: u }], u.id);
+              syncDiscordCustomProfile();
+              syncDiscordGwUI();
+              if (isGatewayRunning && typeof startDiscordGateway === 'function') startDiscordGateway();
+            }
+          }).catch(() => {});
+        }
+        return;
+      }
+
+      // Refresh all accounts in parallel
+      accounts.forEach(acc => {
+        if (!acc.token) return;
         fetch('/api/discord/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: savedToken })
+          body: JSON.stringify({ token: acc.token })
         }).then(r => r.ok ? r.json() : null).then(result => {
           const d = result?.user;
           if (d) {
-            const u = {
+            acc.user = {
               id: d.id,
               username: d.global_name || d.username,
               handle: d.username,
               avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=128` : '/discord-3d.png'
             };
-            localStorage.setItem('sotarium_discord_user', JSON.stringify(u));
+            const currentList = readDiscordAccounts();
+            const idx = currentList.findIndex(a => String(a.id) === String(acc.id));
+            if (idx >= 0) currentList[idx] = acc;
+            const activeId = localStorage.getItem(DISCORD_ACTIVE_ACCOUNT_KEY) || currentList[0]?.id;
+            persistDiscordAccounts(currentList, activeId);
             syncDiscordCustomProfile();
             syncDiscordGwUI();
           }
         }).catch(() => {});
+      });
+
+      // Ensure all accounts start their gateway connections on boot
+      if (isGatewayRunning && typeof startDiscordGateway === 'function') {
+        startDiscordGateway();
       }
     })();
 
@@ -6938,6 +7100,7 @@
       renderResultsFeed();
       fetchRainRewards();
       renderDiscordWatchers();
+      if (typeof startDiscordGateway === 'function') startDiscordGateway();
     });
 
     // Interactive Mines tiles
