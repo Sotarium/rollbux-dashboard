@@ -4667,6 +4667,43 @@
       }
     };
 
+      // Cache mapped guild IDs -> names from Discord gateway and watchers
+      const DISCORD_GUILD_NAMES_KEY = 'sotarium_discord_guild_names';
+      let discordGuildNames = {};
+      try {
+        const storedGuilds = JSON.parse(localStorage.getItem(DISCORD_GUILD_NAMES_KEY) || '{}');
+        if (storedGuilds && typeof storedGuilds === 'object') discordGuildNames = storedGuilds;
+      } catch (e) {}
+
+      function saveDiscordGuildName(id, name) {
+        if (!id || !name) return;
+        const sId = String(id).trim();
+        const sName = String(name).trim();
+        if (!sId || !sName || discordGuildNames[sId] === sName) return;
+        discordGuildNames[sId] = sName;
+        try { localStorage.setItem(DISCORD_GUILD_NAMES_KEY, JSON.stringify(discordGuildNames)); } catch (e) {}
+      }
+
+      function resolveDiscordGuildName(serverId) {
+        const s = String(serverId || '').trim();
+        if (!s || s === '*' || s === '@me') return 'Rollbux';
+        if (discordGuildNames[s]) return discordGuildNames[s];
+        // Check configured watchers for server name
+        const matchWatcher = (discordWatchersList || []).find(w => String(w.serverID || '').trim() === s);
+        if (matchWatcher && matchWatcher.name) return matchWatcher.name;
+        // Known Rollbux server ID fallback
+        if (s === '1454106247056982130' || s === '1205166299836104745') return 'Rollbux';
+        return s;
+      }
+
+      function getDiscordUserDisplayName(accountId, accountName) {
+        const accounts = readDiscordAccounts();
+        const account = accounts.find(a => String(a.id) === String(accountId));
+        if (account?.user?.username) return account.user.username;
+        if (accountName && !accountName.startsWith('@')) return accountName;
+        return accountName ? accountName.replace(/^@/, '') : 'Discord User';
+      }
+
     window.openDiscordActivityDetailModal = function(index) {
       let events = [];
       try {
@@ -4678,7 +4715,7 @@
 
       const accounts = readDiscordAccounts();
       const account = accounts.find(a => String(a.id) === String(event.accountId));
-      const displayName = account?.user?.username || event.accountName || 'Discord User';
+      const displayName = account?.user?.username || (event.accountName ? event.accountName.replace(/^@/, '') : '') || 'Discord User';
       const avatarUrl = account?.user?.avatar || '/discord-3d.png';
 
       const avatarEl = document.getElementById('activityDetailAvatar');
@@ -4690,44 +4727,55 @@
       if (userEl) userEl.textContent = displayName;
 
       const serverEl = document.getElementById('activityDetailServer');
-      if (serverEl) serverEl.textContent = event.serverId || 'Rollbux';
+      if (serverEl) serverEl.textContent = resolveDiscordGuildName(event.serverId);
 
       const watcherEl = document.getElementById('activityDetailWatcher');
-      const wType = event.watcherType || event.tag || 'Auto React';
+      const rawTag = String(event.tag || '');
+      const rawCat = String(event.category || getDiscordActivityCategory(event.text, rawTag, event.color) || '');
+      let wType = 'React Giveaway';
+      if (rawTag === 'Claimer' || rawCat === 'claimer' || (event.watcherType && event.watcherType.toLowerCase().includes('claim'))) {
+        wType = 'Ticket Claimer';
+      } else {
+        wType = 'React Giveaway';
+      }
       const wName = event.watcherName ? ` (${event.watcherName})` : '';
       if (watcherEl) watcherEl.textContent = wType + wName;
 
       // Numbers row for guess & selection events
       const numbersRow = document.getElementById('activityDetailNumbersRow');
       const numbersVal = document.getElementById('activityDetailNumbers');
-      const guessVal = event.guess;
-      const secretVal = event.secretNum;
-      if (guessVal || secretVal) {
+      let guessVal = event.guess;
+      let secretVal = event.secretNum;
+      const rawText = String(event.text || event.message || '');
+      if (!guessVal) {
+        const gMatch = rawText.match(/guessed\s*(?:the\s+number\s*)?[:\-]?\s*(\d{1,2})/i);
+        if (gMatch) guessVal = gMatch[1];
+      }
+      if (!secretVal) {
+        const sMatch = rawText.match(/number\s+(?:was|is)\s*[:\-]?\s*(\d{1,2})/i) ||
+                       rawText.match(/secret\s+number\s+(?:was|is)\s*[:\-]?\s*(\d{1,2})/i);
+        if (sMatch) secretVal = sMatch[1];
+      }
+
+      if (guessVal || secretVal || rawCat === 'guess' || rawCat === 'won' || rawTag === 'Guess' || rawTag === 'Guess Result') {
         if (numbersRow) numbersRow.style.display = 'flex';
         let str = '';
         if (secretVal && guessVal) str = `Secret: ${secretVal}  •  Guessed: ${guessVal}`;
-        else if (guessVal) str = `Guessed: ${guessVal}`;
-        else str = `Secret Number: ${secretVal}`;
+        else if (guessVal && !secretVal) str = `Guessed: ${guessVal}`;
+        else if (secretVal) str = `Secret Number: ${secretVal}`;
+        else str = rawText.replace(/^Guessed\s*/i, 'Guessed: ') || 'In Progress';
         if (numbersVal) numbersVal.textContent = str;
       } else {
         if (numbersRow) numbersRow.style.display = 'none';
       }
 
-      // Format Date & Time
+      // Format Date & Time: Day, Month Date, Year, Hour:Min:Sec AM/PM
       const dateEl = document.getElementById('activityDetailDate');
       if (dateEl) {
         const ts = event.ts || Date.now();
         const d = new Date(ts);
         const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
         dateEl.textContent = d.toLocaleString('en-US', options);
-      }
-
-      // Configure Discord Channel jump button
-      const openBtn = document.getElementById('activityDetailDiscordBtn');
-      if (openBtn) {
-        openBtn.onclick = () => {
-          window.openDiscordActivityChannel(event.serverId, event.channelId, event.messageId);
-        };
       }
 
       const modal = document.getElementById('activityDetailModal');
@@ -5858,7 +5906,17 @@
               state.ws.send(JSON.stringify({ op: 2, d: { token: account.token, intents: DISCORD_GATEWAY_INTENTS, capabilities: 8189, properties: { os: 'Windows', browser: 'Chrome', device: '' }, presence: { status: 'online', since: 0, activities: [], afk: false } } }));
             }
             if (op === 0) {
-              if (t === 'READY') logDiscordActivity('Connected and listening', 'Connection', 'green', true, account);
+              if (t === 'READY') {
+                logDiscordActivity('Connected and listening', 'Connection', 'green', true, account);
+                if (Array.isArray(d?.guilds)) {
+                  d.guilds.forEach(g => {
+                    if (g && g.id && g.name) saveDiscordGuildName(g.id, g.name);
+                  });
+                }
+              }
+              if (t === 'GUILD_CREATE' && d && d.id && d.name) {
+                saveDiscordGuildName(d.id, d.name);
+              }
               if (t === 'MESSAGE_CREATE' || t === 'MESSAGE_UPDATE') handleGatewayMessage(d, account);
               if (t === 'MESSAGE_REACTION_ADD') handleGatewayReactionAdd(d, account);
             }
@@ -6084,8 +6142,15 @@
           // Remember this channel for winner announcement
           state.pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
 
-          // React immediately; retryDiscordReaction handles brief transient failures.
-          if (watcher.enabled) scheduleDiscordReaction(channelId, msg.id, reactionEmoji, watcher, account);
+          // React immediately for every connected account that has this watcher enabled
+          if (watcher.enabled) {
+            const allAccounts = readDiscordAccounts();
+            allAccounts.forEach(acc => {
+              if (acc && acc.token) {
+                scheduleDiscordReaction(channelId, msg.id, reactionEmoji, watcher, acc);
+              }
+            });
+          }
         }
       }
     }
@@ -6122,7 +6187,14 @@
 
         for (const watcher of matchingWatchers) {
           state.pendingGiveaways[channelId] = { messageId: messageId, watcherName: watcher.name, ts: Date.now() };
-          if (watcher.enabled) scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher, account);
+          if (watcher.enabled) {
+            const allAccounts = readDiscordAccounts();
+            allAccounts.forEach(acc => {
+              if (acc && acc.token) {
+                scheduleDiscordReaction(channelId, messageId, reactionEmoji, watcher, acc);
+              }
+            });
+          }
         }
       }
     }
@@ -7320,9 +7392,8 @@
   <!-- Vibe-Coded Gray Overlay Activity Detail Modal -->
   <div id="activityDetailModal" style="display: none;" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 select-none">
     <div class="dv-modal w-full max-w-[380px] p-6 flex flex-col gap-4 shadow-2xl border border-white/10 bg-[#161616] rounded-[22px] animate-in fade-in zoom-in-95 duration-150">
-      <!-- Close Button -->
-      <div class="flex items-center justify-between pb-1 border-b border-white/[0.08]">
-        <span class="text-[11px] font-bold text-[#8f8f8f] uppercase tracking-wider">Activity Detail</span>
+      <!-- Close Button Only (Header text and line removed) -->
+      <div class="flex items-center justify-end">
         <button onclick="closeDiscordActivityDetailModal()" type="button" class="dv-close-btn" title="Close">
           <svg class="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -7356,10 +7427,9 @@
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="grid grid-cols-2 gap-2.5 pt-1">
-        <button type="button" onclick="closeDiscordActivityDetailModal()" class="dv-pill inactive w-full" style="height:38px;">Close</button>
-        <button type="button" id="activityDetailDiscordBtn" class="dv-pill active w-full" style="height:38px;">Jump in Discord</button>
+      <!-- Action Button (Jump in Discord removed) -->
+      <div class="pt-1">
+        <button type="button" onclick="closeDiscordActivityDetailModal()" class="dv-pill active w-full" style="height:40px; font-size:13px; font-weight:700;">Close</button>
       </div>
     </div>
   </div>
