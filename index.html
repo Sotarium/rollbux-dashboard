@@ -1059,8 +1059,8 @@
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
                   <!-- Upgrader Plan Lock / Floating Pay Gate -->
-                  <div id="upgraderPlanGate" class="absolute inset-0 z-30 flex flex-col items-center justify-start pt-10 pb-8 px-6 min-h-[520px]" style="display:flex; background: rgba(5, 5, 5, 0.40); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 20px;">
-                    <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center">
+                  <div id="upgraderPlanGate" class="fixed inset-x-0 bottom-0 top-[70px] z-50 flex items-center justify-center p-6" style="display:flex; background: rgba(5, 5, 5, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+                    <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center my-auto">
                       <!-- 52px Circle with exact lucide-crown SVG provided -->
                       <div class="flex items-center justify-center mb-4" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, #2a2a2d 0%, #161618 100%); border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-crown" aria-hidden="true" style="color: rgb(255, 255, 255);">
@@ -1071,9 +1071,9 @@
 
                       <h1 class="text-2xl font-bold text-white tracking-tight mb-4">Upgrader Plan</h1>
                       
-                      <!-- Price Pill: Crypto ($0.33 USD) -->
+                      <!-- Price Pill: $10 Weekly -->
                       <div class="inline-flex items-center justify-center bg-black/50 border border-white/10 rounded-xl px-5 py-2 mb-6 shadow-inner">
-                        <span class="text-sm font-bold text-[#38bdf8]">$0.33 USD</span>
+                        <span class="text-sm font-bold text-[#38bdf8]">$10 Weekly</span>
                       </div>
 
                       <!-- Action Button -->
@@ -5763,6 +5763,9 @@
       const gate = document.getElementById('upgraderPlanGate');
       const content = document.getElementById('discordViewContent');
       const viewDiscord = document.getElementById('viewDiscord');
+      const discordBtn = document.getElementById('navTabDiscord');
+      const isDiscordActive = discordBtn && discordBtn.style.color === 'rgb(0, 0, 0)';
+
       if (!gate) return;
       if (isUpgrader) {
         gate.style.display = 'none';
@@ -5771,22 +5774,18 @@
           content.style.pointerEvents = 'auto';
           content.style.userSelect = 'auto';
         }
-        if (viewDiscord) {
-          viewDiscord.style.overflow = 'visible';
-          viewDiscord.style.maxHeight = 'none';
-        }
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
       } else {
         gate.style.display = 'flex';
         if (content) {
-          content.style.filter = 'blur(12px)';
+          content.style.filter = 'blur(16px)';
           content.style.pointerEvents = 'none';
           content.style.userSelect = 'none';
         }
-        if (viewDiscord) {
-          viewDiscord.style.overflow = 'hidden';
-          viewDiscord.style.maxHeight = '85vh';
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        window.scrollTo({ top: 0, behavior: 'instant' });
       }
     };
 
@@ -5808,6 +5807,8 @@
       const INACT_NAV = BASE_NAV + 'background:transparent;color:#8f8f8f;';
 
       if (tab === 'discord') {
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
         if (rollbuxView) rollbuxView.style.display = 'none';
         if (discordView) discordView.style.display = 'flex';
         if (typeof checkUpgraderPlan === 'function') checkUpgraderPlan();
@@ -5816,6 +5817,8 @@
         if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = INACT_NAV; }
         if (discordBtn) { discordBtn.className = ''; discordBtn.style.cssText = ACT_NAV; }
       } else {
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
         if (rollbuxView) rollbuxView.style.display = 'flex';
         if (discordView) discordView.style.display = 'none';
         if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = ACT_NAV; }

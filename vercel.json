@@ -13,6 +13,14 @@
   ],
   "rewrites": [
     {
+      "source": "/whitelist.html",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/whitelist",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/download",
       "destination": "/api/index.js"
     },

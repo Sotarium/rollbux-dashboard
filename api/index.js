@@ -2133,6 +2133,191 @@ export default async function handler(req, res) {
     return;
   }
 
+  
+  // --- Whitelist Management API Endpoints ---
+  if (pathname === '/api/whitelist/users' && req.method === 'GET') {
+    if (!isAllowedIp(req)) {
+      sendJson(res, 403, { error: 'Forbidden' });
+      return;
+    }
+    try {
+      const sbAccounts = await getSupabaseAccounts();
+      const redisUrl = process.env.UPSTASH_REDIS_REST_URL || 'https://flowing-chigger-149490.upstash.io';
+      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAkfyAAIgcDEyNjE1YWY1MGQ4YTQ0YmIwYjI3MzkyNDk1NWJkOTU2Mg';
+      
+      let whitelistMap = {};
+      if (redisToken) {
+        try {
+          const wlRes = await fetch(`${redisUrl}/get/upgrader:whitelist`, { headers: { Authorization: `Bearer ${redisToken}` } });
+          const wlData = await wlRes.json();
+          if (wlData && wlData.result) {
+            whitelistMap = typeof wlData.result === 'string' ? JSON.parse(wlData.result) : wlData.result;
+          }
+        } catch (e) {}
+      }
+
+      const usersList = (sbAccounts || []).map(a => {
+        const uLower = (a.name || '').toLowerCase().trim();
+        const wl = whitelistMap[uLower];
+        let hasAccess = false;
+        let expiresAt = null;
+        if (wl) {
+          if (wl.expires_at === 'lifetime') {
+            hasAccess = true;
+            expiresAt = 'lifetime';
+          } else {
+            const expTime = new Date(wl.expires_at).getTime();
+            if (expTime > Date.now()) {
+              hasAccess = true;
+              expiresAt = wl.expires_at;
+            }
+          }
+        }
+        return {
+          username: a.name || 'Unknown',
+          avatar_url: a.avatar_url || 'https://cdn.rollbux.com/avatars/default-v1.png',
+          has_access: hasAccess,
+          expires_at: expiresAt
+        };
+      });
+
+      sendJson(res, 200, { users: usersList });
+      return;
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+      return;
+    }
+  }
+
+  if (pathname === '/api/whitelist/manage' && req.method === 'POST') {
+    if (!isAllowedIp(req)) {
+      sendJson(res, 403, { error: 'Forbidden' });
+      return;
+    }
+    try {
+      const payload = req.body || await parseBody(req);
+      const targetUser = String(payload.username || '').toLowerCase().trim();
+      const action = payload.action; // 'grant' or 'revoke'
+      const duration = payload.duration; // '1d', '7d', '30d', 'lifetime', or Xd
+
+      if (!targetUser) {
+        sendJson(res, 400, { error: 'Username required' });
+        return;
+      }
+
+      const redisUrl = process.env.UPSTASH_REDIS_REST_URL || 'https://flowing-chigger-149490.upstash.io';
+      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAkfyAAIgcDEyNjE1YWY1MGQ4YTQ0YmIwYjI3MzkyNDk1NWJkOTU2Mg';
+      
+      let whitelistMap = {};
+      if (redisToken) {
+        try {
+          const wlRes = await fetch(`${redisUrl}/get/upgrader:whitelist`, { headers: { Authorization: `Bearer ${redisToken}` } });
+          const wlData = await wlRes.json();
+          if (wlData && wlData.result) {
+            whitelistMap = typeof wlData.result === 'string' ? JSON.parse(wlData.result) : wlData.result;
+          }
+        } catch (e) {}
+
+        if (action === 'revoke') {
+          delete whitelistMap[targetUser];
+        } else {
+          let exp = 'lifetime';
+          if (duration !== 'lifetime') {
+            let days = 7;
+            const match = String(duration || '').match(/^(\d+)d$/);
+            if (match) days = parseInt(match[1], 10);
+            exp = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+          }
+          whitelistMap[targetUser] = {
+            granted_at: new Date().toISOString(),
+            expires_at: exp
+          };
+        }
+
+        await fetch(`${redisUrl}/set/upgrader:whitelist`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${redisToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(whitelistMap)
+        });
+      }
+
+      sendJson(res, 200, { success: true, user: targetUser, whitelist: whitelistMap[targetUser] || null });
+      return;
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+      return;
+    }
+  }
+
+  if (pathname === '/api/whitelist/check' && req.method === 'GET') {
+    try {
+      const username = String(url.searchParams.get('username') || '').toLowerCase().trim();
+      if (!username) {
+        sendJson(res, 200, { has_access: false });
+        return;
+      }
+      const redisUrl = process.env.UPSTASH_REDIS_REST_URL || 'https://flowing-chigger-149490.upstash.io';
+      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAkfyAAIgcDEyNjE1YWY1MGQ4YTQ0YmIwYjI3MzkyNDk1NWJkOTU2Mg';
+      let hasAccess = false;
+      let expiresAt = null;
+
+      if (redisToken) {
+        const wlRes = await fetch(`${redisUrl}/get/upgrader:whitelist`, { headers: { Authorization: `Bearer ${redisToken}` } });
+        const wlData = await wlRes.json();
+        if (wlData && wlData.result) {
+          const map = typeof wlData.result === 'string' ? JSON.parse(wlData.result) : wlData.result;
+          const entry = map[username];
+          if (entry) {
+            if (entry.expires_at === 'lifetime') {
+              hasAccess = true;
+              expiresAt = 'lifetime';
+            } else {
+              const exp = new Date(entry.expires_at).getTime();
+              if (exp > Date.now()) {
+                hasAccess = true;
+                expiresAt = entry.expires_at;
+              }
+            }
+          }
+        }
+      }
+
+      sendJson(res, 200, { has_access: hasAccess, expires_at: expiresAt });
+      return;
+    } catch (e) {
+      sendJson(res, 200, { has_access: false });
+      return;
+    }
+  }
+
+  // Serve /whitelist page (restricted to allowed IP)
+  const isWhitelistPage = pathname === '/whitelist' || pathname === '/whitelist.html' || matchedPath === '/whitelist' || matchedPath === '/whitelist.html';
+  if (isWhitelistPage) {
+    if (!isAllowedIp(req)) {
+      res.statusCode = 403;
+      res.end('Forbidden - Admin access only');
+      return;
+    }
+    try {
+      const candidates = [
+        path.resolve(process.cwd(), 'whitelist.html'),
+        path.resolve(process.cwd(), 'server', 'whitelist.html')
+      ];
+      let html = null;
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          html = fs.readFileSync(p, 'utf-8');
+          break;
+        }
+      }
+      if (html) {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.end(html);
+        return;
+      }
+    } catch (e) {}
+  }
+
   const isHistoryPage = pathname === '/history' || pathname === '/history.html' || matchedPath === '/history' || matchedPath === '/history.html' || url.pathname === '/history' || url.pathname === '/history.html';
 
   // Serve the History HTML page (/history)
