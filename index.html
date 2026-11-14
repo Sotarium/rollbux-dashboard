@@ -516,7 +516,7 @@
 
 
                 <!-- Top Nav Switcher: RollBux | Discord -->
-        <div class="flex items-center justify-center w-full pt-1 pb-4 select-none">
+        <div class="relative z-50 flex items-center justify-center w-full pt-1 pb-4 select-none">
           <div class="flex items-center bg-[#121214] p-1 rounded-xl border border-white/[0.05] shadow-lg">
             <button id="navTabRollbux" onclick="switchNavTab('rollbux')" class="px-5 py-1.5 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm cursor-pointer">RollBux</button>
             <button id="navTabDiscord" onclick="switchNavTab('discord')" class="px-5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer">Discord</button>
@@ -1059,8 +1059,8 @@
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
                   <!-- Upgrader Plan Lock / Floating Pay Gate -->
-                  <div id="upgraderPlanGate" class="fixed inset-x-0 bottom-0 top-[70px] z-50 flex items-center justify-center p-6" style="display:flex; background: rgba(5, 5, 5, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
-                    <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center my-auto">
+                  <div id="upgraderPlanGate" class="fixed inset-0 z-40 flex items-center justify-center p-6 overflow-hidden" style="display:flex; background: rgba(5, 5, 5, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
+                    <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[380px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center my-auto">
                       <!-- 52px Circle with exact lucide-crown SVG provided -->
                       <div class="flex items-center justify-center mb-4" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, #2a2a2d 0%, #161618 100%); border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-crown" aria-hidden="true" style="color: rgb(255, 255, 255);">
@@ -1069,17 +1069,40 @@
                         </svg>
                       </div>
 
-                      <h1 class="text-2xl font-bold text-white tracking-tight mb-4">Upgrader Plan</h1>
+                      <h1 class="text-2xl font-bold text-white tracking-tight mb-3">Upgrader Plan</h1>
                       
                       <!-- Price Pill: $10 Weekly -->
-                      <div class="inline-flex items-center justify-center bg-black/50 border border-white/10 rounded-xl px-5 py-2 mb-6 shadow-inner">
+                      <div class="inline-flex items-center justify-center bg-black/50 border border-white/10 rounded-xl px-5 py-2 mb-5 shadow-inner">
                         <span class="text-sm font-bold text-[#38bdf8]">$10 Weekly</span>
                       </div>
 
                       <!-- Action Button -->
-                      <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3.5 px-6 rounded-xl bg-white text-black font-bold text-sm hover:bg-[#eaeaea] hover:scale-[1.01] active:scale-[0.99] transition duration-150 shadow-xl cursor-pointer">
+                      <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3 px-6 rounded-xl bg-white text-black font-bold text-sm hover:bg-[#eaeaea] hover:scale-[1.01] active:scale-[0.99] transition duration-150 shadow-xl cursor-pointer mb-5">
                         Upgrade Plan
                       </button>
+
+                      <!-- Features Section Under Upgrade Plan -->
+                      <div class="w-full pt-4 border-t border-white/[0.08] text-left">
+                        <div class="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-3 px-1">Included Features</div>
+                        <ul class="flex flex-col gap-2.5 text-xs text-zinc-300">
+                          <li class="flex items-center gap-2.5">
+                            <svg class="size-4 text-[#38bdf8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>High-Speed Ticket Auto-Claimer</span>
+                          </li>
+                          <li class="flex items-center gap-2.5">
+                            <svg class="size-4 text-[#38bdf8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Live Discord Giveaway Watcher</span>
+                          </li>
+                          <li class="flex items-center gap-2.5">
+                            <svg class="size-4 text-[#38bdf8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Instant Webhook Embed Alerts</span>
+                          </li>
+                          <li class="flex items-center gap-2.5">
+                            <svg class="size-4 text-[#38bdf8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Multi-Account Session Support</span>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                   <div id="discordViewContent" class="w-full flex flex-col gap-6 transition-all duration-300">

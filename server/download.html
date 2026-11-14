@@ -330,7 +330,7 @@
         <!-- Features & Changes Across from Each Other (Side-by-Side 50/50 Columns) -->
         <div class="panels-across-row">
             
-            <!-- Features Section (Left Side - Cleared) -->
+            <!-- Features Section (Left Side) -->
             <section class="card panel">
                 <div class="panel-header-center">
                     <div class="section-icon">
@@ -338,14 +338,43 @@
                     </div>
                     <h2>Features</h2>
                 </div>
-                <div class="sub-cards-stack">
-                    <div class="empty-content-box">
-                        <span>No features listed yet</span>
+                <div class="sub-cards-stack" id="featuresListContainer">
+                    <div class="sub-card">
+                        <h3>⚡ High-Speed Ticket Claimer</h3>
+                        <ul>
+                            <li>Real-time claim engine for instantly claiming Rollbux tickets</li>
+                            <li>Millisecond latency with optimized WebSocket listener</li>
+                            <li>Automated error recovery and connection failover</li>
+                        </ul>
+                    </div>
+                    <div class="sub-card">
+                        <h3>🎁 Discord Giveaway Watcher</h3>
+                        <ul>
+                            <li>Multi-channel message scraping and reaction detector</li>
+                            <li>Auto-react and auto-click button entries with anti-rate-limit delays</li>
+                            <li>Custom sound alerts and visual notification cards</li>
+                        </ul>
+                    </div>
+                    <div class="sub-card">
+                        <h3>🔔 Discord Webhooks Integration</h3>
+                        <ul>
+                            <li>Custom embed notifications sent straight to your Discord server</li>
+                            <li>Instant alerts on successful claims, wins, and balance changes</li>
+                            <li>Test dispatch and channel configuration tools</li>
+                        </ul>
+                    </div>
+                    <div class="sub-card">
+                        <h3>🛡️ Multi-Account & Session Manager</h3>
+                        <ul>
+                            <li>Run multiple Discord sessions concurrently</li>
+                            <li>Secure token persistence and proxy support</li>
+                            <li>Integrated Rollbux inventory and activity live-view</li>
+                        </ul>
                     </div>
                 </div>
             </section>
 
-            <!-- Changes Section (Right Side - Cleared) -->
+            <!-- Changes Section (Right Side) -->
             <section class="card panel">
                 <div class="panel-header-center">
                     <div class="section-icon">
@@ -353,9 +382,24 @@
                     </div>
                     <h2>Changes</h2>
                 </div>
-                <div class="sub-cards-stack">
-                    <div class="empty-content-box">
-                        <span>No changes listed yet</span>
+                <div class="sub-cards-stack" id="changesListContainer">
+                    <div class="sub-card">
+                        <h3>✨ Latest Release Updates (<span id="releaseTagLabel">v1.0.1</span>)</h3>
+                        <ul id="releaseNotesList">
+                            <li>Direct integration with native Edge WebView2 runtime</li>
+                            <li>Enhanced auto-updater detecting GitHub latest release assets</li>
+                            <li>Fixed single-file native assembly bundling and extraction</li>
+                            <li>Optimized memory footprint and WebSocket heartbeat handling</li>
+                            <li>Added Upgrader Plan paywall integration with instant unlock</li>
+                        </ul>
+                    </div>
+                    <div class="sub-card">
+                        <h3>🚀 Core Desktop Upgrades</h3>
+                        <ul>
+                            <li>Multi-threaded background task execution</li>
+                            <li>Automated cleanup of orphaned process locks</li>
+                            <li>Hardened secure credential exchange with Supabase backend</li>
+                        </ul>
                     </div>
                 </div>
             </section>
@@ -364,5 +408,43 @@
 
     </div>
 
+    <script>
+        (async function fetchLatestRelease() {
+            try {
+                const res = await fetch('https://api.github.com/repos/Sotarium/rollbux-dashboard/releases/latest');
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data && data.tag_name) {
+                    const versionBadge = document.querySelector('.version-badge span');
+                    if (versionBadge) versionBadge.textContent = 'Release ' + data.tag_name;
+                    const tagLabel = document.getElementById('releaseTagLabel');
+                    if (tagLabel) tagLabel.textContent = data.tag_name;
+                    
+                    const downloadBtn = document.querySelector('.hero-actions a.btn.primary');
+                    if (downloadBtn && data.assets && data.assets.length > 0) {
+                        const exeAsset = data.assets.find(function(a) { return a.name.endsWith('.exe'); });
+                        if (exeAsset && exeAsset.browser_download_url) {
+                            downloadBtn.href = exeAsset.browser_download_url;
+                        }
+                    }
+                    
+                    if (data.body && data.body.trim()) {
+                        const lines = data.body.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+                        if (lines.length > 0) {
+                            const notesUl = document.getElementById('releaseNotesList');
+                            if (notesUl) {
+                                notesUl.innerHTML = lines.map(function(line) {
+                                    var clean = line.replace(/^[\*\-\+]\s*/, '');
+                                    return '<li>' + clean + '</li>';
+                                }).join('');
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('GitHub release fetch error:', e);
+            }
+        })();
+    </script>
 </body>
 </html>

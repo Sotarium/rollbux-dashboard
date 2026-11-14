@@ -2097,7 +2097,7 @@ export default async function handler(req, res) {
   // Direct DiscordViewer Windows executable download
   if ((pathname === '/download/file' || pathname === '/download/DiscordViewer.exe') && req.method === 'GET') {
     res.writeHead(302, {
-      'Location': 'https://github.com/Sotarium/rollbux-dashboard/releases/download/v1.0.0/DiscordViewer.exe'
+      'Location': 'https://github.com/Sotarium/rollbux-dashboard/releases/latest/download/DiscordViewer.exe'
     });
     res.end();
     return;
@@ -2127,7 +2127,7 @@ export default async function handler(req, res) {
       }
     } catch (e) {}
     res.writeHead(302, {
-      'Location': 'https://github.com/Sotarium/rollbux-dashboard/releases/download/v1.0.0/DiscordViewer.exe'
+      'Location': 'https://github.com/Sotarium/rollbux-dashboard/releases/latest/download/DiscordViewer.exe'
     });
     res.end();
     return;
