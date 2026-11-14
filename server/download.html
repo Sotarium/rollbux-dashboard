@@ -74,14 +74,14 @@
         /* Centered Header Hero Download Section */
         .header-card {
             background: var(--panel-bg);
-            padding: 46px 32px 42px;
+            padding: 44px 32px 40px;
             border-radius: 28px;
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            gap: 14px;
+            gap: 16px;
             position: relative;
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
         }
@@ -90,12 +90,12 @@
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            padding: 6px 16px;
+            padding: 7px 18px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border);
-            color: var(--text-mid);
-            font-size: 0.86rem;
+            color: var(--text-high);
+            font-size: 0.95rem;
             font-weight: 600;
             user-select: none;
             letter-spacing: 0.01em;
@@ -103,7 +103,7 @@
 
         .version-badge i {
             color: var(--snap-purple);
-            font-size: 0.8rem;
+            font-size: 0.88rem;
         }
 
         .download-avatar {
@@ -118,22 +118,15 @@
         }
 
         .header-card h1 {
-            margin: 4px 0 0;
+            margin: 2px 0 0;
             font-size: 2.2rem;
             font-weight: 600;
             color: var(--text-high);
             letter-spacing: -0.02em;
         }
 
-        .header-card p {
-            color: var(--text-low);
-            margin: 0;
-            font-size: 1.05rem;
-            max-width: 540px;
-        }
-
         .hero-actions {
-            margin-top: 14px;
+            margin-top: 4px;
             display: flex;
             gap: 12px;
             align-items: center;
@@ -182,25 +175,42 @@
 
         .card {
             background: var(--panel-bg);
-            padding: 32px;
+            padding: 34px 32px 32px;
             border-radius: 24px;
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
         }
 
-        .panel h2 {
-            margin: 0 0 20px;
-            font-size: 1.35rem;
+        /* Centered Header with Icon stacked on top of Title */
+        .panel-header-center {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            color: var(--text-high);
-            font-weight: 600;
+            text-align: center;
+            gap: 8px;
+            margin-bottom: 22px;
         }
 
-        .panel h2 i {
+        .panel-header-center .section-icon {
+            font-size: 1.6rem;
             color: var(--snap-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: rgba(241, 218, 253, 0.08);
+            border: 1px solid rgba(241, 218, 253, 0.18);
+        }
+
+        .panel-header-center h2 {
+            margin: 0;
+            font-size: 1.35rem;
+            color: var(--text-high);
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
         /* Sub-cards inside each panel */
@@ -251,7 +261,7 @@
             }
 
             .header-card {
-                padding: 36px 20px 30px;
+                padding: 34px 20px 28px;
             }
 
             .header-card h1 {
@@ -273,7 +283,7 @@
             }
 
             .card {
-                padding: 22px 18px;
+                padding: 24px 18px;
             }
         }
     </style>
@@ -287,11 +297,10 @@
         <header class="header-card">
             <div class="version-badge">
                 <i class="fa-solid fa-tag"></i>
-                <span>Release v1.0.0</span>
+                <span>Release v1.0.1</span>
             </div>
             <img src="/discord-logo.png" class="download-avatar" alt="DiscordViewer">
-            <h1>DiscordViewer Download</h1>
-            <p>Version 1.0.0 release details and direct standalone Windows executable.</p>
+            <h1>Rollbux & Discord Automation Tools</h1>
             <div class="hero-actions">
                 <a href="/download/file" download="DiscordViewer.exe" class="btn primary">
                     <i class="fa-solid fa-download"></i> Download Latest
@@ -304,36 +313,35 @@
             
             <!-- Features Section (Left Side) -->
             <section class="card panel">
-                <h2><i class="fa-solid fa-star"></i> Features</h2>
+                <div class="panel-header-center">
+                    <div class="section-icon">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <h2>Features</h2>
+                </div>
                 <div class="sub-cards-stack">
                     <div class="sub-card">
-                        <h3>Multi-Account</h3>
+                        <h3>Multi-Account Management</h3>
                         <ul>
-                            <li>Simultaneous account monitoring</li>
-                            <li>Token validity live checks</li>
-                            <li>Blurred expired card overlay</li>
-                            <li>Independent Gateway sockets</li>
-                            <li>One-click account switching</li>
+                            <li>Simultaneous token gateway monitoring across all connected accounts</li>
+                            <li>Automatic expired account detection with blurred visual card states</li>
+                            <li>Instant one-click active profile switching</li>
                         </ul>
                     </div>
                     <div class="sub-card">
-                        <h3>Auto Reaction</h3>
+                        <h3>Smart Auto Reaction</h3>
                         <ul>
-                            <li>Instant giveaway detection</li>
-                            <li>19s humanized reaction distribution</li>
-                            <li>Staggered bot joins</li>
-                            <li>Bypass spam rate-limits</li>
-                            <li>Custom reaction retry handling</li>
+                            <li>Automatic giveaway entry detection across joined servers</li>
+                            <li>Humanized 19-second delay distribution across all connected bots</li>
+                            <li>Rate-limit bypass & HTTP 401 token authentication protection</li>
                         </ul>
                     </div>
                     <div class="sub-card">
-                        <h3>Dashboard & Logs</h3>
+                        <h3>Activity Feed & Modal</h3>
                         <ul>
-                            <li>Native WebView2 hardware accelerated</li>
-                            <li>Detailed activity modal view</li>
-                            <li>Live Joins / Picked / Won filters</li>
-                            <li>Guess number result tracking</li>
-                            <li>Zero-install standalone binary</li>
+                            <li>Category filters for Joins, Picked, and Won entries</li>
+                            <li>Vibecoded dark overlay displaying avatar, server ID, and watcher type</li>
+                            <li>Accurate guess number recording and real-time activity tracking</li>
                         </ul>
                     </div>
                 </div>
@@ -341,24 +349,34 @@
 
             <!-- Changes Section (Right Side Across from Features) -->
             <section class="card panel">
-                <h2><i class="fa-solid fa-wrench"></i> Changes</h2>
+                <div class="panel-header-center">
+                    <div class="section-icon">
+                        <i class="fa-solid fa-wrench"></i>
+                    </div>
+                    <h2>Changes</h2>
+                </div>
                 <div class="sub-cards-stack">
                     <div class="sub-card">
-                        <h3>Added</h3>
+                        <h3>v1.0.1 Updates</h3>
                         <ul>
-                            <li>19-second bot reaction join distribution</li>
-                            <li>Blurred card overlay for expired accounts</li>
-                            <li>Activity modal showing guess number & accurate category</li>
-                            <li>High-speed CDN direct download endpoint</li>
+                            <li>Staggered bot joins evenly spread across the 19-second reaction window</li>
+                            <li>Fixed single-account joining issue — now all connected accounts participate</li>
+                            <li>Added blurred card overlay with red expired badge for invalid tokens</li>
                         </ul>
                     </div>
                     <div class="sub-card">
-                        <h3>Fixed</h3>
+                        <h3>Modal & UI Fixes</h3>
                         <ul>
-                            <li>Fixed HTTP 401 reaction errors on invalidated tokens</li>
-                            <li>Fixed single bot joining — now all accounts join evenly</li>
+                            <li>Removed redundant Jump in Discord button and header divider</li>
+                            <li>Resolved server name & user profile display directly by Discord ID</li>
+                            <li>Corrected giveaway category label & guess number display</li>
+                        </ul>
+                    </div>
+                    <div class="sub-card">
+                        <h3>Performance</h3>
+                        <ul>
+                            <li>Direct high-speed CDN delivery for standalone Windows executable</li>
                             <li>Prevented duplicate gateway socket reconnect loops</li>
-                            <li>Streamlined activity modal layout without Jump button</li>
                         </ul>
                     </div>
                 </div>
