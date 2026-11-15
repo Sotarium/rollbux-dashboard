@@ -7704,7 +7704,9 @@
     // Sotarium / DiscordViewer Auto-Updater Client Bridge
     (function initSotariumAutoUpdater() {
       // Dynamic client version: inject via window.__DV_VERSION__ or localStorage cache
-      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.1';
+      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.2';
+      // Clear stale v1.0.1 localStorage so old users don't get stuck in update loop
+      try { if (localStorage.getItem('__dv_installed_ver') === 'v1.0.1') localStorage.removeItem('__dv_installed_ver'); } catch(e) {}
       let pendingUpdateData = null;
 
       window.setAppCurrentVersion = function(ver) {
