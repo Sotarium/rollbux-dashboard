@@ -5828,102 +5828,176 @@
       openCryptoModal(user);
     };
 
-    // ── Crypto Payment Modal Logic ──────────────────────────────────────────
-    let _cryptoState = { paymentId: null, pollTimer: null, username: null };
+    // ── Crypto Payment Modal Logic (ShaftKings style) ───────────────────────
+    let _cryptoState = { paymentId: null, pollTimer: null, username: null, activeCoin: 'sol' };
 
-    const _cryptoNetworks = {
-      sol:'SOL on Solana network only.', btc:'BTC on Bitcoin network only.',
-      eth:'ETH on Ethereum (ERC-20) network only.', usdttrc20:'USDT on Tron (TRC-20) network only.',
-      usdterc20:'USDT on Ethereum (ERC-20) network only.', usdc:'USDC on Ethereum network only.',
-      ltc:'LTC on Litecoin network only.', xrp:'XRP on Ripple network only.', doge:'DOGE on Dogecoin network only.'
+    const _ckCoins = [
+      { id:'sol',       name:'SOL',  label:'Solana',           network:'Solana',     icon:'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
+      { id:'btc',       name:'BTC',  label:'Bitcoin',          network:'Bitcoin',    icon:'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
+      { id:'eth',       name:'ETH',  label:'Ethereum',         network:'ERC-20',     icon:'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+      { id:'usdttrc20', name:'USDT', label:'Tether',           network:'TRC-20',     icon:'https://assets.coingecko.com/coins/images/325/small/Tether.png' },
+      { id:'usdterc20', name:'USDT', label:'Tether',           network:'ERC-20',     icon:'https://assets.coingecko.com/coins/images/325/small/Tether.png' },
+      { id:'usdc',      name:'USDC', label:'USD Coin',         network:'ERC-20',     icon:'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
+      { id:'ltc',       name:'LTC',  label:'Litecoin',         network:'Litecoin',   icon:'https://assets.coingecko.com/coins/images/2/small/litecoin.png' },
+      { id:'xrp',       name:'XRP',  label:'Ripple',           network:'Ripple',     icon:'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
+      { id:'doge',      name:'DOGE', label:'Dogecoin',         network:'Dogecoin',   icon:'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
+    ];
+
+    function _ckBuildCoinList() {
+      const list = document.getElementById('ck-coin-list');
+      if (!list) return;
+      list.innerHTML = _ckCoins.map(function(c) {
+        return '<button class="ck-currency-btn' + (c.id === _cryptoState.activeCoin ? ' active' : '') + '" onclick="ckSelectCoin(\'' + c.id + '\')" data-coin="' + c.id + '">' +
+          '<img class="ck-coin-icon" src="' + c.icon + '" onerror="this.style.background=\'#2d2550\'" />' +
+          '<div><div class="ck-coin-name">' + c.name + '</div><div class="ck-coin-network">' + c.network + '</div></div>' +
+          '</button>';
+      }).join('');
+    }
+
+    function _ckSetActiveHeader(coin) {
+      var el = document.getElementById('ck-active-icon');
+      var en = document.getElementById('ck-active-name');
+      var net = document.getElementById('ck-active-network');
+      if (!el || !en || !net) return;
+      el.src = coin.icon;
+      en.textContent = coin.name;
+      net.textContent = coin.network;
+    }
+
+    function _ckResetAddress() {
+      var loading = document.getElementById('ck-addr-loading');
+      var addr = document.getElementById('cryptoAddressText');
+      var copyBtn = document.getElementById('cryptoCopyBtn');
+      if (loading) loading.style.display = 'flex';
+      if (addr) addr.style.display = 'none';
+      if (copyBtn) copyBtn.style.display = 'none';
+      var ar = document.getElementById('cryptoAmountRow');
+      if (ar) ar.style.display = 'none';
+      var qi = document.getElementById('cryptoQrImg');
+      if (qi) qi.src = '';
+      var st = document.getElementById('cryptoStatusText');
+      if (st) st.textContent = 'Waiting for payment...';
+      var dot = document.getElementById('ck-status-dot');
+      if (dot) dot.style.background = '#374151';
+    }
+
+    window.ckSelectCoin = function(coinId) {
+      _cryptoState.activeCoin = coinId;
+      var coin = _ckCoins.find(function(c){ return c.id === coinId; });
+      if (!coin) return;
+      // Update active class
+      document.querySelectorAll('.ck-currency-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.coin === coinId);
+      });
+      _ckSetActiveHeader(coin);
+      var nw = document.getElementById('cryptoNetworkWarning');
+      if (nw) nw.textContent = coin.name + ' on ' + coin.network + ' network only.';
+      _ckResetAddress();
+      if (_cryptoState.pollTimer) { clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null; }
+      generateCryptoPayment();
     };
 
     function openCryptoModal(username) {
       _cryptoState.username = username;
       _cryptoState.paymentId = null;
+      _cryptoState.activeCoin = 'sol';
       if (_cryptoState.pollTimer) { clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null; }
-      const modal = document.getElementById('cryptoPayModal');
+      var modal = document.getElementById('cryptoPayModal');
       if (modal) modal.style.display = 'flex';
-      document.getElementById('cryptoAddressText').textContent = 'Generating address...';
-      document.getElementById('cryptoAmountRow').style.display = 'none';
-      document.getElementById('cryptoStatusText').textContent = 'Waiting for payment...';
-      document.getElementById('cryptoQrImg').src = '';
+      _ckBuildCoinList();
+      var coin = _ckCoins[0];
+      _ckSetActiveHeader(coin);
+      var nw = document.getElementById('cryptoNetworkWarning');
+      if (nw) nw.textContent = coin.name + ' on ' + coin.network + ' network only.';
+      _ckResetAddress();
       generateCryptoPayment();
     }
 
     window.closeCryptoModal = function() {
-      const modal = document.getElementById('cryptoPayModal');
+      var modal = document.getElementById('cryptoPayModal');
       if (modal) modal.style.display = 'none';
       if (_cryptoState.pollTimer) { clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null; }
     };
 
-    window.onCryptoCurrencyChange = function() {
-      document.getElementById('cryptoAddressText').textContent = 'Generating address...';
-      document.getElementById('cryptoAmountRow').style.display = 'none';
-      document.getElementById('cryptoQrImg').src = '';
-      if (_cryptoState.pollTimer) { clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null; }
-      generateCryptoPayment();
-    };
+    // Legacy — kept for compatibility
+    window.onCryptoCurrencyChange = function() { ckSelectCoin(_cryptoState.activeCoin); };
 
     window.copyCryptoAddress = function() {
-      const addr = document.getElementById('cryptoAddressText').textContent;
-      if (!addr || addr === 'Generating address...' || addr.startsWith('Error')) return;
-      const btn = document.getElementById('cryptoCopyBtn');
+      var addr = document.getElementById('cryptoAddressText');
+      var txt = addr ? addr.textContent : '';
+      if (!txt || txt.startsWith('Error')) return;
+      var label = document.getElementById('ck-copy-label');
       try {
-        navigator.clipboard.writeText(addr).then(() => { if(btn){btn.textContent='Copied!';setTimeout(()=>{btn.textContent='Copy';},2000);} });
+        navigator.clipboard.writeText(txt).then(function() {
+          if (label) { label.textContent = 'Copied!'; setTimeout(function(){ label.textContent = 'Copy'; }, 2000); }
+        });
       } catch(e) {
-        const el = document.createElement('textarea'); el.value = addr;
+        var el = document.createElement('textarea'); el.value = txt;
         document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-        if(btn){btn.textContent='Copied!';setTimeout(()=>{btn.textContent='Copy';},2000);}
+        if (label) { label.textContent = 'Copied!'; setTimeout(function(){ label.textContent = 'Copy'; }, 2000); }
       }
     };
 
     async function generateCryptoPayment() {
-      const currency = (document.getElementById('cryptoCurrencySelect') || {}).value || 'sol';
+      var currency = _cryptoState.activeCoin || 'sol';
       try {
-        const res = await fetch('/api/nowpayments/create-payment', {
+        var res = await fetch('/api/nowpayments/create-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: _cryptoState.username, pay_currency: currency })
         });
-        const data = await res.json();
+        var data = await res.json();
         if (data.success && data.pay_address) {
           _cryptoState.paymentId = data.payment_id;
-          document.getElementById('cryptoAddressText').textContent = data.pay_address;
-          const ar = document.getElementById('cryptoAmountRow');
-          const at = document.getElementById('cryptoAmountText');
-          if (ar && at) { at.textContent = data.pay_amount + ' ' + (data.pay_currency || '').toUpperCase(); ar.style.display = 'block'; }
-          const qi = document.getElementById('cryptoQrImg');
-          if (qi) qi.src = 'https://api.qrserver.com/v1/create-qr-code/?size=168x168&bgcolor=ffffff&color=000000&qzone=1&data=' + encodeURIComponent(data.pay_address);
-          const nw = document.getElementById('cryptoNetworkWarning');
-          if (nw) nw.textContent = _cryptoNetworks[currency] || ('Send on ' + currency.toUpperCase() + ' network only.');
+          // Show address
+          var loading = document.getElementById('ck-addr-loading');
+          var addrEl = document.getElementById('cryptoAddressText');
+          var copyBtn = document.getElementById('cryptoCopyBtn');
+          if (loading) loading.style.display = 'none';
+          if (addrEl) { addrEl.textContent = data.pay_address; addrEl.style.display = 'block'; }
+          if (copyBtn) copyBtn.style.display = 'flex';
+          // Amount
+          var ar = document.getElementById('cryptoAmountRow');
+          var at = document.getElementById('cryptoAmountText');
+          if (ar && at) { at.textContent = data.pay_amount + ' ' + (data.pay_currency||'').toUpperCase(); ar.style.display = 'block'; }
+          // QR
+          var qi = document.getElementById('cryptoQrImg');
+          if (qi) qi.src = 'https://api.qrserver.com/v1/create-qr-code/?size=124x124&bgcolor=ffffff&color=000000&qzone=1&data=' + encodeURIComponent(data.pay_address);
+          // Poll
           if (_cryptoState.pollTimer) clearInterval(_cryptoState.pollTimer);
           _cryptoState.pollTimer = setInterval(pollCryptoStatus, 4000);
         } else {
-          document.getElementById('cryptoAddressText').textContent = 'Error: ' + (data.error || 'Failed to generate');
+          var loading2 = document.getElementById('ck-addr-loading');
+          if (loading2) loading2.innerHTML = '<span style="color:#ef4444">Error: ' + (data.error || 'Failed') + '</span>';
         }
       } catch(e) {
-        document.getElementById('cryptoAddressText').textContent = 'Error: ' + e.message;
+        var loading3 = document.getElementById('ck-addr-loading');
+        if (loading3) loading3.innerHTML = '<span style="color:#ef4444">Error: ' + e.message + '</span>';
       }
     }
 
     async function pollCryptoStatus() {
       if (!_cryptoState.paymentId) return;
       try {
-        const res = await fetch('/api/nowpayments/payment-status/' + _cryptoState.paymentId);
-        const data = await res.json();
-        const st = document.getElementById('cryptoStatusText');
-        const status = data.status || '';
+        var res = await fetch('/api/nowpayments/payment-status/' + _cryptoState.paymentId);
+        var data = await res.json();
+        var st = document.getElementById('cryptoStatusText');
+        var dot = document.getElementById('ck-status-dot');
+        var status = data.status || '';
         if (status === 'finished' || status === 'confirmed') {
           if (st) st.textContent = 'Payment confirmed! Activating your plan...';
+          if (dot) dot.style.background = '#22c55e';
           clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null;
           setTimeout(function() { closeCryptoModal(); if (typeof checkUpgraderPlan === 'function') checkUpgraderPlan(); }, 1500);
         } else if (status === 'partially_paid') {
-          if (st) st.textContent = 'Partial payment received — please send the remaining amount.';
+          if (st) st.textContent = 'Partial payment received — send the remaining amount.';
+          if (dot) dot.style.background = '#f59e0b';
         } else if (status === 'confirming' || status === 'sending') {
           if (st) st.textContent = 'Confirming on blockchain...';
+          if (dot) dot.style.background = '#6a38ff';
         } else if (status === 'failed' || status === 'refunded' || status === 'expired') {
           if (st) st.textContent = 'Payment ' + status + '. Please try again.';
+          if (dot) dot.style.background = '#ef4444';
           clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null;
         } else {
           if (st) st.textContent = 'Waiting for payment...';
@@ -7967,62 +8041,111 @@
 
 </script>
 
-<!-- Crypto Payment Modal -->
-<div id="cryptoPayModal" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;">
-  <div style="background:#070B18;border:1px solid #1f2937;border-radius:12px;width:min(520px,96vw);overflow:hidden;position:relative;box-shadow:0 24px 70px rgba(0,0,0,0.9);">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;">
-      <h2 style="color:#f9fafb;font-size:16px;font-weight:600;margin:0;font-family:inherit;">Upgrade Plan</h2>
-      <button onclick="closeCryptoModal()" style="background:transparent;border:none;color:#9ca3af;cursor:pointer;padding:4px;border-radius:6px;width:32px;height:32px;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;" onmouseover="this.style.background='#1f2937';this.style.color='#f9fafb'" onmouseout="this.style.background='transparent';this.style.color='#9ca3af'">&#x2715;</button>
+<!-- Crypto Payment Modal (ShaftKings style) -->
+<style>
+#cryptoPayModal * { box-sizing: border-box; }
+#cryptoPayModal { font-family: 'Clash Grotesk', 'Inter', system-ui, sans-serif; }
+.ck-currency-btn { display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:none;border-radius:10px;background:transparent;cursor:pointer;transition:background 0.15s;text-align:left; }
+.ck-currency-btn:hover { background:rgba(255,255,255,0.06); }
+.ck-currency-btn.active { background:rgba(106,56,255,0.18);border:1px solid rgba(106,56,255,0.45); }
+.ck-currency-btn .ck-coin-icon { width:32px;height:32px;border-radius:50%;object-fit:contain;flex-shrink:0; }
+.ck-currency-btn .ck-coin-name { font-weight:600;font-size:14px;color:#fff;line-height:1.1; }
+.ck-currency-btn .ck-coin-network { font-size:11px;color:#6b7280;margin-top:1px; }
+.ck-currency-btn.active .ck-coin-name { color:#a78bfa; }
+.ck-currency-btn.active .ck-coin-network { color:#7c5fcc; }
+.ck-copy-btn { display:flex;align-items:center;gap:5px;background:#1e1b2e;border:1px solid #2d2550;color:#a78bfa;border-radius:7px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap;flex-shrink:0; }
+.ck-copy-btn:hover { background:#2d2550; }
+.ck-network-pill { display:inline-block;background:rgba(106,56,255,0.15);border:1px solid rgba(106,56,255,0.35);color:#a78bfa;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600; }
+#ck-addr-loading { display:flex;align-items:center;gap:8px;color:#6b7280;font-size:13px; }
+</style>
+
+<div id="cryptoPayModal" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(3,2,8,0.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);align-items:center;justify-content:center;">
+  <div style="background:#100e14;border:1px solid #1e1b2e;border-radius:16px;width:min(760px,97vw);max-height:min(560px,97vh);overflow:hidden;box-shadow:0 32px 90px rgba(0,0,0,0.95);display:flex;flex-direction:column;">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #1a1726;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span style="font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.3px;">Wallet</span>
+        <!-- Deposit / Withdraw tabs -->
+        <div style="display:flex;background:#0a0812;border:1px solid #1e1b2e;border-radius:8px;padding:3px;gap:2px;">
+          <button onclick="void(0)" style="background:#6a38ff;border:none;color:#fff;border-radius:6px;padding:5px 16px;font-size:13px;font-weight:600;cursor:default;">Deposit</button>
+          <button onclick="void(0)" style="background:transparent;border:none;color:#6b7280;border-radius:6px;padding:5px 16px;font-size:13px;font-weight:600;cursor:default;">Withdraw</button>
+        </div>
+      </div>
+      <button onclick="closeCryptoModal()" style="background:transparent;border:none;color:#6b7280;cursor:pointer;width:30px;height:30px;border-radius:7px;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;padding:0;" onmouseover="this.style.background='#1e1b2e';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#6b7280'">&#x2715;</button>
     </div>
-    <div style="padding:0 20px 20px;overflow-y:auto;max-height:570px;">
-      <div style="display:flex;justify-content:center;margin:16px 0;">
-        <div style="width:192px;height:192px;background:#f9fafb;border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:center;">
-          <img id="cryptoQrImg" src="" alt="Deposit QR Code" style="width:168px;height:168px;border-radius:4px;" />
-        </div>
+
+    <!-- Body: currency list + right panel -->
+    <div style="display:flex;flex:1;min-height:0;overflow:hidden;">
+
+      <!-- Left: Currency list -->
+      <div style="width:200px;flex-shrink:0;border-right:1px solid #1a1726;overflow-y:auto;padding:10px 8px;" id="ck-coin-list">
+        <!-- Coins injected by JS -->
       </div>
-      <div style="margin-bottom:16px;">
-        <label style="color:#f9fafb;font-size:14px;font-weight:600;display:block;margin-bottom:6px;font-family:inherit;">Currency</label>
-        <div style="position:relative;">
-          <select id="cryptoCurrencySelect" onchange="onCryptoCurrencyChange()" style="width:100%;background:#111827;border:1px solid #1f2937;border-radius:8px;padding:0 36px 0 12px;height:40px;color:#f9fafb;font-size:14px;font-weight:600;cursor:pointer;appearance:none;outline:none;font-family:inherit;">
-            <option value="sol">SOL &mdash; Solana</option>
-            <option value="btc">BTC &mdash; Bitcoin</option>
-            <option value="eth">ETH &mdash; Ethereum</option>
-            <option value="usdttrc20">USDT &mdash; TRC-20 (Tron)</option>
-            <option value="usdterc20">USDT &mdash; ERC-20 (Ethereum)</option>
-            <option value="usdc">USDC &mdash; Ethereum</option>
-            <option value="ltc">LTC &mdash; Litecoin</option>
-            <option value="xrp">XRP &mdash; Ripple</option>
-            <option value="doge">DOGE &mdash; Dogecoin</option>
-          </select>
-          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9ca3af;">&#9660;</span>
+
+      <!-- Right: Deposit details -->
+      <div style="flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:16px;" id="ck-deposit-panel">
+
+        <!-- QR + Address row -->
+        <div style="display:flex;gap:18px;align-items:flex-start;">
+          <!-- QR -->
+          <div style="flex-shrink:0;">
+            <div style="width:140px;height:140px;background:#fff;border-radius:10px;padding:8px;display:flex;align-items:center;justify-content:center;">
+              <img id="cryptoQrImg" src="" alt="QR" style="width:124px;height:124px;border-radius:4px;display:block;" />
+            </div>
+          </div>
+          <!-- Right of QR -->
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;">
+            <!-- Coin header -->
+            <div style="display:flex;align-items:center;gap:8px;">
+              <img id="ck-active-icon" src="" style="width:26px;height:26px;border-radius:50%;" />
+              <span id="ck-active-name" style="font-size:16px;font-weight:700;color:#fff;"></span>
+              <span id="ck-active-network" class="ck-network-pill"></span>
+            </div>
+            <!-- Amount -->
+            <div id="cryptoAmountRow" style="display:none;background:#0a0812;border:1px solid #1e1b2e;border-radius:9px;padding:10px 13px;">
+              <div style="font-size:11px;color:#6b7280;margin-bottom:3px;font-weight:500;">Send exactly</div>
+              <div id="cryptoAmountText" style="font-size:17px;font-weight:700;color:#fff;font-family:monospace;letter-spacing:0.5px;"></div>
+              <div style="font-size:11px;color:#6b7280;margin-top:2px;">&#x2248; $10.00 USD</div>
+            </div>
+            <!-- Status -->
+            <div id="ck-status-wrap" style="display:flex;align-items:center;gap:6px;">
+              <span id="ck-status-dot" style="width:7px;height:7px;border-radius:50%;background:#374151;flex-shrink:0;"></span>
+              <span id="cryptoStatusText" style="font-size:12px;color:#6b7280;">Waiting for payment...</span>
+            </div>
+          </div>
         </div>
-      </div>
-      <div id="cryptoAmountRow" style="margin-bottom:12px;display:none;">
-        <div style="background:#111827;border-radius:8px;padding:10px 12px;border:1px solid #1f2937;">
-          <p style="color:#9ca3af;font-size:12px;margin:0 0 2px;font-family:inherit;">Send exactly</p>
-          <p id="cryptoAmountText" style="color:#f9fafb;font-size:16px;font-weight:700;margin:0;font-family:monospace;"></p>
+
+        <!-- Address field -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px;">Deposit Address</div>
+          <div style="display:flex;align-items:center;gap:8px;background:#0a0812;border:1px solid #1e1b2e;border-radius:9px;padding:9px 10px 9px 13px;">
+            <span id="ck-addr-loading" style="display:flex;align-items:center;gap:7px;color:#6b7280;font-size:13px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6a38ff" stroke-width="2.5" style="animation:ck-spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              Generating...
+            </span>
+            <p id="cryptoAddressText" style="color:#e5e7eb;font-size:12px;font-weight:500;margin:0;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:'Courier New',monospace;user-select:all;display:none;"></p>
+            <button onclick="copyCryptoAddress()" id="cryptoCopyBtn" class="ck-copy-btn" style="display:none;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span id="ck-copy-label">Copy</span>
+            </button>
+          </div>
         </div>
-      </div>
-      <div style="margin-bottom:12px;">
-        <label style="color:#f9fafb;font-size:14px;font-weight:600;display:block;margin-bottom:6px;font-family:inherit;">Address</label>
-        <div style="display:flex;align-items:center;gap:8px;background:#111827;border:1px solid #1f2937;border-radius:8px;padding:8px 8px 8px 12px;min-height:40px;">
-          <p id="cryptoAddressText" style="color:#f9fafb;font-size:13px;font-weight:600;margin:0;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:monospace;user-select:all;">Generating address...</p>
-          <button onclick="copyCryptoAddress()" id="cryptoCopyBtn" style="background:#1f2937;border:none;color:#f9fafb;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background 0.15s;font-family:inherit;" onmouseover="this.style.background='#374151'" onmouseout="this.style.background='#1f2937'">Copy</button>
+
+        <!-- Network warning -->
+        <div style="display:flex;gap:9px;background:#0d0b16;border:1px solid #1a1726;border-radius:9px;padding:11px 13px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div style="font-size:12px;color:#9ca3af;line-height:1.6;">
+            <span id="cryptoNetworkWarning" style="font-weight:600;color:#d1d5db;"></span>
+            <span> Only send on the correct network. After confirmation, your Upgrader Plan unlocks automatically.</span>
+          </div>
         </div>
-      </div>
-      <div style="display:flex;gap:8px;background:#111827;border:1px solid #1f2937;border-radius:8px;padding:10px 12px;margin-bottom:14px;">
-        <span style="color:#9ca3af;flex-shrink:0;margin-top:1px;font-size:14px;">&#9888;</span>
-        <div style="color:#9ca3af;font-size:12px;line-height:1.5;font-family:inherit;">
-          <p id="cryptoNetworkWarning" style="margin:0 0 3px;font-weight:600;color:#d1d5db;"></p>
-          <p style="margin:0;">Send the exact amount shown. After blockchain confirmation your Upgrader Plan activates automatically.</p>
-        </div>
-      </div>
-      <div style="text-align:center;padding:4px 0;">
-        <span id="cryptoStatusText" style="color:#9ca3af;font-size:12px;font-family:inherit;">Waiting for payment...</span>
+
       </div>
     </div>
   </div>
 </div>
+<style>@keyframes ck-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
 
 </body>
 </html>
