@@ -1059,7 +1059,7 @@
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
                   <!-- Upgrader Plan Lock / Floating Pay Gate -->
-                  <div id="upgraderPlanGate" class="fixed inset-x-0 bottom-0 top-[70px] z-50 flex items-center justify-center p-6" style="display:flex; background: rgba(5, 5, 5, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+                  <div id="upgraderPlanGate" class="fixed inset-x-0 bottom-0 top-[70px] z-50 flex items-center justify-center p-6" style="display:none; background: rgba(5, 5, 5, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
                     <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center my-auto">
                       <!-- 52px Circle with exact lucide-crown SVG provided -->
                       <div class="flex items-center justify-center mb-4" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, #2a2a2d 0%, #161618 100%); border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
@@ -1426,7 +1426,7 @@
 
 
     document.addEventListener('DOMContentLoaded', () => {
-      if (typeof window.checkUpgraderPlan === 'function') window.checkUpgraderPlan();
+      // checkUpgraderPlan only runs when switching to Discord tab
       const inp = document.getElementById('vibeDialogInput');
       if (inp) {
         inp.addEventListener('keydown', (e) => {
@@ -5761,7 +5761,9 @@
     window.checkUpgraderPlan = async function() {
       const gate = document.getElementById('upgraderPlanGate');
       const content = document.getElementById('discordViewContent');
+      const discordView = document.getElementById('viewDiscord');
       if (!gate) return;
+      if (!discordView || discordView.style.display === 'none') { gate.style.display = 'none'; return; }
 
       // Lock by default immediately
       let isUpgrader = false;
@@ -5840,6 +5842,7 @@
         document.documentElement.style.overflow = 'auto';
         if (rollbuxView) rollbuxView.style.display = 'flex';
         if (discordView) discordView.style.display = 'none';
+        const gate = document.getElementById('upgraderPlanGate'); if (gate) gate.style.display = 'none';
         if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = ACT_NAV; }
         if (discordBtn) { discordBtn.className = ''; discordBtn.style.cssText = INACT_NAV; }
       }
