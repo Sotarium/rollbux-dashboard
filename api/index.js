@@ -65,6 +65,13 @@ function isAllowedIp(req) {
   // isolation is enforced by lockSessionTokenToIp for each session token.
   return true;
 }
+function isWhitelistAdminIp(req) {
+  const ip = getClientIp(req);
+  const allowed = ['24.49.252.230', '127.0.0.1', '::1'];
+  if (allowed.includes(ip)) return true;
+  const forwarded = (req.headers['x-forwarded-for'] || '').split(',').map(s => s.trim());
+  return forwarded.some(x => allowed.includes(x));
+}
 function tokenLockKey(token) {
   return `rollbux:session-ip-v2:${crypto.createHash('sha256').update(token).digest('hex')}`;
 }
@@ -2136,7 +2143,7 @@ export default async function handler(req, res) {
   
   // --- Whitelist Management API Endpoints ---
   if (pathname === '/api/whitelist/users' && req.method === 'GET') {
-    if (!isAllowedIp(req)) {
+    if (!isWhitelistAdminIp(req)) {
       sendJson(res, 403, { error: 'Forbidden' });
       return;
     }
@@ -2190,7 +2197,7 @@ export default async function handler(req, res) {
   }
 
   if (pathname === '/api/whitelist/manage' && req.method === 'POST') {
-    if (!isAllowedIp(req)) {
+    if (!isWhitelistAdminIp(req)) {
       sendJson(res, 403, { error: 'Forbidden' });
       return;
     }
@@ -2486,7 +2493,7 @@ export default async function handler(req, res) {
   // Serve /whitelist page (restricted to allowed IP)
   const isWhitelistPage = pathname === '/whitelist' || pathname === '/whitelist.html' || matchedPath === '/whitelist' || matchedPath === '/whitelist.html';
   if (isWhitelistPage) {
-    if (!isAllowedIp(req)) {
+    if (!isWhitelistAdminIp(req)) {
       res.statusCode = 403;
       res.end('Forbidden - Admin access only');
       return;
