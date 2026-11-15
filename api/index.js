@@ -2290,6 +2290,152 @@ export default async function handler(req, res) {
     }
   }
 
+  // ── NOWPayments: Create $10 Weekly Upgrader Invoice ─────────────────────────
+  if (pathname === '/api/nowpayments/create-invoice' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req);
+      const username = String(body.username || '').toLowerCase().trim();
+      if (!username) {
+        sendJson(res, 400, { error: 'Username is required to subscribe' });
+        return;
+      }
+
+      const apiKey = process.env.NOWPAYMENTS_API_KEY || 'SD6RJSG-8SXMB1V-HBJFHE9-CJJVRFJ';
+      const orderId = `upgrader_${username}_${Date.now()}`;
+      
+      const payload = {
+        price_amount: 10,
+        price_currency: 'usd',
+        order_id: orderId,
+        order_description: `Rollbux & Discord Upgrader Plan (1 Week) - ${username}`,
+        ipn_callback_url: 'https://rollbux.vercel.app/api/nowpayments/ipn',
+        success_url: `https://rollbux.vercel.app/?payment=success&user=${encodeURIComponent(username)}`,
+        cancel_url: 'https://rollbux.vercel.app/?payment=cancel'
+      };
+
+      const nowRes = await fetch('https://api.nowpayments.io/v1/invoice', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Rollbux-Payment-Gateway'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const nowData = await nowRes.json();
+      if (!nowRes.ok || !nowData.invoice_url) {
+        sendJson(res, 500, { error: nowData.message || 'Failed to create invoice' });
+        return;
+      }
+
+      sendJson(res, 200, {
+        success: true,
+        invoice_id: nowData.id,
+        invoice_url: nowData.invoice_url,
+        order_id: orderId
+      });
+      return;
+    } catch (e) {
+      sendJson(res, 500, { error: e.message });
+      return;
+    }
+  }
+
+  // ── NOWPayments: IPN Webhook (Instant Payment Notification & Auto-Whitelist) ─
+  if (pathname === '/api/nowpayments/ipn' && req.method === 'POST') {
+    try {
+      const rawBody = await new Promise((resolve) => {
+        let data = '';
+        req.on('data', chunk => { data += chunk; });
+        req.on('end', () => resolve(data));
+      });
+
+      let ipnData = {};
+      try { ipnData = JSON.parse(rawBody); } catch(e) {}
+
+      // Verify HMAC-SHA512 signature if header provided
+      const hmacHeader = req.headers['x-nowpayments-sig'];
+      const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET || '5q3l24XOdWGdsvb3JtD9WIC5xU/ZBlfw';
+      
+      if (hmacHeader && ipnSecret) {
+        try {
+          const sortedKeys = Object.keys(ipnData).sort();
+          const sortedObj = {};
+          sortedKeys.forEach(k => { sortedObj[k] = ipnData[k]; });
+          const expectedSig = crypto.createHmac('sha512', ipnSecret).update(JSON.stringify(sortedObj)).digest('hex');
+          if (expectedSig !== hmacHeader) {
+            console.warn('[NOWPayments IPN] Signature mismatch. Received:', hmacHeader, 'Expected:', expectedSig);
+          }
+        } catch(e) {}
+      }
+
+      const paymentStatus = String(ipnData.payment_status || '').toLowerCase();
+      const orderId = String(ipnData.order_id || '');
+
+      // Check if payment is confirmed/finished
+      if (paymentStatus === 'finished' || paymentStatus === 'confirmed') {
+        // Extract username from order_id: `upgrader_${username}_${timestamp}`
+        let targetUser = '';
+        if (orderId.startsWith('upgrader_')) {
+          const parts = orderId.split('_');
+          if (parts.length >= 3) {
+            targetUser = parts.slice(1, -1).join('_').toLowerCase().trim();
+          }
+        }
+
+        if (targetUser) {
+          const redisUrl = process.env.UPSTASH_REDIS_REST_URL || 'https://flowing-chigger-149490.upstash.io';
+          const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAkfyAAIgcDEyNjE1YWY1MGQ4YTQ0YmIwYjI3MzkyNDk1NWJkOTU2Mg';
+          
+          if (redisToken) {
+            let whitelistMap = {};
+            try {
+              const wlRes = await fetch(`${redisUrl}/get/upgrader:whitelist`, {
+                headers: { Authorization: `Bearer ${redisToken}` }
+              });
+              const wlData = await wlRes.json();
+              if (wlData && wlData.result) {
+                whitelistMap = typeof wlData.result === 'string' ? JSON.parse(wlData.result) : wlData.result;
+              }
+            } catch(e) {}
+
+            // Calculate 7 days expiry from now (or extend current active expiry)
+            let currentExpiry = Date.now();
+            if (whitelistMap[targetUser] && whitelistMap[targetUser].expires_at && whitelistMap[targetUser].expires_at !== 'lifetime') {
+              const prev = new Date(whitelistMap[targetUser].expires_at).getTime();
+              if (prev > currentExpiry) currentExpiry = prev;
+            }
+            const newExpiry = new Date(currentExpiry + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+            whitelistMap[targetUser] = {
+              has_access: true,
+              plan: 'Upgrader Plan (Weekly)',
+              payment_id: ipnData.payment_id || ipnData.invoice_id,
+              granted_at: new Date().toISOString(),
+              expires_at: newExpiry
+            };
+
+            await fetch(`${redisUrl}/set/upgrader:whitelist`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${redisToken}` },
+              body: JSON.stringify(whitelistMap)
+            });
+
+            console.log(`[NOWPayments IPN] Whitelisted ${targetUser} until ${newExpiry} for order ${orderId}`);
+          }
+        }
+      }
+
+      sendJson(res, 200, { success: true });
+      return;
+    } catch (e) {
+      console.error('[NOWPayments IPN Error]', e);
+      sendJson(res, 500, { error: e.message });
+      return;
+    }
+  }
+
   // Serve /whitelist page (restricted to allowed IP)
   const isWhitelistPage = pathname === '/whitelist' || pathname === '/whitelist.html' || matchedPath === '/whitelist' || matchedPath === '/whitelist.html';
   if (isWhitelistPage) {
