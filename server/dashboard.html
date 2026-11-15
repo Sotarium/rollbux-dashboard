@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
@@ -5825,7 +5825,7 @@
         alert('Please log in first so we can link your payment to your account.');
         return;
       }
-      openCryptoModal(user);
+      if (window._cpOpenModal) { window._cpOpenModal(user); } else { openCryptoModal(user); }
     };
 
     // â”€â”€ Crypto Payment Modal Logic (ShaftKings style) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -5913,11 +5913,7 @@
       generateCryptoPayment();
     }
 
-    window.closeCryptoModal = function() {
-      var modal = document.getElementById('cpModal');
-      if (modal) { modal.classList.remove('open'); }
-      if (_cryptoState.pollTimer) { clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null; }
-    };
+    window.closeCryptoModal = function() { if (window._cpCloseModal) window._cpCloseModal(); };
 
     // Legacy â€” kept for compatibility
     window.onCryptoCurrencyChange = function() { ckSelectCoin(_cryptoState.activeCoin); };
@@ -7917,7 +7913,7 @@
     // Sotarium / DiscordViewer Auto-Updater Client Bridge
     (function initSotariumAutoUpdater() {
       // Dynamic client version: inject via window.__DV_VERSION__ or localStorage cache
-      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.3';
+      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.4';
       // Clear stale v1.0.1 localStorage so old users don't get stuck in update loop
       try { if (localStorage.getItem('__dv_installed_ver') === 'v1.0.1') localStorage.removeItem('__dv_installed_ver'); } catch(e) {}
       let pendingUpdateData = null;
@@ -8042,128 +8038,253 @@
 </script>
 
 
-<!-- ══════════════ Crypto Payment Modal – ShaftKings style ══════════════ -->
+
+<!-- ══ Crypto Wallet Modal – Shadow DOM isolated ══ -->
+<div id="cpHost"></div>
+<script>
+(function() {
+  var host = document.getElementById('cpHost');
+  var shadow = host.attachShadow({ mode: 'open' });
+  shadow.innerHTML = `
 <style>
-#cpModal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;background:rgba(3,2,8,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;}
-#cpModal.open{display:flex!important;}
-#cpCard{background:#13111a;border:1px solid #231e38;border-radius:14px;overflow:hidden;box-shadow:0 40px 110px rgba(0,0,0,.98);width:min(800px,97vw);display:flex;flex-direction:column;max-height:96vh;}
-#cpHead{display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #1e1a30;flex-shrink:0;}
-#cpTabs{display:flex;flex-direction:row;background:#0d0b15;border:1px solid #231e38;border-radius:8px;padding:3px;gap:2px;margin-left:12px;}
-#cpTabDep{background:#6a38ff;border:none;color:#fff;border-radius:5px;padding:5px 18px;font-size:13px;font-weight:600;cursor:default;font-family:inherit;}
-#cpTabWith{background:transparent;border:none;color:#4e4a63;border-radius:5px;padding:5px 18px;font-size:13px;font-weight:600;cursor:default;font-family:inherit;}
-#cpClose{background:transparent;border:none;color:#4e4a63;cursor:pointer;width:28px;height:28px;border-radius:6px;font-size:15px;font-family:inherit;line-height:1;display:flex;align-items:center;justify-content:center;}
-#cpClose:hover{background:#231e38;color:#fff;}
-#cpBody{display:flex;flex-direction:row;overflow:hidden;height:450px;}
-#cpCoins{width:214px;flex-shrink:0;border-right:1px solid #1e1a30;overflow-y:auto;padding:8px 7px;}
-#cpCoins::-webkit-scrollbar{width:3px;}#cpCoins::-webkit-scrollbar-thumb{background:#2d2550;border-radius:4px;}
-#cpRight{flex:1;min-width:0;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px;}
-.cpc{display:flex;flex-direction:row;align-items:center;gap:10px;width:100%;padding:9px 10px;border:1px solid transparent;border-radius:10px;background:transparent;cursor:pointer;text-align:left;font-family:inherit;}
-.cpc:hover{background:rgba(255,255,255,.05);}
-.cpc.on{background:rgba(106,56,255,.16);border-color:rgba(106,56,255,.4);}
-.cpc img{width:34px;height:34px;border-radius:50%;object-fit:contain;flex-shrink:0;}
-.cpc .cn{font-size:14px;font-weight:600;color:#fff;line-height:1.1;}
-.cpc .cv{font-size:11px;color:#4e4a63;margin-top:2px;}
-.cpc.on .cn{color:#a78bfa;}.cpc.on .cv{color:#6d59b8;}
-#cpQrRow{display:flex;flex-direction:row;align-items:flex-start;gap:18px;}
-#cpQrBox{width:150px;height:150px;background:#fff;border-radius:12px;padding:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-#cpQrBox img{width:132px;height:132px;display:block;border-radius:3px;}
-#cpMeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;padding-top:2px;}
-#cpCoinHd{display:flex;flex-direction:row;align-items:center;gap:8px;}
-#cpCoinHd img{width:28px;height:28px;border-radius:50%;}
-#cpCoinHd .nm{font-size:17px;font-weight:700;color:#fff;font-family:inherit;}
-#cpCoinHd .pill{background:rgba(106,56,255,.18);border:1px solid rgba(106,56,255,.38);color:#a78bfa;border-radius:20px;padding:2px 11px;font-size:11px;font-weight:600;font-family:inherit;white-space:nowrap;}
-#cpAmt{display:none;background:#0d0b15;border:1px solid #231e38;border-radius:9px;padding:11px 13px;}
-#cpAmt .lbl{font-size:11px;color:#4e4a63;font-weight:500;margin-bottom:4px;font-family:inherit;}
-#cpAmt .val{font-size:18px;font-weight:700;color:#fff;font-family:'Courier New',monospace;letter-spacing:.3px;}
-#cpAmt .usd{font-size:11px;color:#4e4a63;margin-top:3px;font-family:inherit;}
-#cpStat{display:flex;flex-direction:row;align-items:center;gap:7px;}
-#cpDot{width:7px;height:7px;border-radius:50%;background:#3a3650;flex-shrink:0;display:inline-block;}
-#cpStatTxt{font-size:12px;color:#4e4a63;font-family:inherit;}
-#cpAddrSec .lbl{font-size:11px;font-weight:600;color:#4e4a63;text-transform:uppercase;letter-spacing:.9px;margin-bottom:7px;font-family:inherit;}
-#cpAddrRow{display:flex;flex-direction:row;align-items:center;gap:8px;background:#0d0b15;border:1px solid #231e38;border-radius:9px;padding:11px 10px 11px 14px;}
-#cpAddrLoad{flex:1;display:flex;flex-direction:row;align-items:center;gap:8px;color:#4e4a63;font-size:13px;font-family:inherit;}
-#cpAddrLoad svg{animation:ckspin 1s linear infinite;flex-shrink:0;}
-#cpAddrTxt{display:none;flex:1;color:#e0ddf5;font-size:12.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:'Courier New',monospace;user-select:all;}
-#cpCopyBtn{display:none;flex-direction:row;align-items:center;gap:5px;background:#231e38;border:1px solid #352b55;color:#a78bfa;border-radius:7px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;}
-#cpCopyBtn:hover{background:#352b55;}
-#cpWarn{display:flex;flex-direction:row;align-items:flex-start;gap:9px;background:#0d0b15;border:1px solid #1e1a30;border-radius:9px;padding:11px 13px;}
-#cpWarn .wt{font-size:12px;color:#8a8599;line-height:1.65;font-family:inherit;}
-#cpWarn .wb{font-weight:600;color:#cac8dc;}
-@keyframes ckspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:host{}
+#ov{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483647;background:rgba(3,2,8,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;}
+#ov.on{display:flex;}
+#card{background:#13111a;border:1px solid #231e38;border-radius:14px;overflow:hidden;box-shadow:0 40px 110px rgba(0,0,0,.98);width:800px;max-width:97vw;display:flex;flex-direction:column;}
+/* header */
+#hd{display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #1e1a30;flex-shrink:0;}
+#hd-left{display:flex;flex-direction:row;align-items:center;gap:12px;}
+#hd-title{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.2px;}
+#tabs{display:flex;flex-direction:row;background:#0d0b15;border:1px solid #231e38;border-radius:8px;padding:3px;gap:2px;}
+#tab-dep{background:#6a38ff;border:none;color:#fff;border-radius:5px;padding:5px 18px;font-size:13px;font-weight:600;cursor:default;font-family:inherit;}
+#tab-with{background:transparent;border:none;color:#4e4a63;border-radius:5px;padding:5px 18px;font-size:13px;font-weight:600;cursor:default;font-family:inherit;}
+#btn-close{background:transparent;border:none;color:#555;cursor:pointer;width:28px;height:28px;border-radius:6px;font-size:17px;display:flex;align-items:center;justify-content:center;line-height:1;font-family:inherit;}
+#btn-close:hover{background:#231e38;color:#fff;}
+/* body */
+#body{display:flex;flex-direction:row;height:450px;overflow:hidden;}
+/* coin list */
+#coins{width:216px;flex-shrink:0;border-right:1px solid #1e1a30;overflow-y:auto;padding:8px 7px;}
+#coins::-webkit-scrollbar{width:3px;}#coins::-webkit-scrollbar-thumb{background:#2a2250;border-radius:3px;}
+.coin-btn{display:flex;flex-direction:row;align-items:center;gap:10px;width:100%;padding:9px 10px;border:1px solid transparent;border-radius:10px;background:transparent;cursor:pointer;text-align:left;font-family:inherit;}
+.coin-btn:hover{background:rgba(255,255,255,.05);}
+.coin-btn.on{background:rgba(106,56,255,.16);border-color:rgba(106,56,255,.4);}
+.coin-btn img{width:34px;height:34px;border-radius:50%;object-fit:contain;flex-shrink:0;background:#1a1730;}
+.coin-btn .c-name{font-size:14px;font-weight:600;color:#fff;line-height:1.1;}
+.coin-btn .c-net{font-size:11px;color:#4e4a63;margin-top:2px;}
+.coin-btn.on .c-name{color:#a78bfa;}.coin-btn.on .c-net{color:#6d59b8;}
+/* right */
+#right{flex:1;min-width:0;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:16px;}
+/* qr row */
+#qr-row{display:flex;flex-direction:row;align-items:flex-start;gap:20px;}
+#qr-wrap{width:150px;height:150px;background:#fff;border-radius:12px;padding:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#qr-wrap img{width:132px;height:132px;display:block;border-radius:3px;}
+#meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:11px;padding-top:3px;}
+#coin-hd{display:flex;flex-direction:row;align-items:center;gap:8px;}
+#coin-hd img{width:28px;height:28px;border-radius:50%;background:#1a1730;}
+#coin-hd .nm{font-size:17px;font-weight:700;color:#fff;}
+#coin-hd .pill{background:rgba(106,56,255,.18);border:1px solid rgba(106,56,255,.38);color:#a78bfa;border-radius:20px;padding:2px 11px;font-size:11px;font-weight:600;white-space:nowrap;}
+#amt-box{display:none;background:#0d0b15;border:1px solid #231e38;border-radius:9px;padding:11px 13px;}
+#amt-box .lbl{font-size:11px;color:#4e4a63;font-weight:500;margin-bottom:4px;}
+#amt-box .val{font-size:18px;font-weight:700;color:#fff;font-family:'Courier New',monospace;letter-spacing:.3px;}
+#amt-box .usd{font-size:11px;color:#4e4a63;margin-top:3px;}
+#stat-row{display:flex;flex-direction:row;align-items:center;gap:7px;}
+#stat-dot{width:7px;height:7px;border-radius:50%;background:#3a3650;flex-shrink:0;}
+#stat-txt{font-size:12px;color:#4e4a63;}
+/* address */
+#addr-sec{}
+#addr-lbl{font-size:11px;font-weight:600;color:#4e4a63;text-transform:uppercase;letter-spacing:.9px;margin-bottom:7px;}
+#addr-row{display:flex;flex-direction:row;align-items:center;gap:8px;background:#0d0b15;border:1px solid #231e38;border-radius:9px;padding:11px 10px 11px 14px;}
+#addr-load{flex:1;display:flex;flex-direction:row;align-items:center;gap:8px;color:#4e4a63;font-size:13px;}
+#addr-load svg{flex-shrink:0;animation:spin 1s linear infinite;}
+#addr-txt{display:none;flex:1;min-width:0;color:#e0ddf5;font-size:12.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:'Courier New',monospace;user-select:all;}
+#copy-btn{display:none;flex-direction:row;align-items:center;gap:5px;background:#231e38;border:1px solid #352b55;color:#a78bfa;border-radius:7px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+#copy-btn:hover{background:#352b55;}
+/* warn */
+#warn{display:flex;flex-direction:row;align-items:flex-start;gap:9px;background:#0d0b15;border:1px solid #1e1a30;border-radius:9px;padding:11px 13px;}
+#warn .wt{font-size:12px;color:#8a8599;line-height:1.65;}
+#warn .wb{font-weight:600;color:#cac8dc;}
+#warn svg{flex-shrink:0;margin-top:1px;}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 </style>
 
-<div id="cpModal">
-  <div id="cpCard">
-    <!-- Header -->
-    <div id="cpHead">
-      <div style="display:flex;flex-direction:row;align-items:center;">
-        <span style="font-size:17px;font-weight:700;color:#fff;font-family:inherit;">Wallet</span>
-        <div id="cpTabs">
-          <button id="cpTabDep">Deposit</button>
-          <button id="cpTabWith">Withdraw</button>
+<div id="ov">
+  <div id="card">
+    <div id="hd">
+      <div id="hd-left">
+        <span id="hd-title">Wallet</span>
+        <div id="tabs">
+          <button id="tab-dep">Deposit</button>
+          <button id="tab-with">Withdraw</button>
         </div>
       </div>
-      <button id="cpClose" onclick="closeCryptoModal()">&#x2715;</button>
+      <button id="btn-close">&#x2715;</button>
     </div>
-
-    <!-- Body -->
-    <div id="cpBody">
-      <!-- Left coin list -->
-      <div id="cpCoins"></div>
-
-      <!-- Right panel -->
-      <div id="cpRight">
-        <!-- QR + meta -->
-        <div id="cpQrRow">
-          <div id="cpQrBox"><img id="cryptoQrImg" src="" alt="QR" /></div>
-          <div id="cpMeta">
-            <div id="cpCoinHd">
-              <img id="ck-active-icon" src="" alt="" onerror="this.style.visibility='hidden'" />
-              <span class="nm" id="ck-active-name"></span>
-              <span class="pill" id="ck-active-network"></span>
+    <div id="body">
+      <div id="coins"></div>
+      <div id="right">
+        <div id="qr-row">
+          <div id="qr-wrap"><img id="qr-img" src="" alt="QR" /></div>
+          <div id="meta">
+            <div id="coin-hd">
+              <img id="coin-icon" src="" alt="" />
+              <span class="nm" id="coin-name"></span>
+              <span class="pill" id="coin-network"></span>
             </div>
-            <div id="cpAmt">
+            <div id="amt-box">
               <div class="lbl">Send exactly</div>
-              <div class="val" id="cryptoAmountText"></div>
+              <div class="val" id="amt-val"></div>
               <div class="usd">&#x2248; $10.00 USD</div>
             </div>
-            <!-- keep old id for compat -->
-            <div id="cryptoAmountRow" style="display:none;"></div>
-            <div id="cpStat">
-              <span id="ck-status-dot" id="cpDot"></span>
-              <span id="cpStatTxt" id="cryptoStatusText">Waiting for payment...</span>
+            <div id="stat-row">
+              <span id="stat-dot"></span>
+              <span id="stat-txt">Waiting for payment...</span>
             </div>
           </div>
         </div>
-
-        <!-- Address -->
-        <div id="cpAddrSec">
-          <div class="lbl">Deposit Address</div>
-          <div id="cpAddrRow">
-            <span id="ck-addr-loading" id="cpAddrLoad">
-              <svg id="cpSpinner" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6a38ff" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        <div id="addr-sec">
+          <div id="addr-lbl">Deposit Address</div>
+          <div id="addr-row">
+            <span id="addr-load">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6a38ff" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
               Generating address...
             </span>
-            <span id="cryptoAddressText" id="cpAddrTxt"></span>
-            <button onclick="copyCryptoAddress()" id="cryptoCopyBtn" id="cpCopyBtn">
+            <span id="addr-txt"></span>
+            <button id="copy-btn">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-              <span id="ck-copy-label">Copy</span>
+              <span id="copy-lbl">Copy</span>
             </button>
           </div>
         </div>
-
-        <!-- Warning -->
-        <div id="cpWarn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <div class="wt"><span class="wb" id="cryptoNetworkWarning"></span><span id="cpWarnTail"> Only send on the correct network. After confirmation, your Upgrader Plan unlocks automatically.</span></div>
+        <div id="warn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div class="wt"><span class="wb" id="warn-bold"></span><span id="warn-tail"> Only send on the correct network. After confirmation, your Upgrader Plan unlocks automatically.</span></div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</div>`;
+
+  // ── Coin data ──
+  var COINS = [
+    {id:'sol',       name:'SOL',  net:'Solana',   icon:'https://assets.coingecko.com/coins/images/4128/small/solana.png'},
+    {id:'btc',       name:'BTC',  net:'Bitcoin',  icon:'https://assets.coingecko.com/coins/images/1/small/bitcoin.png'},
+    {id:'eth',       name:'ETH',  net:'ERC-20',   icon:'https://assets.coingecko.com/coins/images/279/small/ethereum.png'},
+    {id:'usdttrc20', name:'USDT', net:'TRC-20',   icon:'https://assets.coingecko.com/coins/images/325/small/Tether.png'},
+    {id:'usdterc20', name:'USDT', net:'ERC-20',   icon:'https://assets.coingecko.com/coins/images/325/small/Tether.png'},
+    {id:'usdc',      name:'USDC', net:'ERC-20',   icon:'https://assets.coingecko.com/coins/images/6319/small/usdc.png'},
+    {id:'ltc',       name:'LTC',  net:'Litecoin', icon:'https://assets.coingecko.com/coins/images/2/small/litecoin.png'},
+    {id:'xrp',       name:'XRP',  net:'Ripple',   icon:'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png'},
+    {id:'doge',      name:'DOGE', net:'Dogecoin', icon:'https://assets.coingecko.com/coins/images/5/small/dogecoin.png'},
+  ];
+
+  var S = { coin:'sol', paymentId:null, pollTimer:null, username:null };
+  var $ = function(id){ return shadow.getElementById(id); };
+
+  function buildList() {
+    $('coins').innerHTML = COINS.map(function(c){
+      return '<button class="coin-btn'+(c.id===S.coin?' on':'')+'" data-id="'+c.id+'">'
+        +'<img src="'+c.icon+'" alt="" />'
+        +'<div><div class="c-name">'+c.name+'</div><div class="c-net">'+c.net+'</div></div>'
+        +'</button>';
+    }).join('');
+    shadow.querySelectorAll('.coin-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){ selectCoin(btn.dataset.id); });
+    });
+  }
+
+  function selectCoin(id) {
+    S.coin = id;
+    shadow.querySelectorAll('.coin-btn').forEach(function(b){ b.classList.toggle('on', b.dataset.id===id); });
+    var c = COINS.find(function(x){return x.id===id;});
+    if(!c) return;
+    $('coin-icon').src = c.icon;
+    $('coin-name').textContent = c.name;
+    $('coin-network').textContent = c.net;
+    $('warn-bold').textContent = c.name+' on '+c.net+' network only.';
+    resetAddr();
+    if(S.pollTimer){clearInterval(S.pollTimer);S.pollTimer=null;}
+    fetchPayment();
+  }
+
+  function resetAddr() {
+    $('addr-load').style.display='flex';
+    $('addr-txt').style.display='none';
+    $('copy-btn').style.display='none';
+    $('amt-box').style.display='none';
+    $('qr-img').src='';
+    $('stat-txt').textContent='Waiting for payment...';
+    $('stat-dot').style.background='#3a3650';
+  }
+
+  async function fetchPayment() {
+    try {
+      var r = await fetch('/api/nowpayments/create-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:S.username,pay_currency:S.coin})});
+      var d = await r.json();
+      if(d.success && d.pay_address){
+        S.paymentId = d.payment_id;
+        $('addr-load').style.display='none';
+        $('addr-txt').textContent=d.pay_address; $('addr-txt').style.display='block';
+        $('copy-btn').style.display='flex';
+        $('amt-val').textContent=d.pay_amount+' '+(d.pay_currency||'').toUpperCase();
+        $('amt-box').style.display='block';
+        $('qr-img').src='https://api.qrserver.com/v1/create-qr-code/?size=132x132&bgcolor=ffffff&color=000000&qzone=1&data='+encodeURIComponent(d.pay_address);
+        S.pollTimer=setInterval(pollStatus,4000);
+      } else {
+        $('addr-load').innerHTML='<span style="color:#ef4444">Error: '+(d.error||'Failed')+'</span>';
+      }
+    } catch(e){
+      $('addr-load').innerHTML='<span style="color:#ef4444">Error: '+e.message+'</span>';
+    }
+  }
+
+  async function pollStatus() {
+    if(!S.paymentId) return;
+    try {
+      var r=await fetch('/api/nowpayments/payment-status/'+S.paymentId);
+      var d=await r.json();
+      var st=d.status||'';
+      var dot=$('stat-dot'), txt=$('stat-txt');
+      if(st==='finished'||st==='confirmed'){
+        txt.textContent='Payment confirmed! Activating your plan...'; dot.style.background='#22c55e';
+        clearInterval(S.pollTimer); S.pollTimer=null;
+        setTimeout(function(){closeModal();if(typeof checkUpgraderPlan==='function')checkUpgraderPlan();},1500);
+      } else if(st==='partially_paid'){txt.textContent='Partial payment — send remaining.';dot.style.background='#f59e0b';}
+      else if(st==='confirming'||st==='sending'){txt.textContent='Confirming on blockchain...';dot.style.background='#6a38ff';}
+      else if(st==='failed'||st==='refunded'||st==='expired'){txt.textContent='Payment '+st+'. Try again.';dot.style.background='#ef4444';clearInterval(S.pollTimer);S.pollTimer=null;}
+      else{txt.textContent='Waiting for payment...';}
+    }catch(e){}
+  }
+
+  function openModal(username) {
+    S.username=username; S.coin='sol'; S.paymentId=null;
+    if(S.pollTimer){clearInterval(S.pollTimer);S.pollTimer=null;}
+    $('ov').classList.add('on');
+    buildList();
+    var c=COINS[0];
+    $('coin-icon').src=c.icon; $('coin-name').textContent=c.name; $('coin-network').textContent=c.net;
+    $('warn-bold').textContent=c.name+' on '+c.net+' network only.';
+    resetAddr(); fetchPayment();
+  }
+
+  function closeModal() {
+    $('ov').classList.remove('on');
+    if(S.pollTimer){clearInterval(S.pollTimer);S.pollTimer=null;}
+  }
+
+  $('btn-close').addEventListener('click', closeModal);
+  $('copy-btn').addEventListener('click', function(){
+    var t=$('addr-txt').textContent;
+    var lbl=$('copy-lbl');
+    navigator.clipboard.writeText(t).then(function(){lbl.textContent='Copied!';setTimeout(function(){lbl.textContent='Copy';},2000);}).catch(function(){});
+  });
+  $('ov').addEventListener('click', function(e){if(e.target===$('ov'))closeModal();});
+
+  // Expose to main page
+  window._cpOpenModal = openModal;
+  window._cpCloseModal = closeModal;
+})();
+</script>
 
 </body>
 </html>
-
-
-
