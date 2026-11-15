@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
@@ -530,9 +530,9 @@
               <!-- Right Main Content -->
               <div data-node-id="671:33061" class="flex flex-1 min-w-0 w-full flex-col items-start gap-[24px]" bis_skin_checked="1">
 
-                                                <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+                                                <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
                 <!-- VIEW 1: ROLLBUX (Exact DiscordViewer-Dashboard-11 SiteView) -->
-                <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+                <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
                 <div id="viewRollbux" class="w-full flex flex-col gap-6">
                   <!-- Header: Overview + Currency Switcher Segmented Pill -->
                   <div class="flex w-full shrink-0 flex-wrap items-center justify-between gap-3">
@@ -1054,9 +1054,9 @@
                   </div>
                 </div>
 
-                <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+                <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
                 <!-- VIEW 2: DISCORD (Exact DiscordViewer-Dashboard-11 DiscordView) -->
-                <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+                <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
                   <!-- Upgrader Plan Lock / Floating Pay Gate -->
                   <div id="upgraderPlanGate" class="fixed inset-0 z-[100] flex items-center justify-center p-6" style="display:none; background: rgba(5, 5, 5, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
@@ -6238,7 +6238,7 @@
         if (id) return (name ? name + ':' : '') + id;
         if (name) return name;
       }
-      const explicitEmoji = String(text || '').match(/[ðŸŽ‰ðŸŽŠðŸŽŸï¸]/u);
+      const explicitEmoji = String(text || '').match(/[ðŸŽ‰ðŸŽŠðŸŽŸï¸]/u);
       return explicitEmoji ? explicitEmoji[0] : 'ðŸŽ‰';
     }
 
@@ -6268,7 +6268,7 @@
       const token = account?.token || getActiveDiscordToken();
       if (!token) return;
       try {
-        await triggerDiscordReaction(channelId, messageId, 'ðŸŽŸï¸', watcher.sound !== false, account, watcher);
+        await triggerDiscordReaction(channelId, messageId, 'ðŸŽŸï¸', watcher.sound !== false, account, watcher);
         logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer', undefined, true, account, channelId, watcher.serverID, messageId, watcher.name, 'Claimer');
       } catch (e) {
         console.error('[Discord Gateway] Ticket Claim error:', e);
@@ -6998,9 +6998,9 @@
     };
 
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // AUTO SELL CONTROLLER
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     (function initAutoSell() {
       let autoSellInterval = null;
       let autoSellCount = 0;
@@ -7544,7 +7544,7 @@
         if (help) {
           help.innerHTML = '<b>Ticket Claimer mode:</b> Automatically reacts to claim giveaway tickets in the specified channel.';
         }
-        if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket Â· ðŸŽŸï¸';
+        if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket Â· ðŸŽŸï¸';
         if (targetWrap) targetWrap.style.display = 'none';
         if (channelLabel) channelLabel.textContent = 'Ticket Channel ID';
         if (createBtn) createBtn.textContent = 'Create Claimer';
@@ -7683,7 +7683,7 @@
 
             <div class="flex items-center justify-between select-none pt-1">
               <div class="flex items-center gap-2">
-                ${w.autoReact ? (isClaimer ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:#5865F2; color:#ffffff;">Auto Claim ðŸŽŸï¸</span>' : '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React</span>') : ''}
+                ${w.autoReact ? (isClaimer ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:#5865F2; color:#ffffff;">Auto Claim ðŸŽŸï¸</span>' : '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React</span>') : ''}
                 ${w.autoGuess ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>' : ''}
                 <button type="button" onclick="toggleWatcherSound('${w.id}')" class="dv-pill ${w.sound ? 'active' : 'inactive text-[#8f8f8f]'}" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; cursor:pointer;" title="Toggle sound notification">
                   <svg class="size-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/></svg>
@@ -7913,7 +7913,7 @@
     // Sotarium / DiscordViewer Auto-Updater Client Bridge
     (function initSotariumAutoUpdater() {
       // Dynamic client version: inject via window.__DV_VERSION__ or localStorage cache
-      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.4';
+      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.5';
       // Clear stale v1.0.1 localStorage so old users don't get stuck in update loop
       try { if (localStorage.getItem('__dv_installed_ver') === 'v1.0.1') localStorage.removeItem('__dv_installed_ver'); } catch(e) {}
       let pendingUpdateData = null;
