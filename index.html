@@ -516,7 +516,7 @@
 
 
                 <!-- Top Nav Switcher: RollBux | Discord -->
-        <div class="flex items-center justify-center w-full pt-1 pb-4 select-none">
+        <div class="flex items-center justify-center w-full pt-1 pb-4 select-none" style="position:relative;z-index:200;">
           <div class="flex items-center bg-[#121214] p-1 rounded-xl border border-white/[0.05] shadow-lg">
             <button id="navTabRollbux" onclick="switchNavTab('rollbux')" class="px-5 py-1.5 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm cursor-pointer">RollBux</button>
             <button id="navTabDiscord" onclick="switchNavTab('discord')" class="px-5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer">Discord</button>
@@ -5799,6 +5799,7 @@
         }
         document.body.style.overflow = 'auto';
         document.documentElement.style.overflow = 'auto';
+        if (typeof _stopWhitelistPolling === 'function') _stopWhitelistPolling();
       } else {
         gate.style.display = 'flex';
         if (content) {
@@ -5817,6 +5818,25 @@
     };
 
     // Navigation Tab Switcher between RollBux and Discord
+    let _whitelistPollInterval = null;
+
+    function _startWhitelistPolling() {
+      if (_whitelistPollInterval) return; // already running
+      _whitelistPollInterval = setInterval(async function() {
+        const gate = document.getElementById('upgraderPlanGate');
+        const discordView = document.getElementById('viewDiscord');
+        // Only poll while Discord tab is visible and gate is showing
+        if (!discordView || discordView.style.display === 'none') { _stopWhitelistPolling(); return; }
+        if (!gate || gate.style.display === 'none') { _stopWhitelistPolling(); return; }
+        // Re-run the check — if whitelisted, it will auto-hide the gate
+        if (typeof checkUpgraderPlan === 'function') await checkUpgraderPlan();
+      }, 8000);
+    }
+
+    function _stopWhitelistPolling() {
+      if (_whitelistPollInterval) { clearInterval(_whitelistPollInterval); _whitelistPollInterval = null; }
+    }
+
     window.switchNavTab = function(tab) {
       const rollbuxBtn = document.getElementById('navTabRollbux');
       const discordBtn = document.getElementById('navTabDiscord');
@@ -5832,12 +5852,17 @@
         document.documentElement.style.overflow = 'hidden';
         if (rollbuxView) rollbuxView.style.display = 'none';
         if (discordView) discordView.style.display = 'flex';
-        if (typeof checkUpgraderPlan === 'function') checkUpgraderPlan();
+        if (typeof checkUpgraderPlan === 'function') checkUpgraderPlan().then(() => {
+          // After check, if gate is still showing, start polling for whitelist
+          const g = document.getElementById('upgraderPlanGate');
+          if (g && g.style.display !== 'none') _startWhitelistPolling();
+        });
         if (typeof renderDiscordWatchers === 'function') renderDiscordWatchers();
         if (typeof startDiscordGateway === 'function') startDiscordGateway();
         if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = INACT_NAV; }
         if (discordBtn) { discordBtn.className = ''; discordBtn.style.cssText = ACT_NAV; }
       } else {
+        _stopWhitelistPolling();
         document.body.style.overflow = 'auto';
         document.documentElement.style.overflow = 'auto';
         if (rollbuxView) rollbuxView.style.display = 'flex';
