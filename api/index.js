@@ -320,7 +320,13 @@ export default async function handler(req, res) {
           const lsData = await lsRes.json();
           let loginSessions = {};
           if (lsData && lsData.result) {
-            loginSessions = typeof lsData.result === 'string' ? JSON.parse(lsData.result) : lsData.result;
+            let parsed = lsData.result;
+            while (typeof parsed === 'string') {
+              try { parsed = JSON.parse(parsed); } catch (e) { break; }
+            }
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+              loginSessions = parsed;
+            }
           }
           const uKey = username.toLowerCase().trim();
           loginSessions[uKey] = {
@@ -331,8 +337,8 @@ export default async function handler(req, res) {
           };
           await fetch(`${redisUrl}/set/upgrader:login_sessions`, {
             method: 'POST',
-            headers: { Authorization: `Bearer ${redisToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(JSON.stringify(loginSessions))
+            headers: { Authorization: `Bearer ${redisToken}` },
+            body: JSON.stringify(loginSessions)
           });
         }
       } catch (e) {
@@ -2190,17 +2196,29 @@ export default async function handler(req, res) {
           ]);
           const lsData = await lsRes.json();
           if (lsData && lsData.result) {
-            loginSessions = typeof lsData.result === 'string' ? JSON.parse(lsData.result) : lsData.result;
+            let parsed = lsData.result;
+            while (typeof parsed === 'string') {
+              try { parsed = JSON.parse(parsed); } catch (e) { break; }
+            }
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+              loginSessions = parsed;
+            }
           }
           const wlData = await wlRes.json();
           if (wlData && wlData.result) {
-            whitelistMap = typeof wlData.result === 'string' ? JSON.parse(wlData.result) : wlData.result;
+            let parsedWl = wlData.result;
+            while (typeof parsedWl === 'string') {
+              try { parsedWl = JSON.parse(parsedWl); } catch (e) { break; }
+            }
+            if (parsedWl && typeof parsedWl === 'object') {
+              whitelistMap = parsedWl;
+            }
           }
         } catch (e) {}
       }
 
       // Convert loginSessions map to list of distinct users
-      let distinctUsers = Object.values(loginSessions || {});
+      let distinctUsers = Object.values(loginSessions || {}).filter(u => u && typeof u === 'object' && u.username);
 
       // Fallback: if login_sessions is completely empty, use Sotarium
       if (distinctUsers.length === 0) {
