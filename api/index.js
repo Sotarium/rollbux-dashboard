@@ -2310,7 +2310,8 @@ export default async function handler(req, res) {
         order_description: `Rollbux & Discord Upgrader Plan (1 Week) - ${username}`,
         ipn_callback_url: 'https://rollbux.vercel.app/api/nowpayments/ipn',
         success_url: `https://rollbux.vercel.app/?payment=success&user=${encodeURIComponent(username)}`,
-        cancel_url: 'https://rollbux.vercel.app/?payment=cancel'
+        cancel_url: 'https://rollbux.vercel.app/?payment=cancel',
+        is_fixed_rate: true
       };
 
       const nowRes = await fetch('https://api.nowpayments.io/v1/invoice', {
@@ -2374,7 +2375,10 @@ export default async function handler(req, res) {
       const orderId = String(ipnData.order_id || '');
 
       // Check if payment is confirmed/finished
-      if (paymentStatus === 'finished' || paymentStatus === 'confirmed') {
+      // Protected payment: accept confirmed/finished, sending status, or >=95% paid (covering minor network gas fee deductions)
+      const isPaid = paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'sending';
+      const isCoveredPartial = paymentStatus === 'partially_paid' && Number(ipnData.actually_paid || 0) >= Number(ipnData.pay_amount || 0) * 0.95;
+      if (isPaid || isCoveredPartial) {
         // Extract username from order_id: `upgrader_${username}_${timestamp}`
         let targetUser = '';
         if (orderId.startsWith('upgrader_')) {
