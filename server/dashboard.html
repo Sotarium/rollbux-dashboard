@@ -5810,11 +5810,45 @@
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
         window.scrollTo({ top: 0, behavior: 'instant' });
+        // Auto-start polling so whitelist unlock happens without tab switching
+        if (typeof _startWhitelistPolling === 'function') _startWhitelistPolling();
       }
     };
 
-    window.unlockUpgraderPlan = function() {
-      alert("Please contact the administrator or subscribe to get whitelisted for the Upgrader Plan.");
+    window.unlockUpgraderPlan = async function() {
+      const btn = document.querySelector('#paygateHeaderBlock button');
+      const origText = btn ? btn.textContent : '';
+      try {
+        // Get username from stored profile
+        let user = '';
+        try {
+          const uObj = JSON.parse(localStorage.getItem('sotarium_user_profile') || 'null');
+          user = (uObj && uObj.username) ? uObj.username : '';
+        } catch(e) {}
+        if (!user) {
+          alert('Please log in first so we can link your payment to your account.');
+          return;
+        }
+
+        if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
+
+        const res = await fetch('/api/nowpayments/create-invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: user })
+        });
+        const data = await res.json();
+
+        if (data && data.invoice_url) {
+          window.open(data.invoice_url, '_blank');
+        } else {
+          alert('Could not create invoice: ' + (data.error || 'Unknown error'));
+        }
+      } catch(e) {
+        alert('Error: ' + e.message);
+      } finally {
+        if (btn) { btn.textContent = origText || 'Upgrade Plan'; btn.disabled = false; }
+      }
     };
 
     // Navigation Tab Switcher between RollBux and Discord
