@@ -1132,6 +1132,11 @@
                       <span id="watchersCountBadge" class="dv-badge  font-bold text-[#8f8f8f]">0</span>
                     </div>
                     <div class="flex items-center gap-3 select-none">
+                      <!-- Whitelist Countdown Pill -->
+                      <div id="discordWhitelistBadge" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[#080808] border border-[rgba(255,255,255,0.10)] text-xs font-semibold text-[#a1a1aa]" title="Whitelist Access Status">
+                        <svg class="size-3.5 text-[#38bdf8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span id="discordWhitelistCountdownText">Checking...</span>
+                      </div>
                       <!-- Live Status Badge -->
                       <div class="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#080808] border border-[rgba(255,255,255,0.10)] text-xs font-semibold text-white">
                         <span class="size-2 rounded-full bg-[#54d487] animate-pulse"></span>
@@ -5822,14 +5827,49 @@
         else if (pathParts[0] === 'user' && pathParts[1]) user = pathParts[1];
       }
 
+      let upgraderExpiresAt = null;
       if (user) {
         try {
           const res = await fetch('/api/whitelist/check?username=' + encodeURIComponent(user));
           const data = await res.json();
           if (data && data.has_access) {
             isUpgrader = true;
+            upgraderExpiresAt = data.expires_at || null;
           }
         } catch (e) {}
+      }
+
+      // Update Whitelist Countdown Pill in Discord page header
+      const wlBadge = document.getElementById('discordWhitelistBadge');
+      const wlText = document.getElementById('discordWhitelistCountdownText');
+      if (wlBadge && wlText) {
+        if (isUpgrader) {
+          wlBadge.classList.remove('hidden');
+          wlBadge.classList.add('flex');
+          if (upgraderExpiresAt === 'lifetime') {
+            wlText.innerHTML = '<span class="text-[#38bdf8] font-bold">Lifetime</span> Access';
+          } else if (upgraderExpiresAt) {
+            const diff = new Date(upgraderExpiresAt).getTime() - Date.now();
+            if (diff > 0) {
+              const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+              const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+              const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+              const secs = Math.floor((diff % (1000 * 60)) / 1000);
+              let timeStr = '';
+              if (days > 0) timeStr = `${days}d ${hours}h left`;
+              else if (hours > 0) timeStr = `${hours}h ${mins}m left`;
+              else timeStr = `${mins}m ${secs}s left`;
+              wlText.innerHTML = `<span class="text-[#38bdf8] font-bold">${timeStr}</span>`;
+            } else {
+              wlText.innerHTML = '<span class="text-red-400 font-bold">Expired</span>';
+            }
+          } else {
+            wlText.innerHTML = '<span class="text-[#54d487] font-bold">Active</span>';
+          }
+        } else {
+          wlBadge.classList.add('hidden');
+          wlBadge.classList.remove('flex');
+        }
       }
 
       if (isUpgrader) {
