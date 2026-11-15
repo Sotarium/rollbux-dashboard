@@ -570,7 +570,7 @@
                         <img id="earningsCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
                         <span id="statTotalEarnings" data-bux-value="0" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">0</span>
                       </div>
-                      <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none " style="display:none;">$0.00 Â· 0.00 SOL</span>
+                      <span id="statTotalEarningsSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none " style="display:none;">$0.00   0.00 SOL</span>
                     </div>
 
                     <!-- Current Balance (strong border rgba(255,255,255,0.22)) -->
@@ -580,7 +580,7 @@
                         <img id="balanceCoinIconImg" alt="Currency" src="./figma/token-bux.png" style="width: 22px; height: 22px; object-fit: contain; flex-shrink: 0;" />
                         <span id="statCurrentBalance" data-bux-value="5" class="text-[20px] font-bold leading-[30px] text-white tracking-tight">5</span>
                       </div>
-                      <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none " style="display:none;">$0.01 Â· 0.0001 SOL</span>
+                      <span id="statCurrentBalanceSub" class="text-[12px] text-[#8f8f8f] font-medium mt-2 leading-none " style="display:none;">$0.01   0.0001 SOL</span>
                     </div>
                   </div>
 
@@ -7581,7 +7581,7 @@
         if (help) {
           help.innerHTML = '<b>Ticket Claimer mode:</b> Automatically reacts to claim giveaway tickets in the specified channel.';
         }
-        if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket Â· ðŸŽŸï¸';
+        if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket   ðŸŽŸï¸';
         if (targetWrap) targetWrap.style.display = 'none';
         if (channelLabel) channelLabel.textContent = 'Ticket Channel ID';
         if (createBtn) createBtn.textContent = 'Create Claimer';
@@ -7691,7 +7691,7 @@
         const isClaimer = w.type === 'claimer' || w.mode === 'ticket';
         const modeBadge = isClaimer
           ? '<span class="dv-badge" style="background:#5865F2/20; border-color:#5865F2/40; color:#8ea1ff;">Ticket Claimer</span>'
-          : '<span class="dv-badge">Watcher Â· Giveaway</span>';
+          : '<span class="dv-badge">Watcher   Giveaway</span>';
         return `
           <div class="dv-card flex flex-col justify-between h-[196px] p-4">
             <div class="flex items-center justify-between select-none">
@@ -7917,7 +7917,7 @@
       <div id="updatePhaseDownloading" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%;">
         <img src="/sotarium-favicon.png?v=20261111" alt="Sotarium Icon" style="width:68px; height:68px; object-fit:contain;" />
         <div>
-          <h1 class="update-screen-title" id="updateDownloadingTitle">Downloading updateâ€¦</h1>
+          <h1 class="update-screen-title" id="updateDownloadingTitle">Downloading update...</h1>
           <p class="update-screen-desc" id="updateProgressText" style="margin-top:6px;">0%</p>
         </div>
         <div style="width:100%; height:6px; background:rgba(255,255,255,0.06); border-radius:9999px; overflow:hidden; margin-top:12px;">
@@ -7929,7 +7929,7 @@
       <div id="updatePhaseDone" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; width:100%; text-align:center; animation:fadeInCenter 0.3s ease-out;">
         <img src="/checkmark.webp" alt="Done" style="width:84px; height:84px; object-fit:contain;" onerror="this.src='/sotarium-favicon.png?v=20261111';" />
         <h1 class="update-screen-title" style="font-size:24px; font-style:normal; text-align:center; width:100%;">
-          Updated! Relaunchingâ€¦
+          Updated! Relaunching...
         </h1>
       </div>
 
@@ -7950,7 +7950,7 @@
     // Sotarium / DiscordViewer Auto-Updater Client Bridge
     (function initSotariumAutoUpdater() {
       // Dynamic client version: inject via window.__DV_VERSION__ or localStorage cache
-      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.1.0';
+      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.1.1';
       // Clear stale v1.0.1 localStorage so old users don't get stuck in update loop
       try { if (localStorage.getItem('__dv_installed_ver') === 'v1.0.1') localStorage.removeItem('__dv_installed_ver'); } catch(e) {}
       let pendingUpdateData = null;
@@ -8017,7 +8017,7 @@
         if (pPrompt) pPrompt.style.display = 'none';
         if (pDown) pDown.style.display = 'flex';
         if (title && pendingUpdateData?.tag) {
-          title.textContent = 'Downloading ' + (pendingUpdateData.tag.startsWith('v') ? pendingUpdateData.tag : 'v' + pendingUpdateData.tag) + 'â€¦';
+          title.textContent = 'Downloading ' + (pendingUpdateData.tag.startsWith('v') ? pendingUpdateData.tag : 'v' + pendingUpdateData.tag) + '...';
         }
 
         // Notify native C# host or fallback fetch
