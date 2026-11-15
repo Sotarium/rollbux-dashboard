@@ -5815,41 +5815,121 @@
       }
     };
 
-    window.unlockUpgraderPlan = async function() {
-      const btn = document.querySelector('#paygateHeaderBlock button');
-      const origText = btn ? btn.textContent : '';
+    window.unlockUpgraderPlan = function() {
+      let user = '';
       try {
-        // Get username from stored profile
-        let user = '';
-        try {
-          const uObj = JSON.parse(localStorage.getItem('sotarium_user_profile') || 'null');
-          user = (uObj && uObj.username) ? uObj.username : '';
-        } catch(e) {}
-        if (!user) {
-          alert('Please log in first so we can link your payment to your account.');
-          return;
-        }
+        const uObj = JSON.parse(localStorage.getItem('sotarium_user_profile') || 'null');
+        user = (uObj && uObj.username) ? uObj.username : '';
+      } catch(e) {}
+      if (!user) {
+        alert('Please log in first so we can link your payment to your account.');
+        return;
+      }
+      openCryptoModal(user);
+    };
 
-        if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
+    // ── Crypto Payment Modal Logic ──────────────────────────────────────────
+    let _cryptoState = { paymentId: null, pollTimer: null, username: null };
 
-        const res = await fetch('/api/nowpayments/create-invoice', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: user })
-        });
-        const data = await res.json();
+    const _cryptoNetworks = {
+      sol:'SOL on Solana network only.', btc:'BTC on Bitcoin network only.',
+      eth:'ETH on Ethereum (ERC-20) network only.', usdttrc20:'USDT on Tron (TRC-20) network only.',
+      usdterc20:'USDT on Ethereum (ERC-20) network only.', usdc:'USDC on Ethereum network only.',
+      ltc:'LTC on Litecoin network only.', xrp:'XRP on Ripple network only.', doge:'DOGE on Dogecoin network only.'
+    };
 
-        if (data && data.invoice_url) {
-          window.open(data.invoice_url, '_blank');
-        } else {
-          alert('Could not create invoice: ' + (data.error || 'Unknown error'));
-        }
+    function openCryptoModal(username) {
+      _cryptoState.username = username;
+      _cryptoState.paymentId = null;
+      if (_cryptoState.pollTimer) { clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null; }
+      const modal = document.getElementById('cryptoPayModal');
+      if (modal) modal.style.display = 'flex';
+      document.getElementById('cryptoAddressText').textContent = 'Generating address...';
+      document.getElementById('cryptoAmountRow').style.display = 'none';
+      document.getElementById('cryptoStatusText').textContent = 'Waiting for payment...';
+      document.getElementById('cryptoQrImg').src = '';
+      generateCryptoPayment();
+    }
+
+    window.closeCryptoModal = function() {
+      const modal = document.getElementById('cryptoPayModal');
+      if (modal) modal.style.display = 'none';
+      if (_cryptoState.pollTimer) { clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null; }
+    };
+
+    window.onCryptoCurrencyChange = function() {
+      document.getElementById('cryptoAddressText').textContent = 'Generating address...';
+      document.getElementById('cryptoAmountRow').style.display = 'none';
+      document.getElementById('cryptoQrImg').src = '';
+      if (_cryptoState.pollTimer) { clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null; }
+      generateCryptoPayment();
+    };
+
+    window.copyCryptoAddress = function() {
+      const addr = document.getElementById('cryptoAddressText').textContent;
+      if (!addr || addr === 'Generating address...' || addr.startsWith('Error')) return;
+      const btn = document.getElementById('cryptoCopyBtn');
+      try {
+        navigator.clipboard.writeText(addr).then(() => { if(btn){btn.textContent='Copied!';setTimeout(()=>{btn.textContent='Copy';},2000);} });
       } catch(e) {
-        alert('Error: ' + e.message);
-      } finally {
-        if (btn) { btn.textContent = origText || 'Upgrade Plan'; btn.disabled = false; }
+        const el = document.createElement('textarea'); el.value = addr;
+        document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+        if(btn){btn.textContent='Copied!';setTimeout(()=>{btn.textContent='Copy';},2000);}
       }
     };
+
+    async function generateCryptoPayment() {
+      const currency = (document.getElementById('cryptoCurrencySelect') || {}).value || 'sol';
+      try {
+        const res = await fetch('/api/nowpayments/create-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: _cryptoState.username, pay_currency: currency })
+        });
+        const data = await res.json();
+        if (data.success && data.pay_address) {
+          _cryptoState.paymentId = data.payment_id;
+          document.getElementById('cryptoAddressText').textContent = data.pay_address;
+          const ar = document.getElementById('cryptoAmountRow');
+          const at = document.getElementById('cryptoAmountText');
+          if (ar && at) { at.textContent = data.pay_amount + ' ' + (data.pay_currency || '').toUpperCase(); ar.style.display = 'block'; }
+          const qi = document.getElementById('cryptoQrImg');
+          if (qi) qi.src = 'https://api.qrserver.com/v1/create-qr-code/?size=168x168&bgcolor=ffffff&color=000000&qzone=1&data=' + encodeURIComponent(data.pay_address);
+          const nw = document.getElementById('cryptoNetworkWarning');
+          if (nw) nw.textContent = _cryptoNetworks[currency] || ('Send on ' + currency.toUpperCase() + ' network only.');
+          if (_cryptoState.pollTimer) clearInterval(_cryptoState.pollTimer);
+          _cryptoState.pollTimer = setInterval(pollCryptoStatus, 4000);
+        } else {
+          document.getElementById('cryptoAddressText').textContent = 'Error: ' + (data.error || 'Failed to generate');
+        }
+      } catch(e) {
+        document.getElementById('cryptoAddressText').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    async function pollCryptoStatus() {
+      if (!_cryptoState.paymentId) return;
+      try {
+        const res = await fetch('/api/nowpayments/payment-status/' + _cryptoState.paymentId);
+        const data = await res.json();
+        const st = document.getElementById('cryptoStatusText');
+        const status = data.status || '';
+        if (status === 'finished' || status === 'confirmed') {
+          if (st) st.textContent = 'Payment confirmed! Activating your plan...';
+          clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null;
+          setTimeout(function() { closeCryptoModal(); if (typeof checkUpgraderPlan === 'function') checkUpgraderPlan(); }, 1500);
+        } else if (status === 'partially_paid') {
+          if (st) st.textContent = 'Partial payment received — please send the remaining amount.';
+        } else if (status === 'confirming' || status === 'sending') {
+          if (st) st.textContent = 'Confirming on blockchain...';
+        } else if (status === 'failed' || status === 'refunded' || status === 'expired') {
+          if (st) st.textContent = 'Payment ' + status + '. Please try again.';
+          clearInterval(_cryptoState.pollTimer); _cryptoState.pollTimer = null;
+        } else {
+          if (st) st.textContent = 'Waiting for payment...';
+        }
+      } catch(e) {}
+    }
 
     // Navigation Tab Switcher between RollBux and Discord
     let _whitelistPollInterval = null;
@@ -7886,5 +7966,63 @@
             // checkUpgraderPlan defined above
 
 </script>
+
+<!-- Crypto Payment Modal -->
+<div id="cryptoPayModal" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;">
+  <div style="background:#070B18;border:1px solid #1f2937;border-radius:12px;width:min(520px,96vw);overflow:hidden;position:relative;box-shadow:0 24px 70px rgba(0,0,0,0.9);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;">
+      <h2 style="color:#f9fafb;font-size:16px;font-weight:600;margin:0;font-family:inherit;">Upgrade Plan</h2>
+      <button onclick="closeCryptoModal()" style="background:transparent;border:none;color:#9ca3af;cursor:pointer;padding:4px;border-radius:6px;width:32px;height:32px;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;" onmouseover="this.style.background='#1f2937';this.style.color='#f9fafb'" onmouseout="this.style.background='transparent';this.style.color='#9ca3af'">&#x2715;</button>
+    </div>
+    <div style="padding:0 20px 20px;overflow-y:auto;max-height:570px;">
+      <div style="display:flex;justify-content:center;margin:16px 0;">
+        <div style="width:192px;height:192px;background:#f9fafb;border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:center;">
+          <img id="cryptoQrImg" src="" alt="Deposit QR Code" style="width:168px;height:168px;border-radius:4px;" />
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="color:#f9fafb;font-size:14px;font-weight:600;display:block;margin-bottom:6px;font-family:inherit;">Currency</label>
+        <div style="position:relative;">
+          <select id="cryptoCurrencySelect" onchange="onCryptoCurrencyChange()" style="width:100%;background:#111827;border:1px solid #1f2937;border-radius:8px;padding:0 36px 0 12px;height:40px;color:#f9fafb;font-size:14px;font-weight:600;cursor:pointer;appearance:none;outline:none;font-family:inherit;">
+            <option value="sol">SOL &mdash; Solana</option>
+            <option value="btc">BTC &mdash; Bitcoin</option>
+            <option value="eth">ETH &mdash; Ethereum</option>
+            <option value="usdttrc20">USDT &mdash; TRC-20 (Tron)</option>
+            <option value="usdterc20">USDT &mdash; ERC-20 (Ethereum)</option>
+            <option value="usdc">USDC &mdash; Ethereum</option>
+            <option value="ltc">LTC &mdash; Litecoin</option>
+            <option value="xrp">XRP &mdash; Ripple</option>
+            <option value="doge">DOGE &mdash; Dogecoin</option>
+          </select>
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9ca3af;">&#9660;</span>
+        </div>
+      </div>
+      <div id="cryptoAmountRow" style="margin-bottom:12px;display:none;">
+        <div style="background:#111827;border-radius:8px;padding:10px 12px;border:1px solid #1f2937;">
+          <p style="color:#9ca3af;font-size:12px;margin:0 0 2px;font-family:inherit;">Send exactly</p>
+          <p id="cryptoAmountText" style="color:#f9fafb;font-size:16px;font-weight:700;margin:0;font-family:monospace;"></p>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="color:#f9fafb;font-size:14px;font-weight:600;display:block;margin-bottom:6px;font-family:inherit;">Address</label>
+        <div style="display:flex;align-items:center;gap:8px;background:#111827;border:1px solid #1f2937;border-radius:8px;padding:8px 8px 8px 12px;min-height:40px;">
+          <p id="cryptoAddressText" style="color:#f9fafb;font-size:13px;font-weight:600;margin:0;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:monospace;user-select:all;">Generating address...</p>
+          <button onclick="copyCryptoAddress()" id="cryptoCopyBtn" style="background:#1f2937;border:none;color:#f9fafb;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background 0.15s;font-family:inherit;" onmouseover="this.style.background='#374151'" onmouseout="this.style.background='#1f2937'">Copy</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;background:#111827;border:1px solid #1f2937;border-radius:8px;padding:10px 12px;margin-bottom:14px;">
+        <span style="color:#9ca3af;flex-shrink:0;margin-top:1px;font-size:14px;">&#9888;</span>
+        <div style="color:#9ca3af;font-size:12px;line-height:1.5;font-family:inherit;">
+          <p id="cryptoNetworkWarning" style="margin:0 0 3px;font-weight:600;color:#d1d5db;"></p>
+          <p style="margin:0;">Send the exact amount shown. After blockchain confirmation your Upgrader Plan activates automatically.</p>
+        </div>
+      </div>
+      <div style="text-align:center;padding:4px 0;">
+        <span id="cryptoStatusText" style="color:#9ca3af;font-size:12px;font-family:inherit;">Waiting for payment...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

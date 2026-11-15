@@ -2343,6 +2343,49 @@ export default async function handler(req, res) {
     }
   }
 
+  // ── NOWPayments: Create Direct Payment (crypto deposit address) ──────────────
+  if (pathname === '/api/nowpayments/create-payment' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req);
+      const username = String(body.username || '').toLowerCase().trim();
+      const payCurrency = String(body.pay_currency || 'sol').toLowerCase().trim();
+      if (!username) { sendJson(res, 400, { error: 'Username is required' }); return; }
+      const apiKey = process.env.NOWPAYMENTS_API_KEY || 'SD6RJSG-8SXMB1V-HBJFHE9-CJJVRFJ';
+      const orderId = `upgrader_${username}_${Date.now()}`;
+      const payload = {
+        price_amount: 10, price_currency: 'usd', pay_currency: payCurrency,
+        order_id: orderId,
+        order_description: `Rollbux Upgrader Plan (1 Week) - ${username}`,
+        ipn_callback_url: 'https://rollbux.vercel.app/api/nowpayments/ipn',
+        is_fixed_rate: true
+      };
+      const nowRes = await fetch('https://api.nowpayments.io/v1/payment', {
+        method: 'POST',
+        headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json', 'User-Agent': 'Rollbux-Payment-Gateway' },
+        body: JSON.stringify(payload)
+      });
+      const nowData = await nowRes.json();
+      if (!nowRes.ok) { sendJson(res, 500, { error: nowData.message || 'Failed to create payment' }); return; }
+      sendJson(res, 200, { success: true, payment_id: nowData.payment_id, pay_address: nowData.pay_address, pay_amount: nowData.pay_amount, pay_currency: nowData.pay_currency, price_amount: nowData.price_amount, order_id: orderId });
+      return;
+    } catch (e) { sendJson(res, 500, { error: e.message }); return; }
+  }
+
+  // ── NOWPayments: Get Payment Status ──────────────────────────────────────────
+  if (pathname.startsWith('/api/nowpayments/payment-status/') && req.method === 'GET') {
+    try {
+      const paymentId = pathname.split('/').pop();
+      const apiKey = process.env.NOWPAYMENTS_API_KEY || 'SD6RJSG-8SXMB1V-HBJFHE9-CJJVRFJ';
+      const nowRes = await fetch(`https://api.nowpayments.io/v1/payment/${paymentId}`, {
+        headers: { 'x-api-key': apiKey, 'User-Agent': 'Rollbux-Payment-Gateway' }
+      });
+      const nowData = await nowRes.json();
+      if (!nowRes.ok) { sendJson(res, 500, { error: nowData.message || 'Failed to get status' }); return; }
+      sendJson(res, 200, { payment_id: nowData.payment_id, status: nowData.payment_status, pay_amount: nowData.pay_amount, actually_paid: nowData.actually_paid, pay_currency: nowData.pay_currency });
+      return;
+    } catch (e) { sendJson(res, 500, { error: e.message }); return; }
+  }
+
   // ── NOWPayments: IPN Webhook (Instant Payment Notification & Auto-Whitelist) ─
   if (pathname === '/api/nowpayments/ipn' && req.method === 'POST') {
     try {
