@@ -7913,7 +7913,7 @@
     // Sotarium / DiscordViewer Auto-Updater Client Bridge
     (function initSotariumAutoUpdater() {
       // Dynamic client version: inject via window.__DV_VERSION__ or localStorage cache
-      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.5';
+      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.6';
       // Clear stale v1.0.1 localStorage so old users don't get stuck in update loop
       try { if (localStorage.getItem('__dv_installed_ver') === 'v1.0.1') localStorage.removeItem('__dv_installed_ver'); } catch(e) {}
       let pendingUpdateData = null;
@@ -8039,7 +8039,7 @@
 
 
 
-<!-- ══ Crypto Wallet Modal – Shadow DOM isolated ══ -->
+<!-- ══ Crypto Wallet Modal – ShaftKings Exact 1:1 Implementation ══ -->
 <div id="cpHost"></div>
 <script>
 (function() {
@@ -8048,243 +8048,316 @@
   shadow.innerHTML = `
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:host{}
-#ov{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483647;background:rgba(3,2,8,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;}
-#ov.on{display:flex;}
-#card{background:#13111a;border:1px solid #231e38;border-radius:14px;overflow:hidden;box-shadow:0 40px 110px rgba(0,0,0,.98);width:800px;max-width:97vw;display:flex;flex-direction:column;}
-/* header */
-#hd{display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #1e1a30;flex-shrink:0;}
-#hd-left{display:flex;flex-direction:row;align-items:center;gap:12px;}
-#hd-title{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.2px;}
-#tabs{display:flex;flex-direction:row;background:#0d0b15;border:1px solid #231e38;border-radius:8px;padding:3px;gap:2px;}
-#tab-dep{background:#6a38ff;border:none;color:#fff;border-radius:5px;padding:5px 18px;font-size:13px;font-weight:600;cursor:default;font-family:inherit;}
-#tab-with{background:transparent;border:none;color:#4e4a63;border-radius:5px;padding:5px 18px;font-size:13px;font-weight:600;cursor:default;font-family:inherit;}
-#btn-close{background:transparent;border:none;color:#555;cursor:pointer;width:28px;height:28px;border-radius:6px;font-size:17px;display:flex;align-items:center;justify-content:center;line-height:1;font-family:inherit;}
-#btn-close:hover{background:#231e38;color:#fff;}
-/* body */
-#body{display:flex;flex-direction:row;height:450px;overflow:hidden;}
-/* coin list */
-#coins{width:216px;flex-shrink:0;border-right:1px solid #1e1a30;overflow-y:auto;padding:8px 7px;}
-#coins::-webkit-scrollbar{width:3px;}#coins::-webkit-scrollbar-thumb{background:#2a2250;border-radius:3px;}
-.coin-btn{display:flex;flex-direction:row;align-items:center;gap:10px;width:100%;padding:9px 10px;border:1px solid transparent;border-radius:10px;background:transparent;cursor:pointer;text-align:left;font-family:inherit;}
-.coin-btn:hover{background:rgba(255,255,255,.05);}
-.coin-btn.on{background:rgba(106,56,255,.16);border-color:rgba(106,56,255,.4);}
-.coin-btn img{width:34px;height:34px;border-radius:50%;object-fit:contain;flex-shrink:0;background:#1a1730;}
-.coin-btn .c-name{font-size:14px;font-weight:600;color:#fff;line-height:1.1;}
-.coin-btn .c-net{font-size:11px;color:#4e4a63;margin-top:2px;}
-.coin-btn.on .c-name{color:#a78bfa;}.coin-btn.on .c-net{color:#6d59b8;}
-/* right */
-#right{flex:1;min-width:0;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:16px;}
-/* qr row */
-#qr-row{display:flex;flex-direction:row;align-items:flex-start;gap:20px;}
-#qr-wrap{width:150px;height:150px;background:#fff;border-radius:12px;padding:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-#qr-wrap img{width:132px;height:132px;display:block;border-radius:3px;}
-#meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:11px;padding-top:3px;}
-#coin-hd{display:flex;flex-direction:row;align-items:center;gap:8px;}
-#coin-hd img{width:28px;height:28px;border-radius:50%;background:#1a1730;}
-#coin-hd .nm{font-size:17px;font-weight:700;color:#fff;}
-#coin-hd .pill{background:rgba(106,56,255,.18);border:1px solid rgba(106,56,255,.38);color:#a78bfa;border-radius:20px;padding:2px 11px;font-size:11px;font-weight:600;white-space:nowrap;}
-#amt-box{display:none;background:#0d0b15;border:1px solid #231e38;border-radius:9px;padding:11px 13px;}
-#amt-box .lbl{font-size:11px;color:#4e4a63;font-weight:500;margin-bottom:4px;}
-#amt-box .val{font-size:18px;font-weight:700;color:#fff;font-family:'Courier New',monospace;letter-spacing:.3px;}
-#amt-box .usd{font-size:11px;color:#4e4a63;margin-top:3px;}
-#stat-row{display:flex;flex-direction:row;align-items:center;gap:7px;}
-#stat-dot{width:7px;height:7px;border-radius:50%;background:#3a3650;flex-shrink:0;}
-#stat-txt{font-size:12px;color:#4e4a63;}
-/* address */
-#addr-sec{}
-#addr-lbl{font-size:11px;font-weight:600;color:#4e4a63;text-transform:uppercase;letter-spacing:.9px;margin-bottom:7px;}
-#addr-row{display:flex;flex-direction:row;align-items:center;gap:8px;background:#0d0b15;border:1px solid #231e38;border-radius:9px;padding:11px 10px 11px 14px;}
-#addr-load{flex:1;display:flex;flex-direction:row;align-items:center;gap:8px;color:#4e4a63;font-size:13px;}
-#addr-load svg{flex-shrink:0;animation:spin 1s linear infinite;}
-#addr-txt{display:none;flex:1;min-width:0;color:#e0ddf5;font-size:12.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:'Courier New',monospace;user-select:all;}
-#copy-btn{display:none;flex-direction:row;align-items:center;gap:5px;background:#231e38;border:1px solid #352b55;color:#a78bfa;border-radius:7px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;}
-#copy-btn:hover{background:#352b55;}
-/* warn */
-#warn{display:flex;flex-direction:row;align-items:flex-start;gap:9px;background:#0d0b15;border:1px solid #1e1a30;border-radius:9px;padding:11px 13px;}
-#warn .wt{font-size:12px;color:#8a8599;line-height:1.65;}
-#warn .wb{font-weight:600;color:#cac8dc;}
-#warn svg{flex-shrink:0;margin-top:1px;}
-@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+#backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:2147483647;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem;font-family:-apple-system,BlinkMacSystemFont,'Inter',system-ui,sans-serif;}
+#backdrop.open{display:flex;}
+.dialog-card{position:relative;width:100%;max-width:520px;max-height:calc(100dvh - 2rem);background-color:#0c0b10;border:1px solid #27262c;border-radius:0.75rem;box-shadow:0 25px 50px -12px rgba(0,0,0,0.85);color:#fafafb;overflow:hidden;display:flex;flex-direction:column;}
+.dialog-header{display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #19181e;flex-shrink:0;}
+.dialog-title{font-size:16px;line-height:1.25rem;font-weight:600;color:#fafafb;}
+.btn-close{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:0.375rem;border:none;background:transparent;color:#737278;cursor:pointer;transition:all 0.15s;}
+.btn-close:hover{background:#27262c;color:#fafafb;}
+.btn-close svg{width:14px;height:14px;}
+
+.dialog-body{padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:1rem;}
+.dialog-body::-webkit-scrollbar{width:4px;}
+.dialog-body::-webkit-scrollbar-thumb{background:#27262c;border-radius:4px;}
+
+/* QR Code Section */
+.qr-container{display:flex;justify-content:center;align-items:center;width:100%;}
+.qr-box{margin:0.5rem 0;width:192px;height:192px;border-radius:0.5rem;background:#fafafb;padding:1rem;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);}
+.qr-box img{width:160px;height:160px;display:block;}
+
+/* Field Labels */
+.field-label{font-size:14px;line-height:1.125rem;font-weight:600;color:#fafafb;margin-bottom:0.375rem;}
+
+/* Currency Dropdown */
+.currency-selector-wrap{position:relative;width:100%;}
+.currency-btn{width:100%;height:2.625rem;display:flex;align-items:center;justify-content:space-between;padding:0 0.75rem;border-radius:0.5rem;background:#19181e;border:1px solid #27262c;cursor:pointer;color:#fafafb;font-family:inherit;font-size:14px;font-weight:600;transition:border-color 0.15s,background-color 0.15s;}
+.currency-btn:hover{border-color:#403f46;background:#201e26;}
+.currency-btn-left{display:flex;align-items:center;gap:0.5rem;}
+.currency-btn-left img{width:18px;height:18px;border-radius:50%;}
+.currency-btn-right{display:flex;align-items:center;gap:0.5rem;margin-left:auto;}
+.currency-balance{color:#d4d4d7;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;}
+.currency-chevron{color:#737278;display:flex;align-items:center;transition:transform 0.2s;}
+.currency-chevron.rotated{transform:rotate(180deg);}
+
+.currency-menu{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#19181e;border:1px solid #27262c;border-radius:0.5rem;box-shadow:0 10px 25px rgba(0,0,0,0.5);z-index:50;display:none;flex-direction:column;padding:0.25rem;max-height:220px;overflow-y:auto;}
+.currency-menu.open{display:flex;}
+.currency-menu::-webkit-scrollbar{width:4px;}
+.currency-menu::-webkit-scrollbar-thumb{background:#27262c;border-radius:4px;}
+.currency-option{display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0.625rem;border-radius:0.375rem;background:transparent;border:none;color:#fafafb;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;width:100%;text-align:left;}
+.currency-option:hover{background:#27262c;}
+.currency-option.selected{background:#27262c;}
+.currency-option-left{display:flex;align-items:center;gap:0.5rem;}
+.currency-option-left img{width:18px;height:18px;border-radius:50%;}
+.currency-option-check{color:#fafafb;width:14px;height:14px;display:none;}
+.currency-option.selected .currency-option-check{display:block;}
+
+/* Address Box */
+.address-wrap{display:flex;align-items:center;justify-content:space-between;background:#19181e;border:1px solid #27262c;border-radius:0.5rem;padding:0.375rem 0.375rem 0.375rem 0.75rem;min-height:2.625rem;gap:0.5rem;}
+.address-text{color:#fafafb;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13.5px;font-weight:500;letter-spacing:0.025em;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;user-select:all;}
+.address-loading{color:#737278;font-size:13px;display:flex;align-items:center;gap:0.5rem;}
+.btn-copy{display:inline-flex;align-items:center;justify-content:center;height:2rem;padding:0 0.75rem;border-radius:0.375rem;border:none;background:#27262c;color:#fafafb;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s;flex-shrink:0;}
+.btn-copy:hover{background:#403f46;}
+
+/* Amount Box (Send Exactly) */
+.amount-row{display:flex;align-items:center;justify-content:space-between;background:#19181e;border:1px solid #27262c;border-radius:0.5rem;padding:0.625rem 0.75rem;font-size:13px;}
+.amount-lbl{color:#a1a0a5;font-weight:500;}
+.amount-val{color:#fafafb;font-weight:700;font-family:monospace;font-size:14px;}
+
+/* Notice / Warning Box */
+.notice-box{display:flex;align-items:flex-start;gap:0.625rem;background:#131118;border:1px solid #27262c;border-radius:0.5rem;padding:0.75rem;color:#d4d4d7;}
+.notice-icon{flex-shrink:0;color:#a1a0a5;margin-top:2px;}
+.notice-text{font-size:12px;line-height:1.25rem;font-weight:500;}
+.notice-text p{margin:0;}
+.notice-text p:not(:last-child){margin-bottom:0.25rem;}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite;}
 </style>
 
-<div id="ov">
-  <div id="card">
-    <div id="hd">
-      <div id="hd-left">
-        <span id="hd-title">Wallet</span>
-        <div id="tabs">
-          <button id="tab-dep">Deposit</button>
-          <button id="tab-with">Withdraw</button>
-        </div>
-      </div>
-      <button id="btn-close">&#x2715;</button>
+<div id="backdrop">
+  <div class="dialog-card" role="dialog" tabindex="-1">
+    <div class="dialog-header">
+      <h2 class="dialog-title">Upgrade Plan</h2>
+      <button type="button" aria-label="Close" class="btn-close" id="btnClose">
+        <svg fill="none" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10.0663 3.03616C10.3142 2.78823 10.7159 2.78825 10.9638 3.03616C11.2116 3.28408 11.2116 3.6857 10.9638 3.93362L7.89736 7.00003L10.9638 10.0664C11.2116 10.3144 11.2117 10.716 10.9638 10.9639C10.7159 11.2118 10.3142 11.2119 10.0663 10.9639L6.9999 7.89749L3.93349 10.9639C3.68556 11.2119 3.28397 11.2119 3.03603 10.9639C2.7881 10.716 2.78815 10.3144 3.03603 10.0664L6.10146 7.00003L3.03603 3.93362C2.78812 3.6857 2.78812 3.28409 3.03603 3.03616C3.28397 2.78824 3.68556 2.78824 3.93349 3.03616L6.9999 6.10159L10.0663 3.03616Z" fill="currentColor"></path>
+        </svg>
+      </button>
     </div>
-    <div id="body">
-      <div id="coins"></div>
-      <div id="right">
-        <div id="qr-row">
-          <div id="qr-wrap"><img id="qr-img" src="" alt="QR" /></div>
-          <div id="meta">
-            <div id="coin-hd">
-              <img id="coin-icon" src="" alt="" />
-              <span class="nm" id="coin-name"></span>
-              <span class="pill" id="coin-network"></span>
-            </div>
-            <div id="amt-box">
-              <div class="lbl">Send exactly</div>
-              <div class="val" id="amt-val"></div>
-              <div class="usd">&#x2248; $10.00 USD</div>
-            </div>
-            <div id="stat-row">
-              <span id="stat-dot"></span>
-              <span id="stat-txt">Waiting for payment...</span>
-            </div>
-          </div>
-        </div>
-        <div id="addr-sec">
-          <div id="addr-lbl">Deposit Address</div>
-          <div id="addr-row">
-            <span id="addr-load">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6a38ff" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-              Generating address...
-            </span>
-            <span id="addr-txt"></span>
-            <button id="copy-btn">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-              <span id="copy-lbl">Copy</span>
-            </button>
-          </div>
-        </div>
-        <div id="warn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <div class="wt"><span class="wb" id="warn-bold"></span><span id="warn-tail"> Only send on the correct network. After confirmation, your Upgrader Plan unlocks automatically.</span></div>
+
+    <div class="dialog-body">
+      <!-- Centered QR Code -->
+      <div class="qr-container">
+        <div class="qr-box">
+          <img id="qrImg" src="" alt="Deposit QR Code" />
         </div>
       </div>
+
+      <!-- Currency Field -->
+      <div>
+        <div class="field-label">Currency</div>
+        <div class="currency-selector-wrap">
+          <button type="button" class="currency-btn" id="currencyToggleBtn">
+            <div class="currency-btn-left">
+              <img id="activeCoinIcon" src="https://assets.coingecko.com/coins/images/4128/small/solana.png" alt="" />
+              <span id="activeCoinSymbol">SOL</span>
+            </div>
+            <div class="currency-btn-right">
+              <span class="currency-balance">$0.00</span>
+              <span class="currency-chevron" id="currencyChevron">
+                <svg fill="none" viewBox="0 0 14 14" width="14" height="14" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M3.70519 5.11389C3.83646 4.98266 4.01448 4.90894 4.20009 4.90894C4.38571 4.90894 4.56373 4.98266 4.69499 5.11389L7.00009 7.41899L9.30519 5.11389C9.36977 5.04704 9.44701 4.99371 9.53241 4.95702C9.61781 4.92033 9.70967 4.90102 9.80261 4.90022C9.89556 4.89941 9.98773 4.91712 10.0738 4.95232C10.1598 4.98751 10.2379 5.03949 10.3037 5.10522C10.3694 5.17094 10.4214 5.2491 10.4566 5.33512C10.4918 5.42115 10.5095 5.51333 10.5087 5.60627C10.5079 5.69922 10.4886 5.79107 10.4519 5.87648C10.4152 5.96188 10.3619 6.03912 10.295 6.10369L7.49499 8.90369C7.36372 9.03492 7.18571 9.10864 7.00009 9.10864C6.81448 9.10864 6.63646 9.03492 6.50519 8.90369L3.70519 6.10369C3.57397 5.97242 3.50024 5.79441 3.50024 5.60879C3.50024 5.42318 3.57397 5.24516 3.70519 5.11389Z" fill="currentColor"></path>
+                </svg>
+              </span>
+            </div>
+          </button>
+
+          <!-- Dropdown Options Menu -->
+          <div class="currency-menu" id="currencyMenu"></div>
+        </div>
+      </div>
+
+      <!-- Send Exactly Row -->
+      <div class="amount-row" id="amountRow" style="display:none;">
+        <span class="amount-lbl">Send exactly</span>
+        <span class="amount-val" id="amountVal"></span>
+      </div>
+
+      <!-- Address Field -->
+      <div>
+        <div class="field-label">Address</div>
+        <div class="address-wrap">
+          <div class="address-loading" id="addrLoading">
+            <svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#737278" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Generating address...
+          </div>
+          <span class="address-text" id="addrText" style="display:none;"></span>
+          <button type="button" class="btn-copy" id="btnCopy" style="display:none;">Copy</button>
+        </div>
+      </div>
+
+      <!-- Warning / Info Box -->
+      <div class="notice-box">
+        <span class="notice-icon">
+          <svg fill="none" viewBox="0 0 14 14" width="14" height="14" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M5.77979 2.16932C6.31529 1.21732 7.68519 1.21732 8.21999 2.16932L12.126 9.11332C12.651 10.0471 11.9769 11.1993 10.9066 11.1993H3.09389C2.02289 11.1993 1.34879 10.0471 1.87379 9.11332L5.77979 2.16932ZM7.69989 9.10002C7.69989 9.28567 7.62614 9.46372 7.49487 9.595C7.36359 9.72627 7.18555 9.80002 6.99989 9.80002C6.81424 9.80002 6.63619 9.72627 6.50492 9.595C6.37364 9.46372 6.29989 9.28567 6.29989 9.10002C6.29989 8.91437 6.37364 8.73632 6.50492 8.60505C6.63619 8.47377 6.81424 8.40002 6.99989 8.40002C7.18555 8.40002 7.36359 8.47377 7.49487 8.60505C7.62614 8.73632 7.69989 8.91437 7.69989 9.10002ZM6.99989 3.50002C6.81424 3.50002 6.63619 3.57377 6.50492 3.70505C6.37364 3.83632 6.29989 4.01437 6.29989 4.20002V6.30002C6.29989 6.48567 6.37364 6.66372 6.50492 6.795C6.63619 6.92627 6.81424 7.00002 6.99989 7.00002C7.18555 7.00002 7.36359 6.92627 7.49487 6.795C7.62614 6.66372 7.69989 6.48567 7.69989 6.30002V4.20002C7.69989 4.01437 7.62614 3.83632 7.49487 3.70505C7.36359 3.57377 7.18555 3.50002 6.99989 3.50002Z" fill="currentColor"></path>
+          </svg>
+        </span>
+        <div class="notice-text">
+          <p id="noticeNetwork">Deposit must be sent on Solana as SOL.</p>
+          <p id="noticeAmount">Deposit EXACTLY $10.00 to the address.</p>
+        </div>
+      </div>
+
     </div>
   </div>
-</div>`;
+</div>
+`;
 
-  // ── Coin data ──
   var COINS = [
-    {id:'sol',       name:'SOL',  net:'Solana',   icon:'https://assets.coingecko.com/coins/images/4128/small/solana.png'},
-    {id:'btc',       name:'BTC',  net:'Bitcoin',  icon:'https://assets.coingecko.com/coins/images/1/small/bitcoin.png'},
-    {id:'eth',       name:'ETH',  net:'ERC-20',   icon:'https://assets.coingecko.com/coins/images/279/small/ethereum.png'},
-    {id:'usdttrc20', name:'USDT', net:'TRC-20',   icon:'https://assets.coingecko.com/coins/images/325/small/Tether.png'},
-    {id:'usdterc20', name:'USDT', net:'ERC-20',   icon:'https://assets.coingecko.com/coins/images/325/small/Tether.png'},
-    {id:'usdc',      name:'USDC', net:'ERC-20',   icon:'https://assets.coingecko.com/coins/images/6319/small/usdc.png'},
-    {id:'ltc',       name:'LTC',  net:'Litecoin', icon:'https://assets.coingecko.com/coins/images/2/small/litecoin.png'},
-    {id:'xrp',       name:'XRP',  net:'Ripple',   icon:'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png'},
-    {id:'doge',      name:'DOGE', net:'Dogecoin', icon:'https://assets.coingecko.com/coins/images/5/small/dogecoin.png'},
+    { id: 'sol',       symbol: 'SOL',  name: 'Solana',   network: 'Solana',  icon: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
+    { id: 'usdc',      symbol: 'USDC', name: 'USD Coin', network: 'Solana',  icon: 'https://assets.coingecko.com/coins/images/6319/small/usdc.png' },
+    { id: 'usdttrc20', symbol: 'USDT', name: 'Tether',   network: 'TRC-20',  icon: 'https://assets.coingecko.com/coins/images/325/small/Tether.png' },
+    { id: 'eth',       symbol: 'ETH',  name: 'Ethereum', network: 'ERC-20',  icon: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+    { id: 'btc',       symbol: 'BTC',  name: 'Bitcoin',  network: 'Bitcoin', icon: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
+    { id: 'ltc',       symbol: 'LTC',  name: 'Litecoin', network: 'Litecoin',icon: 'https://assets.coingecko.com/coins/images/2/small/litecoin.png' }
   ];
 
-  var S = { coin:'sol', paymentId:null, pollTimer:null, username:null };
-  var $ = function(id){ return shadow.getElementById(id); };
+  var state = {
+    coin: 'sol',
+    paymentId: null,
+    pollTimer: null,
+    username: null
+  };
 
-  function buildList() {
-    $('coins').innerHTML = COINS.map(function(c){
-      return '<button class="coin-btn'+(c.id===S.coin?' on':'')+'" data-id="'+c.id+'">'
-        +'<img src="'+c.icon+'" alt="" />'
-        +'<div><div class="c-name">'+c.name+'</div><div class="c-net">'+c.net+'</div></div>'
-        +'</button>';
+  var $ = function(id) { return shadow.getElementById(id); };
+
+  function renderCoins() {
+    var menu = $('currencyMenu');
+    menu.innerHTML = COINS.map(function(c) {
+      var isSel = c.id === state.coin;
+      return '<button type="button" class="currency-option' + (isSel ? ' selected' : '') + '" data-coin="' + c.id + '">' +
+        '<div class="currency-option-left">' +
+          '<img src="' + c.icon + '" alt="" />' +
+          '<span>' + c.symbol + '</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<span style="color:#737278;font-size:13px;">$0.00</span>' +
+          '<svg class="currency-option-check" fill="none" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"><path d="M11.6667 3.5L5.25001 9.91667L2.33334 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</div>' +
+      '</button>';
     }).join('');
-    shadow.querySelectorAll('.coin-btn').forEach(function(btn){
-      btn.addEventListener('click', function(){ selectCoin(btn.dataset.id); });
+
+    menu.querySelectorAll('.currency-option').forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        selectCoin(opt.dataset.coin);
+        menu.classList.remove('open');
+        $('currencyChevron').classList.remove('rotated');
+      });
     });
   }
 
   function selectCoin(id) {
-    S.coin = id;
-    shadow.querySelectorAll('.coin-btn').forEach(function(b){ b.classList.toggle('on', b.dataset.id===id); });
-    var c = COINS.find(function(x){return x.id===id;});
-    if(!c) return;
-    $('coin-icon').src = c.icon;
-    $('coin-name').textContent = c.name;
-    $('coin-network').textContent = c.net;
-    $('warn-bold').textContent = c.name+' on '+c.net+' network only.';
-    resetAddr();
-    if(S.pollTimer){clearInterval(S.pollTimer);S.pollTimer=null;}
+    state.coin = id;
+    var c = COINS.find(function(x) { return x.id === id; });
+    if (!c) return;
+
+    $('activeCoinIcon').src = c.icon;
+    $('activeCoinSymbol').textContent = c.symbol;
+    $('noticeNetwork').textContent = 'Deposit must be sent on ' + c.network + ' as ' + c.symbol + '.';
+
+    renderCoins();
+    resetFields();
+    if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
     fetchPayment();
   }
 
-  function resetAddr() {
-    $('addr-load').style.display='flex';
-    $('addr-txt').style.display='none';
-    $('copy-btn').style.display='none';
-    $('amt-box').style.display='none';
-    $('qr-img').src='';
-    $('stat-txt').textContent='Waiting for payment...';
-    $('stat-dot').style.background='#3a3650';
+  function resetFields() {
+    $('addrLoading').style.display = 'flex';
+    $('addrText').style.display = 'none';
+    $('btnCopy').style.display = 'none';
+    $('amountRow').style.display = 'none';
+    $('qrImg').src = '';
   }
 
   async function fetchPayment() {
     try {
-      var r = await fetch('/api/nowpayments/create-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:S.username,pay_currency:S.coin})});
+      var r = await fetch('/api/nowpayments/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: state.username, pay_currency: state.coin })
+      });
       var d = await r.json();
-      if(d.success && d.pay_address){
-        S.paymentId = d.payment_id;
-        $('addr-load').style.display='none';
-        $('addr-txt').textContent=d.pay_address; $('addr-txt').style.display='block';
-        $('copy-btn').style.display='flex';
-        $('amt-val').textContent=d.pay_amount+' '+(d.pay_currency||'').toUpperCase();
-        $('amt-box').style.display='block';
-        $('qr-img').src='https://api.qrserver.com/v1/create-qr-code/?size=132x132&bgcolor=ffffff&color=000000&qzone=1&data='+encodeURIComponent(d.pay_address);
-        S.pollTimer=setInterval(pollStatus,4000);
+      if (d.success && d.pay_address) {
+        state.paymentId = d.payment_id;
+        $('addrLoading').style.display = 'none';
+        $('addrText').textContent = d.pay_address;
+        $('addrText').style.display = 'block';
+        $('btnCopy').style.display = 'inline-flex';
+        $('amountVal').textContent = d.pay_amount + ' ' + (d.pay_currency || '').toUpperCase();
+        $('amountRow').style.display = 'flex';
+        $('noticeAmount').textContent = 'Deposit EXACTLY ' + d.pay_amount + ' ' + (d.pay_currency || '').toUpperCase() + ' ($10.00 USD).';
+        $('qrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&bgcolor=ffffff&color=000000&qzone=1&data=' + encodeURIComponent(d.pay_address);
+        state.pollTimer = setInterval(pollPaymentStatus, 4000);
       } else {
-        $('addr-load').innerHTML='<span style="color:#ef4444">Error: '+(d.error||'Failed')+'</span>';
+        $('addrLoading').innerHTML = '<span style="color:#ef4444">Error: ' + (d.error || 'Failed') + '</span>';
       }
-    } catch(e){
-      $('addr-load').innerHTML='<span style="color:#ef4444">Error: '+e.message+'</span>';
+    } catch (e) {
+      $('addrLoading').innerHTML = '<span style="color:#ef4444">Error: ' + e.message + '</span>';
     }
   }
 
-  async function pollStatus() {
-    if(!S.paymentId) return;
+  async function pollPaymentStatus() {
+    if (!state.paymentId) return;
     try {
-      var r=await fetch('/api/nowpayments/payment-status/'+S.paymentId);
-      var d=await r.json();
-      var st=d.status||'';
-      var dot=$('stat-dot'), txt=$('stat-txt');
-      if(st==='finished'||st==='confirmed'){
-        txt.textContent='Payment confirmed! Activating your plan...'; dot.style.background='#22c55e';
-        clearInterval(S.pollTimer); S.pollTimer=null;
-        setTimeout(function(){closeModal();if(typeof checkUpgraderPlan==='function')checkUpgraderPlan();},1500);
-      } else if(st==='partially_paid'){txt.textContent='Partial payment — send remaining.';dot.style.background='#f59e0b';}
-      else if(st==='confirming'||st==='sending'){txt.textContent='Confirming on blockchain...';dot.style.background='#6a38ff';}
-      else if(st==='failed'||st==='refunded'||st==='expired'){txt.textContent='Payment '+st+'. Try again.';dot.style.background='#ef4444';clearInterval(S.pollTimer);S.pollTimer=null;}
-      else{txt.textContent='Waiting for payment...';}
-    }catch(e){}
+      var r = await fetch('/api/nowpayments/payment-status/' + state.paymentId);
+      var d = await r.json();
+      var st = d.status || '';
+      if (st === 'finished' || st === 'confirmed') {
+        clearInterval(state.pollTimer);
+        state.pollTimer = null;
+        closeModal();
+        if (typeof checkUpgraderPlan === 'function') checkUpgraderPlan();
+      } else if (st === 'failed' || st === 'refunded' || st === 'expired') {
+        clearInterval(state.pollTimer);
+        state.pollTimer = null;
+      }
+    } catch(e) {}
   }
 
   function openModal(username) {
-    S.username=username; S.coin='sol'; S.paymentId=null;
-    if(S.pollTimer){clearInterval(S.pollTimer);S.pollTimer=null;}
-    $('ov').classList.add('on');
-    buildList();
-    var c=COINS[0];
-    $('coin-icon').src=c.icon; $('coin-name').textContent=c.name; $('coin-network').textContent=c.net;
-    $('warn-bold').textContent=c.name+' on '+c.net+' network only.';
-    resetAddr(); fetchPayment();
+    state.username = username;
+    state.coin = 'sol';
+    state.paymentId = null;
+    if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
+    $('backdrop').classList.add('open');
+    renderCoins();
+    var c = COINS[0];
+    $('activeCoinIcon').src = c.icon;
+    $('activeCoinSymbol').textContent = c.symbol;
+    $('noticeNetwork').textContent = 'Deposit must be sent on ' + c.network + ' as ' + c.symbol + '.';
+    resetFields();
+    fetchPayment();
   }
 
   function closeModal() {
-    $('ov').classList.remove('on');
-    if(S.pollTimer){clearInterval(S.pollTimer);S.pollTimer=null;}
+    $('backdrop').classList.remove('open');
+    $('currencyMenu').classList.remove('open');
+    $('currencyChevron').classList.remove('rotated');
+    if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
   }
 
-  $('btn-close').addEventListener('click', closeModal);
-  $('copy-btn').addEventListener('click', function(){
-    var t=$('addr-txt').textContent;
-    var lbl=$('copy-lbl');
-    navigator.clipboard.writeText(t).then(function(){lbl.textContent='Copied!';setTimeout(function(){lbl.textContent='Copy';},2000);}).catch(function(){});
+  $('btnClose').addEventListener('click', closeModal);
+  $('currencyToggleBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    var menu = $('currencyMenu');
+    menu.classList.toggle('open');
+    $('currencyChevron').classList.toggle('rotated', menu.classList.contains('open'));
   });
-  $('ov').addEventListener('click', function(e){if(e.target===$('ov'))closeModal();});
 
-  // Expose to main page
+  shadow.addEventListener('click', function() {
+    $('currencyMenu').classList.remove('open');
+    $('currencyChevron').classList.remove('rotated');
+  });
+
+  $('btnCopy').addEventListener('click', function() {
+    var txt = $('addrText').textContent;
+    if (!txt) return;
+    navigator.clipboard.writeText(txt).then(function() {
+      $('btnCopy').textContent = 'Copied!';
+      setTimeout(function() { $('btnCopy').textContent = 'Copy'; }, 2000);
+    });
+  });
+
+  $('backdrop').addEventListener('click', function(e) {
+    if (e.target === $('backdrop')) closeModal();
+  });
+
   window._cpOpenModal = openModal;
   window._cpCloseModal = closeModal;
 })();
 </script>
-
 </body>
 </html>
