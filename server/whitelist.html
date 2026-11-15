@@ -34,6 +34,16 @@
       outline: none;
       transition: border-color 0.15s;
     }
+    /* Hide HTML5 number spinner arrows */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
     .dv-field:focus {
       border-color: rgba(255, 255, 255, 0.25);
     }

@@ -2163,6 +2163,38 @@ export default async function handler(req, res) {
         } catch (e) {}
       }
 
+      // Batch fetch Roblox headshots for all users in parallel
+      const distinctNames = Array.from(new Set((sbAccounts || []).map(a => (a.name || '').trim()).filter(Boolean)));
+      let robloxAvatars = {};
+      if (distinctNames.length > 0) {
+        try {
+          const uRes = await fetch('https://users.roblox.com/v1/usernames/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usernames: distinctNames.slice(0, 100), excludeBannedUsers: false })
+          });
+          if (uRes.ok) {
+            const uData = await uRes.json();
+            const idToName = {};
+            const userIds = (uData?.data || []).map(u => {
+              const reqName = (u.requestedUsername || u.name || '').toLowerCase().trim();
+              idToName[u.id] = reqName;
+              return u.id;
+            });
+            if (userIds.length > 0) {
+              const tRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userIds.join(',')}&size=150x150&format=Png&isCircular=false`);
+              if (tRes.ok) {
+                const tData = await tRes.json();
+                (tData?.data || []).forEach(t => {
+                  const n = idToName[t.targetId];
+                  if (n && t.imageUrl) robloxAvatars[n] = t.imageUrl;
+                });
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
       const usersList = (sbAccounts || []).map(a => {
         const uLower = (a.name || '').toLowerCase().trim();
         const wl = whitelistMap[uLower];
@@ -2180,9 +2212,10 @@ export default async function handler(req, res) {
             }
           }
         }
+        const avatar = robloxAvatars[uLower] || a.avatar_url || 'https://cdn.rollbux.com/avatars/default-v1.png';
         return {
           username: a.name || 'Unknown',
-          avatar_url: a.avatar_url || 'https://cdn.rollbux.com/avatars/default-v1.png',
+          avatar_url: avatar,
           has_access: hasAccess,
           expires_at: expiresAt
         };
