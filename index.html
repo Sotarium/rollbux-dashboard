@@ -516,7 +516,7 @@
 
 
                 <!-- Top Nav Switcher: RollBux | Discord -->
-        <div class="relative z-50 flex items-center justify-center w-full pt-1 pb-4 select-none">
+        <div class="flex items-center justify-center w-full pt-1 pb-4 select-none">
           <div class="flex items-center bg-[#121214] p-1 rounded-xl border border-white/[0.05] shadow-lg">
             <button id="navTabRollbux" onclick="switchNavTab('rollbux')" class="px-5 py-1.5 rounded-lg text-xs font-bold transition bg-white text-black shadow-sm cursor-pointer">RollBux</button>
             <button id="navTabDiscord" onclick="switchNavTab('discord')" class="px-5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer">Discord</button>
@@ -1059,8 +1059,8 @@
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
                   <!-- Upgrader Plan Lock / Floating Pay Gate -->
-                  <div id="upgraderPlanGate" class="fixed inset-0 z-40 flex items-center justify-center p-6 overflow-hidden" style="display:none; background: rgba(5, 5, 5, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
-                    <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[380px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center my-auto">
+                  <div id="upgraderPlanGate" class="fixed inset-x-0 bottom-0 top-[70px] z-50 flex items-center justify-center p-6" style="display:flex; background: rgba(5, 5, 5, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+                    <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center my-auto">
                       <!-- 52px Circle with exact lucide-crown SVG provided -->
                       <div class="flex items-center justify-center mb-4" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, #2a2a2d 0%, #161618 100%); border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-crown" aria-hidden="true" style="color: rgb(255, 255, 255);">
@@ -1069,40 +1069,17 @@
                         </svg>
                       </div>
 
-                      <h1 class="text-2xl font-bold text-white tracking-tight mb-3">Upgrader Plan</h1>
+                      <h1 class="text-2xl font-bold text-white tracking-tight mb-4">Upgrader Plan</h1>
                       
                       <!-- Price Pill: $10 Weekly -->
-                      <div class="inline-flex items-center justify-center bg-black/50 border border-white/10 rounded-xl px-5 py-2 mb-5 shadow-inner">
+                      <div class="inline-flex items-center justify-center bg-black/50 border border-white/10 rounded-xl px-5 py-2 mb-6 shadow-inner">
                         <span class="text-sm font-bold text-[#38bdf8]">$10 Weekly</span>
                       </div>
 
                       <!-- Action Button -->
-                      <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3 px-6 rounded-xl bg-white text-black font-bold text-sm hover:bg-[#eaeaea] hover:scale-[1.01] active:scale-[0.99] transition duration-150 shadow-xl cursor-pointer mb-5">
+                      <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3.5 px-6 rounded-xl bg-white text-black font-bold text-sm hover:bg-[#eaeaea] hover:scale-[1.01] active:scale-[0.99] transition duration-150 shadow-xl cursor-pointer">
                         Upgrade Plan
                       </button>
-
-                      <!-- Features Section Under Upgrade Plan -->
-                      <div class="w-full pt-4 border-t border-white/[0.08] text-left">
-                        <div class="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-3 px-1">Included Features</div>
-                        <ul class="flex flex-col gap-2.5 text-xs text-zinc-300">
-                          <li class="flex items-center gap-2.5">
-                            <svg class="size-4 text-[#38bdf8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>High-Speed Ticket Auto-Claimer</span>
-                          </li>
-                          <li class="flex items-center gap-2.5">
-                            <svg class="size-4 text-[#38bdf8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Live Discord Giveaway Watcher</span>
-                          </li>
-                          <li class="flex items-center gap-2.5">
-                            <svg class="size-4 text-[#38bdf8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Instant Webhook Embed Alerts</span>
-                          </li>
-                          <li class="flex items-center gap-2.5">
-                            <svg class="size-4 text-[#38bdf8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Multi-Account Session Support</span>
-                          </li>
-                        </ul>
-                      </div>
                     </div>
                   </div>
                   <div id="discordViewContent" class="w-full flex flex-col gap-6 transition-all duration-300">
@@ -5784,14 +5761,7 @@
     window.checkUpgraderPlan = async function() {
       const gate = document.getElementById('upgraderPlanGate');
       const content = document.getElementById('discordViewContent');
-      const discordView = document.getElementById('viewDiscord');
       if (!gate) return;
-
-      // Only show paywall if user is currently on the Discord tab!
-      if (!discordView || discordView.style.display === 'none') {
-        gate.style.display = 'none';
-        return;
-      }
 
       // Lock by default immediately
       let isUpgrader = false;
@@ -5840,57 +5810,8 @@
       }
     };
 
-    window.unlockUpgraderPlan = async function() {
-      let user = '';
-      try {
-        const uObj = JSON.parse(localStorage.getItem('sotarium_user_profile') || 'null');
-        user = (uObj && uObj.username) ? uObj.username : '';
-      } catch (e) {}
-      if (!user) {
-        const pathParts = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
-        if (pathParts[0] && pathParts[0].startsWith('@')) user = pathParts[0].slice(1);
-        else if (pathParts[0] === 'user' && pathParts[1]) user = pathParts[1];
-      }
-
-      if (!user) {
-        const input = prompt("Enter your Rollbux username to proceed to crypto payment:");
-        if (input && input.trim()) {
-          user = input.trim();
-        } else {
-          return;
-        }
-      }
-
-      const btn = document.querySelector('#upgraderPlanGate button');
-      const originalText = btn ? btn.textContent : '';
-      if (btn) {
-        btn.textContent = 'Redirecting to payment…';
-        btn.disabled = true;
-      }
-
-      try {
-        const res = await fetch('/api/nowpayments/create-invoice', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: user })
-        });
-        const data = await res.json();
-        if (data && data.invoice_url) {
-          window.location.href = data.invoice_url;
-        } else {
-          alert(data.error || 'Unable to create payment invoice. Please try again.');
-          if (btn) {
-            btn.textContent = originalText;
-            btn.disabled = false;
-          }
-        }
-      } catch (e) {
-        alert('Network error. Please try again.');
-        if (btn) {
-          btn.textContent = originalText;
-          btn.disabled = false;
-        }
-      }
+    window.unlockUpgraderPlan = function() {
+      alert("Please contact the administrator or subscribe to get whitelisted for the Upgrader Plan.");
     };
 
     // Navigation Tab Switcher between RollBux and Discord
@@ -5919,8 +5840,6 @@
         document.documentElement.style.overflow = 'auto';
         if (rollbuxView) rollbuxView.style.display = 'flex';
         if (discordView) discordView.style.display = 'none';
-        const gate = document.getElementById('upgraderPlanGate');
-        if (gate) gate.style.display = 'none';
         if (rollbuxBtn) { rollbuxBtn.className = ''; rollbuxBtn.style.cssText = ACT_NAV; }
         if (discordBtn) { discordBtn.className = ''; discordBtn.style.cssText = INACT_NAV; }
       }
@@ -7725,5 +7644,183 @@
     </div>
   </div>
 
+  <!-- Fullscreen Sotarium Auto-Updater Modal (from Sotarium.exe / Cue-main) -->
+  <div id="updateFullscreenOverlay" class="update-fullscreen-overlay" style="display:none;">
+    <div class="update-screen-card" id="updateScreenCard">
+      
+      <!-- Phase 1: Update Detected (Prompt) -->
+      <div id="updatePhasePrompt" style="display:flex; flex-direction:column; align-items:center; gap:16px; width:100%;">
+        <img src="/sotarium-favicon.png?v=20261111" alt="Sotarium Icon" style="width:68px; height:68px; object-fit:contain;" />
+        <div>
+          <h1 class="update-screen-title">Update Detected.</h1>
+          <p class="update-screen-desc" style="margin-top:6px;">
+            A new version <strong style="color:#acff46;" id="updateLatestVersionLabel">v1.0.1</strong> is available.
+            Sotarium will download and relaunch automatically.
+          </p>
+        </div>
+        <button class="update-white-button" id="updateNowBtn" type="button" onclick="startSotariumAppUpdate()">Update Now</button>
+        <button type="button" onclick="dismissSotariumAppUpdate()" style="background:none; border:none; color:#555; font-size:12px; cursor:pointer; margin-top:-4px;">
+          Skip for now
+        </button>
+      </div>
+
+      <!-- Phase 2: Downloading Progress -->
+      <div id="updatePhaseDownloading" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%;">
+        <img src="/sotarium-favicon.png?v=20261111" alt="Sotarium Icon" style="width:68px; height:68px; object-fit:contain;" />
+        <div>
+          <h1 class="update-screen-title" id="updateDownloadingTitle">Downloading update…</h1>
+          <p class="update-screen-desc" id="updateProgressText" style="margin-top:6px;">0%</p>
+        </div>
+        <div style="width:100%; height:6px; background:rgba(255,255,255,0.06); border-radius:9999px; overflow:hidden; margin-top:12px;">
+          <div id="updateProgressBar" style="height:100%; width:0%; background:#acff46; transition:width 0.2s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Phase 3: Successfully Updated (Done) -->
+      <div id="updatePhaseDone" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; width:100%; text-align:center; animation:fadeInCenter 0.3s ease-out;">
+        <img src="/checkmark.webp" alt="Done" style="width:84px; height:84px; object-fit:contain;" onerror="this.src='/sotarium-favicon.png?v=20261111';" />
+        <h1 class="update-screen-title" style="font-size:24px; font-style:normal; text-align:center; width:100%;">
+          Updated! Relaunching…
+        </h1>
+      </div>
+
+      <!-- Phase 4: Update Failed (Error) -->
+      <div id="updatePhaseError" style="display:none; flex-direction:column; align-items:center; gap:16px; width:100%;">
+        <img src="/sotarium-favicon.png?v=20261111" alt="Sotarium Icon" style="width:68px; height:68px; object-fit:contain;" />
+        <div>
+          <h1 class="update-screen-title">Update Failed</h1>
+          <p class="update-screen-desc" id="updateErrorMsg" style="margin-top:6px; color:#ff5555;">Download failed.</p>
+        </div>
+        <button class="update-white-button" type="button" onclick="dismissSotariumAppUpdate()">Continue Anyway</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Sotarium / DiscordViewer Auto-Updater Client Bridge
+    (function initSotariumAutoUpdater() {
+      // Dynamic client version: inject via window.__DV_VERSION__ or localStorage cache
+      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.1';
+      let pendingUpdateData = null;
+
+      window.setAppCurrentVersion = function(ver) {
+        if (!ver) return;
+        const norm = ver.startsWith('v') ? ver : 'v' + ver;
+        CURRENT_CLIENT_VERSION = norm;
+        try { localStorage.setItem('__dv_installed_ver', norm); } catch(e) {}
+      };
+
+      window.setUpdateProgress = function(percent) {
+        const bar = document.getElementById('updateProgressBar');
+        const txt = document.getElementById('updateProgressText');
+        if (bar) bar.style.width = Math.min(percent, 99) + '%';
+        if (txt) txt.textContent = Math.round(percent) + '%';
+      };
+
+      window.setUpdateDone = function() {
+        const pDownload = document.getElementById('updatePhaseDownloading');
+        const pDone = document.getElementById('updatePhaseDone');
+        if (pDownload) pDownload.style.display = 'none';
+        if (pDone) pDone.style.display = 'flex';
+        if (pendingUpdateData?.tag) {
+          window.setAppCurrentVersion(pendingUpdateData.tag);
+        }
+      };
+
+      window.setUpdateError = function(errMsg) {
+        const pDownload = document.getElementById('updatePhaseDownloading');
+        const pError = document.getElementById('updatePhaseError');
+        const msg = document.getElementById('updateErrorMsg');
+        if (pDownload) pDownload.style.display = 'none';
+        if (msg) msg.textContent = errMsg || 'Download failed.';
+        if (pError) pError.style.display = 'flex';
+      };
+
+      window.showUpdateDetectedModal = function(latestTag, dlUrl) {
+        pendingUpdateData = { tag: latestTag, dlUrl: dlUrl };
+        const overlay = document.getElementById('updateFullscreenOverlay');
+        const lbl = document.getElementById('updateLatestVersionLabel');
+        const pPrompt = document.getElementById('updatePhasePrompt');
+        const pDown = document.getElementById('updatePhaseDownloading');
+        const pDone = document.getElementById('updatePhaseDone');
+        const pErr = document.getElementById('updatePhaseError');
+
+        if (lbl) lbl.textContent = latestTag.startsWith('v') ? latestTag : 'v' + latestTag;
+        if (pPrompt) pPrompt.style.display = 'flex';
+        if (pDown) pDown.style.display = 'none';
+        if (pDone) pDone.style.display = 'none';
+        if (pErr) pErr.style.display = 'none';
+        if (overlay) overlay.style.display = 'flex';
+      };
+
+      window.dismissSotariumAppUpdate = function() {
+        const overlay = document.getElementById('updateFullscreenOverlay');
+        if (overlay) overlay.style.display = 'none';
+      };
+
+      window.startSotariumAppUpdate = function() {
+        const pPrompt = document.getElementById('updatePhasePrompt');
+        const pDown = document.getElementById('updatePhaseDownloading');
+        const title = document.getElementById('updateDownloadingTitle');
+        if (pPrompt) pPrompt.style.display = 'none';
+        if (pDown) pDown.style.display = 'flex';
+        if (title && pendingUpdateData?.tag) {
+          title.textContent = 'Downloading ' + (pendingUpdateData.tag.startsWith('v') ? pendingUpdateData.tag : 'v' + pendingUpdateData.tag) + '…';
+        }
+
+        // Notify native C# host or fallback fetch
+        if (window.chrome && window.chrome.webview) {
+          window.chrome.webview.postMessage(JSON.stringify({
+            action: 'start-update',
+            tag: pendingUpdateData?.tag,
+            dlUrl: pendingUpdateData?.dlUrl
+          }));
+        }
+      };
+
+      // Handle native WebView messages from C# host
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.addEventListener('message', function(event) {
+          try {
+            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            if (data.action === 'show-update') {
+              window.showUpdateDetectedModal(data.tag, data.dlUrl);
+            } else if (data.action === 'update-progress') {
+              window.setUpdateProgress(data.percent);
+            } else if (data.action === 'update-done') {
+              window.setUpdateDone();
+            } else if (data.action === 'update-error') {
+              window.setUpdateError(data.error);
+            }
+          } catch(e) {}
+        });
+      }
+
+      // Also directly query GitHub Releases API in case app host is web browser
+      async function checkGitHubReleases() {
+        try {
+          const res = await fetch('https://api.github.com/repos/Sotarium/rollbux-dashboard/releases/latest');
+          if (!res.ok) return;
+          const data = await res.json();
+          const tag = data.tag_name || '';
+          if (tag && tag !== CURRENT_CLIENT_VERSION) {
+            let dl = '';
+            if (Array.isArray(data.assets)) {
+              const a = data.assets.find(x => x.name === 'DiscordViewer.exe');
+              if (a) dl = a.browser_download_url;
+            }
+            window.showUpdateDetectedModal(tag, dl);
+          }
+        } catch(e) {}
+      }
+
+      // Trigger update check immediately
+      checkGitHubReleases();
+    })();
+  
+            // checkUpgraderPlan defined above
+
+</script>
 </body>
 </html>
