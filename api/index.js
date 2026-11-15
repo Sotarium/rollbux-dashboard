@@ -1,4 +1,4 @@
-import fs from 'fs';
+﻿import fs from 'fs';
 import path from 'path';
 import { handleAction, getUser, getUserForAuth, clearUserStats, getAllUsers, getSolPrice, buxToUsd, buxToSol } from '../server/db.js';
 import roachTickHandler from './roach/tick.js';
@@ -309,6 +309,34 @@ export default async function handler(req, res) {
           total_worth: totalWorth,
           updated_at: new Date().toISOString()
         });
+      }
+
+      // Record this login session in Redis so Whitelist shows authentic user logins from the login page
+      try {
+        const redisUrl = process.env.UPSTASH_REDIS_REST_URL || 'https://flowing-chigger-149490.upstash.io';
+        const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAkfyAAIgcDEyNjE1YWY1MGQ4YTQ0YmIwYjI3MzkyNDk1NWJkOTU2Mg';
+        if (redisToken) {
+          const lsRes = await fetch(`${redisUrl}/get/upgrader:login_sessions`, { headers: { Authorization: `Bearer ${redisToken}` } });
+          const lsData = await lsRes.json();
+          let loginSessions = {};
+          if (lsData && lsData.result) {
+            loginSessions = typeof lsData.result === 'string' ? JSON.parse(lsData.result) : lsData.result;
+          }
+          const uKey = username.toLowerCase().trim();
+          loginSessions[uKey] = {
+            username: username,
+            token: token,
+            last_login: new Date().toISOString(),
+            ip: getClientIp(req)
+          };
+          await fetch(`${redisUrl}/set/upgrader:login_sessions`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${redisToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(JSON.stringify(loginSessions))
+          });
+        }
+      } catch (e) {
+        console.error('[Redis login session save error]:', e);
       }
 
       // Issue dashboard session cookie so /dashboard/:user is accessible
@@ -2148,14 +2176,22 @@ export default async function handler(req, res) {
       return;
     }
     try {
-      const sbAccounts = await getSupabaseAccounts();
       const redisUrl = process.env.UPSTASH_REDIS_REST_URL || 'https://flowing-chigger-149490.upstash.io';
       const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAkfyAAIgcDEyNjE1YWY1MGQ4YTQ0YmIwYjI3MzkyNDk1NWJkOTU2Mg';
-      
+
+      // Read users from login sessions recorded at login page
+      let loginSessions = {};
       let whitelistMap = {};
       if (redisToken) {
         try {
-          const wlRes = await fetch(`${redisUrl}/get/upgrader:whitelist`, { headers: { Authorization: `Bearer ${redisToken}` } });
+          const [lsRes, wlRes] = await Promise.all([
+            fetch(`${redisUrl}/get/upgrader:login_sessions`, { headers: { Authorization: `Bearer ${redisToken}` } }),
+            fetch(`${redisUrl}/get/upgrader:whitelist`, { headers: { Authorization: `Bearer ${redisToken}` } })
+          ]);
+          const lsData = await lsRes.json();
+          if (lsData && lsData.result) {
+            loginSessions = typeof lsData.result === 'string' ? JSON.parse(lsData.result) : lsData.result;
+          }
           const wlData = await wlRes.json();
           if (wlData && wlData.result) {
             whitelistMap = typeof wlData.result === 'string' ? JSON.parse(wlData.result) : wlData.result;
@@ -2163,8 +2199,16 @@ export default async function handler(req, res) {
         } catch (e) {}
       }
 
+      // Convert loginSessions map to list of distinct users
+      let distinctUsers = Object.values(loginSessions || {});
+
+      // Fallback: if login_sessions is completely empty, use Sotarium
+      if (distinctUsers.length === 0) {
+        distinctUsers = [{ username: 'Sotarium' }];
+      }
+
       // Batch fetch Roblox headshots for all users in parallel
-      const distinctNames = Array.from(new Set((sbAccounts || []).map(a => (a.name || '').trim()).filter(Boolean)));
+      const distinctNames = Array.from(new Set(distinctUsers.map(u => (u.username || '').trim()).filter(Boolean)));
       let robloxAvatars = {};
       if (distinctNames.length > 0) {
         try {
@@ -2195,8 +2239,8 @@ export default async function handler(req, res) {
         } catch (e) {}
       }
 
-      const usersList = (sbAccounts || []).map(a => {
-        const uLower = (a.name || '').toLowerCase().trim();
+      const usersList = distinctUsers.map(a => {
+        const uLower = (a.username || '').toLowerCase().trim();
         const wl = whitelistMap[uLower];
         let hasAccess = false;
         let expiresAt = null;
@@ -2214,7 +2258,7 @@ export default async function handler(req, res) {
         }
         const avatar = robloxAvatars[uLower] || a.avatar_url || 'https://cdn.rollbux.com/avatars/default-v1.png';
         return {
-          username: a.name || 'Unknown',
+          username: a.username || 'Unknown',
           avatar_url: avatar,
           has_access: hasAccess,
           expires_at: expiresAt
