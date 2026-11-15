@@ -1,10 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="/sotarium-favicon.png?v=20261111" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <title>Sotarium</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xyflow/react@12.3.1/dist/style.css">
   <!-- Suppress cdn.tailwindcss.com production warning in console -->
@@ -1059,10 +1060,10 @@
                 <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
                 <div id="viewDiscord" class="w-full flex-col gap-6" style="display:none; position:relative;">
                   <!-- Upgrader Plan Lock / Floating Pay Gate -->
-                  <div id="upgraderPlanGate" class="fixed inset-0 z-[100] flex items-center justify-center p-6" style="display:none; background: rgba(5, 5, 5, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
-                    <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[360px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.9)] text-center my-auto">
+                  <div id="upgraderPlanGate" class="fixed inset-0 z-[100] flex items-center justify-center p-6 overflow-y-auto" style="display:none; background: rgba(5, 5, 5, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+                    <div id="paygateHeaderBlock" class="flex flex-col items-center max-w-[420px] w-full p-8 rounded-2xl bg-[#141416]/95 border border-white/10 text-center my-auto">
                       <!-- 52px Circle with exact lucide-crown SVG provided -->
-                      <div class="flex items-center justify-center mb-4" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, #2a2a2d 0%, #161618 100%); border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
+                      <div class="flex items-center justify-center mb-4" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, #2a2a2d 0%, #161618 100%); border: 1px solid rgba(255, 255, 255, 0.16);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-crown" aria-hidden="true" style="color: rgb(255, 255, 255);">
                           <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"></path>
                           <path d="M5 21h14"></path>
@@ -1072,14 +1073,54 @@
                       <h1 class="text-2xl font-bold text-white tracking-tight mb-4">Upgrader Plan</h1>
                       
                       <!-- Price Pill: $10 Weekly -->
-                      <div class="inline-flex items-center justify-center bg-black/50 border border-white/10 rounded-xl px-5 py-2 mb-6 shadow-inner">
+                      <div class="inline-flex items-center justify-center bg-black/50 border border-white/10 rounded-xl px-5 py-2 mb-6">
                         <span class="text-sm font-bold text-[#38bdf8]">$10 Weekly</span>
                       </div>
 
                       <!-- Action Button -->
-                      <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3.5 px-6 rounded-xl bg-white text-black font-bold text-sm hover:bg-[#eaeaea] hover:scale-[1.01] active:scale-[0.99] transition duration-150 shadow-xl cursor-pointer">
+                      <button onclick="unlockUpgraderPlan()" type="button" class="w-full py-3.5 px-6 rounded-xl bg-white text-black font-bold text-sm hover:bg-[#eaeaea] hover:scale-[1.01] active:scale-[0.99] transition duration-150 cursor-pointer">
                         Upgrade Plan
                       </button>
+
+                      <!-- Features Section (Exact download card layout) -->
+                      <section class="card panel" style="width: 100%; margin-top: 20px; background: #15151a; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.08); padding: 20px 18px; text-align: left;">
+                        <div class="panel-header-center" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; margin-bottom: 14px;">
+                          <div class="section-icon" style="font-size: 1.4rem; color: #F1DAFD; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-star"></i>
+                          </div>
+                          <h2 style="margin: 0; font-size: 1.15rem; color: #f0f0f5; font-weight: 600; letter-spacing: -0.01em;">Features</h2>
+                        </div>
+                        <div class="sub-cards-stack" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                          <div class="sub-card" style="background: #101014; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.06); padding: 12px 14px;">
+                            <h3 style="margin: 0 0 4px 0; font-size: 0.85rem; color: #F1DAFD; font-weight: 600;">Ticket Claimer</h3>
+                            <ul style="margin: 0; padding-left: 16px; color: #a0a0aa; font-size: 0.75rem; line-height: 1.4;">
+                              <li>Instant Rollbux ticket claims</li>
+                              <li>Low latency WebSocket engine</li>
+                            </ul>
+                          </div>
+                          <div class="sub-card" style="background: #101014; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.06); padding: 12px 14px;">
+                            <h3 style="margin: 0 0 4px 0; font-size: 0.85rem; color: #F1DAFD; font-weight: 600;">Giveaway Watcher</h3>
+                            <ul style="margin: 0; padding-left: 16px; color: #a0a0aa; font-size: 0.75rem; line-height: 1.4;">
+                              <li>Automated message & reaction detection</li>
+                              <li>Sound alerts and notification cards</li>
+                            </ul>
+                          </div>
+                          <div class="sub-card" style="background: #101014; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.06); padding: 12px 14px;">
+                            <h3 style="margin: 0 0 4px 0; font-size: 0.85rem; color: #F1DAFD; font-weight: 600;">Webhooks</h3>
+                            <ul style="margin: 0; padding-left: 16px; color: #a0a0aa; font-size: 0.75rem; line-height: 1.4;">
+                              <li>Instant alerts sent to your Discord</li>
+                              <li>Custom embed templates and test dispatch</li>
+                            </ul>
+                          </div>
+                          <div class="sub-card" style="background: #101014; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.06); padding: 12px 14px;">
+                            <h3 style="margin: 0 0 4px 0; font-size: 0.85rem; color: #F1DAFD; font-weight: 600;">Multi-Account</h3>
+                            <ul style="margin: 0; padding-left: 16px; color: #a0a0aa; font-size: 0.75rem; line-height: 1.4;">
+                              <li>Run multiple sessions simultaneously</li>
+                              <li>Secure token persistence and proxy support</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </section>
                     </div>
                   </div>
                   <div id="discordViewContent" class="w-full flex flex-col gap-6 transition-all duration-300">
@@ -7913,7 +7954,7 @@
     // Sotarium / DiscordViewer Auto-Updater Client Bridge
     (function initSotariumAutoUpdater() {
       // Dynamic client version: inject via window.__DV_VERSION__ or localStorage cache
-      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.8';
+      let CURRENT_CLIENT_VERSION = window.__DV_VERSION__ || localStorage.getItem('__dv_installed_ver') || 'v1.0.9';
       // Clear stale v1.0.1 localStorage so old users don't get stuck in update loop
       try { if (localStorage.getItem('__dv_installed_ver') === 'v1.0.1') localStorage.removeItem('__dv_installed_ver'); } catch(e) {}
       let pendingUpdateData = null;
