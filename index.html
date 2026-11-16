@@ -5720,7 +5720,7 @@
         </div>
 
         <div id="watcherTypeHelpText" class="text-[11px] text-[#8f8f8f] bg-[#080808] p-2.5 rounded-[10px] border border-white/5 leading-relaxed">
-          <b>Watcher mode:</b> Listens to channels and reacts to giveaway messages with ðŸŽ‰.
+          <b>Watcher mode:</b> Listens to channels and reacts to giveaway messages with 🎉.
         </div>
 
         <div class="flex items-center justify-between pt-1">
@@ -6270,7 +6270,7 @@
       const token = account?.token || getActiveDiscordToken();
       const state = getDiscordGatewayState(account);
       if (!token || !channelId || !messageId || !state) return false;
-      const rawEmoji = String(emoji || 'ðŸŽ‰');
+      const rawEmoji = String(emoji || '🎉');
       const emojiKey = String(account.id) + ':' + channelId + ':' + messageId + ':' + rawEmoji;
       if (state.reactionKeys.has(emojiKey)) return true;
       state.reactionKeys.add(emojiKey);
@@ -6307,6 +6307,44 @@
       }
     }
 
+    async function triggerDiscordInteraction(msg, watcher, account) {
+      const token = account?.token || getActiveDiscordToken();
+      const state = getDiscordGatewayState(account);
+      if (!token || !state || !msg) return false;
+      const cleanToken = String(token).replace(/^Bearer\s+/i, '').trim();
+      const rows = Array.isArray(msg.components) ? msg.components : [];
+      for (const row of rows) {
+        const buttons = Array.isArray(row.components) ? row.components : [];
+        for (const btn of buttons) {
+          if (btn.type === 2 && btn.custom_id) {
+            try {
+              const res = await fetch('https://discord.com/api/v10/interactions', {
+                method: 'POST',
+                headers: { 'Authorization': cleanToken, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 3,
+                  guild_id: msg.guild_id,
+                  channel_id: msg.channel_id,
+                  message_id: msg.id,
+                  application_id: msg.author?.id || msg.application_id,
+                  data: { component_type: 2, custom_id: btn.custom_id },
+                  session_id: state.sessionId || '0'
+                })
+              });
+              if (res.ok || res.status === 204) {
+                logDiscordActivity('Joined (Button Click)', 'Auto React', 'green', true, account, msg.channel_id, watcher?.serverID || '', msg.id, watcher?.name || '', watcher?.type || 'Auto React');
+                if (watcher?.sound !== false && typeof window.playWatcherBeep === 'function') window.playWatcherBeep();
+                return true;
+              }
+            } catch (e) {
+              console.error('[Discord Gateway] Interaction button error:', e);
+            }
+          }
+        }
+      }
+      return false;
+    }
+
     function getSourceReactionEmoji(message, text) {
       const sourceReaction = Array.isArray(message?.reactions) ? message.reactions.find(r => r?.emoji?.id || r?.emoji?.name) : null;
       if (sourceReaction?.emoji) {
@@ -6315,15 +6353,15 @@
         if (id) return (name ? name + ':' : '') + id;
         if (name) return name;
       }
-      const explicitEmoji = String(text || '').match(/[ðŸŽ‰ðŸŽŠðŸŽŸï¸]/u);
-      return explicitEmoji ? explicitEmoji[0] : 'ðŸŽ‰';
+      const explicitEmoji = String(text || '').match(/[🎉🎊🎟️]/u);
+      return explicitEmoji ? explicitEmoji[0] : '🎉';
     }
 
     function scheduleDiscordReaction(channelId, messageId, emoji, watcher, account, delayMs = 0) {
       const state = getDiscordGatewayState(account);
       if (!state) return;
       const soundEnabled = watcher?.sound !== false;
-      const scheduleKey = String(account.id) + ':' + channelId + ':' + messageId + ':' + String(emoji || 'ðŸŽ‰');
+      const scheduleKey = String(account.id) + ':' + channelId + ':' + messageId + ':' + String(emoji || '🎉');
       if (state.reactionSchedules.has(scheduleKey)) return;
       state.reactionSchedules.add(scheduleKey);
       (async () => {
@@ -6345,7 +6383,7 @@
       const token = account?.token || getActiveDiscordToken();
       if (!token) return;
       try {
-        await triggerDiscordReaction(channelId, messageId, 'ðŸŽŸï¸', watcher.sound !== false, account, watcher);
+        await triggerDiscordReaction(channelId, messageId, '🎟️', watcher.sound !== false, account, watcher);
         logDiscordActivity('Claiming giveaway ticket in ' + watcher.name + ': ' + content.slice(0, 32) + '...', 'Claimer', undefined, true, account, channelId, watcher.serverID, messageId, watcher.name, 'Claimer');
       } catch (e) {
         console.error('[Discord Gateway] Ticket Claim error:', e);
@@ -6397,6 +6435,7 @@
             }
             if (op === 0) {
               if (t === 'READY') {
+                if (d?.session_id) state.sessionId = d.session_id;
                 logDiscordActivity('Connected and listening', 'Connection', 'green', true, account);
                 if (Array.isArray(d?.guilds)) {
                   d.guilds.forEach(g => {
@@ -6596,10 +6635,13 @@
       // Only the first matching event may schedule the reaction or ticket claim.
       const giveawayEventKey = String(channelId) + ':' + String(msg.id || fullText);
       if (state.processedGiveawayMessages.has(giveawayEventKey)) return;
-      state.processedGiveawayMessages.add(giveawayEventKey);
-      setTimeout(() => state.processedGiveawayMessages.delete(giveawayEventKey), 10 * 60 * 1000);
       for (const watcher of matchingWatchers) {
         if (watcher.type === 'claimer' || watcher.mode === 'ticket') {
+          // Lock immediately for ticket claimers
+          if (!state.processedGiveawayMessages.has(giveawayEventKey)) {
+            state.processedGiveawayMessages.add(giveawayEventKey);
+            setTimeout(() => state.processedGiveawayMessages.delete(giveawayEventKey), 10 * 60 * 1000);
+          }
           triggerTicketClaim(channelId, msg.id, content, watcher, account);
         } else if (watcher.autoReact !== false) {
           // Do not react to selection prompt or ended announcement
@@ -6613,14 +6655,20 @@
                             fullTextLower.includes('flash giveaway') ||
                             fullTextLower.includes('react with') ||
                             fullTextLower.includes('react to enter') ||
-                            fullTextLower.includes('ðŸŽ‰') ||
-                            fullTextLower.includes('ðŸŽŠ') ||
+                            fullTextLower.includes('🎉') ||
+                            fullTextLower.includes('🎊') ||
                             (Array.isArray(msg.embeds) && msg.embeds.length > 0) ||
-                            (Array.isArray(msg.reactions) && msg.reactions.some(r => r.emoji?.name === 'ðŸŽ‰' || r.emoji?.name === 'ðŸŽŠ'));
+                            (Array.isArray(msg.reactions) && msg.reactions.some(r => r.emoji?.name === '🎉' || r.emoji?.name === '🎊'));
 
           if (!isGiveaway) continue;
+
+          // If message uses button components and has no existing reactions,
+          // attempt a component interaction click instead of emoji reaction.
+          // Do NOT lock processedGiveawayMessages so MESSAGE_REACTION_ADD can still fire.
           if (hasComponents && !Array.isArray(msg.reactions)) {
-            logDiscordActivity('Giveaway uses a component button; browser reaction mode skipped it', 'Diagnostic', 'red', true, account);
+            // Store as pending so reaction events can link back to this message
+            state.pendingGiveaways[channelId] = { messageId: msg.id, watcherName: watcher.name, ts: Date.now() };
+            triggerDiscordInteraction(msg, watcher, account);
             continue;
           }
 
@@ -6634,6 +6682,11 @@
 
           // React for every connected account, staggered evenly across 19 seconds
           if (watcher.enabled) {
+            // Lock this giveaway so subsequent message updates don't reschedule
+            if (!state.processedGiveawayMessages.has(giveawayEventKey)) {
+              state.processedGiveawayMessages.add(giveawayEventKey);
+              setTimeout(() => state.processedGiveawayMessages.delete(giveawayEventKey), 10 * 60 * 1000);
+            }
             const allAccounts = readDiscordAccounts().filter(acc => acc && acc.token);
             const total = allAccounts.length;
             const maxWindowMs = 19000;
@@ -6663,18 +6716,18 @@
       const isKnownGiveawayMessage = pending && pending.messageId === messageId;
       const reactionEventKey = String(channelId) + ':' + String(messageId);
       if (state.processedGiveawayMessages.has(reactionEventKey)) return;
-      if (isKnownGiveawayMessage || emojiName === 'ðŸŽ‰' || emojiName === 'ðŸŽŠ') {
+      if (isKnownGiveawayMessage || emojiName === '🎉' || emojiName === '🎊') {
         state.processedGiveawayMessages.add(reactionEventKey);
         setTimeout(() => state.processedGiveawayMessages.delete(reactionEventKey), 10 * 60 * 1000);
         const reactionEmoji = isKnownGiveawayMessage
-          ? ((event.emoji?.id ? ((emojiName || '') + ':' + event.emoji.id) : emojiName) || 'ðŸŽ‰')
+          ? ((event.emoji?.id ? ((emojiName || '') + ':' + event.emoji.id) : emojiName) || '🎉')
           : emojiName;
         const matchingWatchers = discordWatchersList.filter(w => {
           if (!w.enabled || w.autoReact === false) return false;
           if (w.channelID && String(w.channelID).trim() !== String(channelId).trim()) return false;
           if (w.serverID && String(w.serverID).trim() !== String(event.guild_id || '').trim()) return false;
-          // Skip if targetID is set because MESSAGE_REACTION_ADD doesn't have message author
-          if (w.targetID) return false;
+          // Only filter targetID if provided and does not match the reactor's ID
+          if (w.targetID && String(w.targetID).trim() !== String(event.user_id || '').trim()) return false;
           return true;
         });
 
@@ -7621,7 +7674,7 @@
         if (help) {
           help.innerHTML = '<b>Ticket Claimer mode:</b> Automatically reacts to claim giveaway tickets in the specified channel.';
         }
-        if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket   ðŸŽŸï¸';
+        if (actionLbl) actionLbl.textContent = 'Auto Claim Ticket   🎟️';
         if (targetWrap) targetWrap.style.display = 'none';
         if (channelLabel) channelLabel.textContent = 'Ticket Channel ID';
         if (createBtn) createBtn.textContent = 'Create Claimer';
@@ -7629,7 +7682,7 @@
         if (bWatch) { bWatch.style.background = '#ffffff'; bWatch.style.color = '#000000'; }
         if (bClaim) { bClaim.style.background = 'transparent'; bClaim.style.color = '#8f8f8f'; }
         if (help) {
-          help.innerHTML = '<b>Watcher mode:</b> Reacts ðŸŽ‰ immediately to giveaways, with brief retries if needed. Guesses 1â€“20 when you get picked.';
+          help.innerHTML = '<b>Watcher mode:</b> Reacts 🎉 immediately to giveaways, with brief retries if needed. Guesses 1â€“20 when you get picked.';
         }
         if (actionLbl) actionLbl.textContent = 'Auto React';
         if (targetWrap) targetWrap.style.display = '';
@@ -7760,7 +7813,7 @@
 
             <div class="flex items-center justify-between select-none pt-1">
               <div class="flex items-center gap-2">
-                ${w.autoReact ? (isClaimer ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:#5865F2; color:#ffffff;">Auto Claim ðŸŽŸï¸</span>' : '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React</span>') : ''}
+                ${w.autoReact ? (isClaimer ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; background:#5865F2; color:#ffffff;">Auto Claim 🎟️</span>' : '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto React</span>') : ''}
                 ${w.autoGuess ? '<span class="dv-pill active" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px;">Auto Guess</span>' : ''}
                 <button type="button" onclick="toggleWatcherSound('${w.id}')" class="dv-pill ${w.sound ? 'active' : 'inactive text-[#8f8f8f]'}" style="height:26px; padding:0 10px; font-size:11px; border-radius:8px; cursor:pointer;" title="Toggle sound notification">
                   <svg class="size-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/></svg>
