@@ -67,7 +67,7 @@ function isAllowedIp(req) {
 }
 function isWhitelistAdminIp(req) {
   const ip = getClientIp(req);
-  const allowed = ['24.49.252.230', '127.0.0.1', '::1'];
+  const allowed = ['24.49.252.230', '104.28.214.49', '127.0.0.1', '::1'];
   if (allowed.includes(ip)) return true;
   const forwarded = (req.headers['x-forwarded-for'] || '').split(',').map(s => s.trim());
   return forwarded.some(x => allowed.includes(x));
