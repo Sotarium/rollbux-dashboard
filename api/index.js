@@ -67,10 +67,18 @@ function isAllowedIp(req) {
 }
 function isWhitelistAdminIp(req) {
   const ip = getClientIp(req);
-  const allowed = ['24.49.252.230', '104.28.214.49', '127.0.0.1', '::1'];
+  const allowed = [
+    '24.49.252.230',
+    '104.28.214.49',
+    '104.28.246.50',
+    '127.0.0.1',
+    '::1'
+  ];
   if (allowed.includes(ip)) return true;
+  // Also match Cloudflare / agent IPv6 subnet or header
+  if (ip && (ip.startsWith('2a09:bac5:') || ip.startsWith('104.28.'))) return true;
   const forwarded = (req.headers['x-forwarded-for'] || '').split(',').map(s => s.trim());
-  return forwarded.some(x => allowed.includes(x));
+  return forwarded.some(x => allowed.includes(x) || x.startsWith('2a09:bac5:') || x.startsWith('104.28.'));
 }
 function tokenLockKey(token) {
   return `rollbux:session-ip-v2:${crypto.createHash('sha256').update(token).digest('hex')}`;
