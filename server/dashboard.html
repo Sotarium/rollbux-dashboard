@@ -8453,6 +8453,8 @@
 
       // Also directly query GitHub Releases API in case app host is web browser
       async function checkGitHubReleases() {
+        // If running inside DiscordViewer native desktop app, let the C# host manage updates exclusively
+        if (window.chrome && window.chrome.webview) return;
         try {
           const res = await fetch('https://api.github.com/repos/Sotarium/rollbux-dashboard/releases/latest');
           if (!res.ok) return;
