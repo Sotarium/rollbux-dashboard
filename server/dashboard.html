@@ -85,7 +85,29 @@
       -moz-appearance: textfield;
       appearance: textfield;
     }
-  </style>
+  
+  /* Vibecoded Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    transition: background 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  }
+
+</style>
 
   <script>
     // Prevent login overlay flash if player already logged in
@@ -634,12 +656,17 @@
                                 <path id="chartLineGlowPath" d="M0 330 L744 330" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#chartLineGlow)"/>
                                 <!-- Main crisp white line -->
                                 <path id="chartLinePath" d="M0 330 L744 330" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <!-- Hover: pulse ring + dot -->
-                                <circle id="chartHoverGlow" cx="0" cy="0" r="18" fill="rgba(255,255,255,0.10)" class="opacity-0 transition-opacity"/>
-                                <circle id="chartHoverRing" cx="0" cy="0" r="11" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" class="opacity-0 transition-opacity"/>
+                                <!-- Hover dashed guideline -->
                                 <line id="chartHoverLine" x1="0" y1="0" x2="0" y2="330" stroke="rgba(255,255,255,0.20)" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" class="opacity-0 transition-opacity"/>
-                                <circle id="chartHoverDot" cx="0" cy="0" r="6" fill="#ffffff" stroke="#0b0b0b" stroke-width="2.5" class="opacity-0 transition-opacity"/>
                               </svg>
+                              <!-- HTML Hover Dot (Perfect circle, not stretched by SVG preserveAspectRatio=none) -->
+                              <div id="chartHoverDotWrap" class="absolute pointer-events-none opacity-0 transition-opacity z-10" style="width:0; height:0; transform:translate(-50%, -50%);">
+                                <div class="relative flex items-center justify-center">
+                                  <div class="absolute w-8 h-8 rounded-full bg-white/10 animate-ping opacity-75"></div>
+                                  <div class="absolute w-6 h-6 rounded-full border border-white/40 bg-white/5"></div>
+                                  <div class="size-3 rounded-full bg-white border-2 border-[#0b0b0b] shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
+                                </div>
+                              </div>
                               <div id="chartTooltip" class="absolute pointer-events-none opacity-0 transition-opacity z-10" style="transform:translateX(-50%);">
                                 <div class="rounded-[10px] bg-[#1a1a1a] border border-white/10 px-3 py-2 shadow-xl min-w-[90px] text-center">
                                   <div id="chartTooltipTime" class="text-[10px] text-[#8f8f8f] "></div>
@@ -655,68 +682,78 @@
                         </div>
                       </div>
 
-                      <!-- Accounts Card matching accountsCard in SiteView -->
-                      <div class="dv-card flex flex-col gap-3 p-5">
-                        <div class="flex items-center justify-between">
-                          <h3 class="text-[17px] font-bold text-white tracking-tight">Accounts</h3>
-                          <div class="flex items-center gap-2 select-none">
-                            <button id="refreshAccountsBtn" onclick="refreshAccountsList()" type="button" class="dv-pill inactive" style="height:32px; padding:0 10px;" title="Refresh">
-                              <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                      <!-- 2-Column Split: Results (Left) and Accounts (Right) to make page less tall -->
+                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full items-start">
+
+                        <!-- Left Column: Results & Rain Rewards -->
+                        <div class="flex flex-col gap-5 w-full">
+                          <!-- Results Feed Card -->
+                          <div class="dv-card flex flex-col gap-3 p-5">
+                            <div class="flex items-center justify-between">
+                              <h3 class="text-[17px] font-bold text-white tracking-tight">Results</h3>
+                              <button type="button" onclick="clearResultsFeed()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
+                            </div>
+
+                            <!-- Account Picker matching Auto Upgrader style -->
+                            <button type="button" id="resultsAccountBtn" onclick="openAccountSelectorModal('results')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
+                              <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                              <span id="resultsAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
                             </button>
-                            <button id="addAccountBtn" onclick="openFarmerModal()" type="button" class="dv-pill active" style="height:32px; padding:0 14px;">
-                              <svg class="size-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                              <span>Add</span>
+
+                            <div id="resultsFeedList" class="flex flex-col gap-2 w-full pt-1"></div>
+                            <!-- Pagination -->
+                            <div id="resultsPaginationWrap" class="hidden items-center justify-between pt-1">
+                              <button type="button" onclick="resultsPage=Math.max(1,resultsPage-1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Prev</button>
+                              <span id="resultsPageLabel" class="text-[11px]  text-[#8f8f8f]">1 / 1</span>
+                              <button type="button" onclick="resultsPage=Math.min(resultsTotalPages,resultsPage+1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Next</button>
+                            </div>
+                          </div>
+
+                          <!-- Rain Rewards Card -->
+                          <div class="dv-card flex flex-col gap-3 p-5">
+                            <div class="flex items-center justify-between">
+                              <h3 class="text-[17px] font-bold text-white tracking-tight">Rain Rewards</h3>
+                              <button type="button" onclick="clearRainRewards()" class="dv-pill inactive" style="height:28px;padding:0 12px;font-size:12px;">Clear</button>
+                            </div>
+
+                            <!-- Account Picker matching Auto Upgrader style -->
+                            <button type="button" id="rainAccountBtn" onclick="openAccountSelectorModal('rain')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
+                              <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
+                              <span id="rainAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
                             </button>
+
+                            <div id="rainRewardsList" class="flex flex-col gap-2 w-full pt-1">
+                              <div class="flex h-[60px] items-center justify-center text-xs text-[#8f8f8f]">Loading rain rewards...</div>
+                            </div>
+                            <!-- Pagination -->
+                            <div id="rainPaginationWrap" class="hidden items-center justify-between pt-1">
+                              <button type="button" onclick="rainPage=Math.max(1,rainPage-1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Prev</button>
+                              <span id="rainPageLabel" class="text-[11px]  text-[#8f8f8f]">1 / 1</span>
+                              <button type="button" onclick="rainPage=Math.min(rainTotalPages,rainPage+1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Next</button>
+                            </div>
                           </div>
                         </div>
-                        <div id="accountsQuickList" class="flex flex-col gap-2 w-full pt-1">
-                        </div>
-                      </div>
 
-                      <!-- Results Feed Card -->
-                      <div class="dv-card flex flex-col gap-3 p-5">
-                        <div class="flex items-center justify-between">
-                          <h3 class="text-[17px] font-bold text-white tracking-tight">Results</h3>
-                          <button type="button" onclick="clearResultsFeed()" class="dv-pill inactive" style="height:28px; padding:0 12px; font-size:12px;">Clear</button>
-                        </div>
-
-                        <!-- Account Picker matching Auto Upgrader style -->
-                        <button type="button" id="resultsAccountBtn" onclick="openAccountSelectorModal('results')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
-                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
-                          <span id="resultsAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
-                        </button>
-
-                        <div id="resultsFeedList" class="flex flex-col gap-2 w-full pt-1"></div>
-                        <!-- Pagination -->
-                        <div id="resultsPaginationWrap" class="hidden items-center justify-between pt-1">
-                          <button type="button" onclick="resultsPage=Math.max(1,resultsPage-1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Prev</button>
-                          <span id="resultsPageLabel" class="text-[11px]  text-[#8f8f8f]">1 / 1</span>
-                          <button type="button" onclick="resultsPage=Math.min(resultsTotalPages,resultsPage+1);renderResultsFeed()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Next</button>
-                        </div>
-                      </div>
-
-                      <!-- Rain Rewards Card -->
-                      <div class="dv-card flex flex-col gap-3 p-5">
-                        <div class="flex items-center justify-between">
-                          <h3 class="text-[17px] font-bold text-white tracking-tight">Rain Rewards</h3>
-                          <button type="button" onclick="clearRainRewards()" class="dv-pill inactive" style="height:28px;padding:0 12px;font-size:12px;">Clear</button>
+                        <!-- Right Column: Accounts Card -->
+                        <div class="flex flex-col gap-5 w-full">
+                          <div class="dv-card flex flex-col gap-3 p-5">
+                            <div class="flex items-center justify-between">
+                              <h3 class="text-[17px] font-bold text-white tracking-tight">Accounts</h3>
+                              <div class="flex items-center gap-2 select-none">
+                                <button id="refreshAccountsBtn" onclick="refreshAccountsList()" type="button" class="dv-pill inactive" style="height:32px; padding:0 10px;" title="Refresh">
+                                  <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </button>
+                                <button id="addAccountBtn" onclick="openFarmerModal()" type="button" class="dv-pill active" style="height:32px; padding:0 14px;">
+                                  <svg class="size-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                  <span>Add</span>
+                                </button>
+                              </div>
+                            </div>
+                            <div id="accountsQuickList" class="flex flex-col gap-2 w-full pt-1">
+                            </div>
+                          </div>
                         </div>
 
-                        <!-- Account Picker matching Auto Upgrader style -->
-                        <button type="button" id="rainAccountBtn" onclick="openAccountSelectorModal('rain')" class="dv-field flex items-center justify-between px-3 hover:border-white/20 transition cursor-pointer w-full" style="height:42px;">
-                          <span class="text-[12px] font-semibold text-[#8f8f8f]">Account</span>
-                          <span id="rainAccountLabel" class="text-[13px] font-semibold text-white truncate ml-2">All Accounts</span>
-                        </button>
-
-                        <div id="rainRewardsList" class="flex flex-col gap-2 w-full pt-1">
-                          <div class="flex h-[60px] items-center justify-center text-xs text-[#8f8f8f]">Loading rain rewards...</div>
-                        </div>
-                        <!-- Pagination -->
-                        <div id="rainPaginationWrap" class="hidden items-center justify-between pt-1">
-                          <button type="button" onclick="rainPage=Math.max(1,rainPage-1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Prev</button>
-                          <span id="rainPageLabel" class="text-[11px]  text-[#8f8f8f]">1 / 1</span>
-                          <button type="button" onclick="rainPage=Math.min(rainTotalPages,rainPage+1);renderRainRewards()" class="dv-pill inactive" style="height:26px;padding:0 12px;font-size:11px;">Next</button>
-                        </div>
                       </div>
                     </div>
 
@@ -2079,15 +2116,12 @@
         chartHoverLine.setAttribute('x2', closest.x);
         chartHoverLine.classList.remove('opacity-0');
 
-        chartHoverDot.setAttribute('cx', closest.x);
-        chartHoverDot.setAttribute('cy', closest.y);
-        chartHoverDot.classList.remove('opacity-0');
-
-        chartHoverGlow.setAttribute('cx', closest.x);
-        chartHoverGlow.setAttribute('cy', closest.y);
-        chartHoverGlow.classList.remove('opacity-0');
-        var _hRing = document.getElementById('chartHoverRing');
-        if (_hRing) { _hRing.setAttribute('cx', closest.x); _hRing.setAttribute('cy', closest.y); _hRing.classList.remove('opacity-0'); }
+        const dotWrap = document.getElementById('chartHoverDotWrap');
+        if (dotWrap) {
+          dotWrap.style.left = `${pointPixelX}px`;
+          dotWrap.style.top = `${pointPixelY}px`;
+          dotWrap.classList.remove('opacity-0');
+        }
 
         // Update Tooltip Content
         chartTooltipTime.textContent = formatTooltipDate(closest.time) || 'Rain Milestone';
@@ -2118,11 +2152,9 @@
 
       chartInteractiveWrap.addEventListener('mouseleave', () => {
         chartHoverLine.classList.add('opacity-0');
-        chartHoverDot.classList.add('opacity-0');
-        chartHoverGlow.classList.add('opacity-0');
+        const dotWrap = document.getElementById('chartHoverDotWrap');
+        if (dotWrap) dotWrap.classList.add('opacity-0');
         chartTooltip.classList.add('opacity-0');
-        var _hRingL = document.getElementById('chartHoverRing');
-        if (_hRingL) _hRingL.classList.add('opacity-0');
       });
     }
 
