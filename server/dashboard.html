@@ -5768,10 +5768,14 @@
   <!-- Discord Calendar Schedule Modal -->
   <div id="discordCalendarModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 select-none">
     <div class="dv-modal-card flex flex-col w-[520px] max-w-full max-h-[90vh] overflow-y-auto">
-      <div class="dv-modal-header sticky top-0 bg-[#121214] z-20">
+      <div class="dv-modal-header sticky top-0 bg-[#121214] z-20 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <svg class="size-4 text-[#F1DAFD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          <h3 class="text-[17px] font-bold text-white">Auto React Schedule</h3>
+          <!-- Back button when on hours view -->
+          <button type="button" id="calendarBackToDaysBtn" onclick="calendarReturnToDaysView()" class="dv-icon-btn hidden" title="Back to Month View">
+            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <svg class="size-4 text-[#54d487]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <h3 id="calendarModalTitle" class="text-[17px] font-bold text-white">Auto React Schedule</h3>
         </div>
         <button type="button" onclick="closeDiscordCalendarModal()" class="dv-icon-btn">
           <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -5806,37 +5810,48 @@
           </label>
         </div>
 
-        <!-- Days of Month Grid (1-31) -->
-        <div id="calendarDaysContainer" class="flex flex-col gap-2">
+        <!-- VIEW 1: Days of Month Selection View -->
+        <div id="calendarDaysViewWrapper" class="flex flex-col gap-3">
           <div class="flex items-center justify-between">
-            <label class="text-[12px] font-semibold text-[#8f8f8f]">Days of the Month</label>
-            <button type="button" id="calendarSelectAllDaysBtn" onclick="toggleCalendarSelectAllDays()" class="text-[11px] font-bold text-[#F1DAFD] hover:underline cursor-pointer">Select All (1–31)</button>
+            <div class="flex flex-col">
+              <label class="text-[12px] font-semibold text-white">Select a Day to Configure Hours</label>
+              <span class="text-[10px] text-[#8f8f8f]">Click any day tile (1–31) to open its dedicated hours page</span>
+            </div>
+            <button type="button" onclick="setCalendarAllDaysAllHours()" class="text-[11px] font-bold text-[#54d487] hover:underline cursor-pointer">Set All Days 24/7</button>
           </div>
           <div class="grid grid-cols-7 gap-1.5" id="calendarMonthDaysGrid">
             <!-- 1 to 31 populated dynamically -->
           </div>
         </div>
 
-        <!-- Working Hours Selector (0h - 23h) -->
-        <div id="calendarHoursContainer" class="flex flex-col gap-2">
-          <div class="flex items-center justify-between">
-            <label class="text-[12px] font-semibold text-[#8f8f8f]">Working Hours</label>
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="setCalendarQuickHours('all')" class="text-[10px] font-semibold text-[#8f8f8f] hover:text-white">All (24h)</button>
-              <span class="text-[#8f8f8f] text-[10px]">•</span>
-              <button type="button" onclick="setCalendarQuickHours('day')" class="text-[10px] font-semibold text-[#8f8f8f] hover:text-white">Day (9-21)</button>
-              <span class="text-[#8f8f8f] text-[10px]">•</span>
-              <button type="button" onclick="setCalendarQuickHours('night')" class="text-[10px] font-semibold text-[#8f8f8f] hover:text-white">Night (21-9)</button>
+        <!-- VIEW 2: Dedicated Hours Page for Selected Day -->
+        <div id="calendarHoursViewWrapper" style="display: none;" class="flex flex-col gap-3.5">
+          <div class="flex items-center justify-between p-3 rounded-[12px] bg-[#0c0c0e] border border-white/5">
+            <div class="flex flex-col">
+              <span id="calendarSelectedDayHeader" class="text-[14px] font-bold text-white">Day 1 Schedule</span>
+              <span class="text-[11px] text-[#8f8f8f]">Black tile = Off &bull; <span class="text-[#54d487] font-semibold">Green tile = Active</span></span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="setCalendarSelectedDayHoursPreset('all')" class="px-2.5 py-1 rounded-[6px] text-[10px] font-bold bg-[#1d1d22] text-[#d0d0d8] hover:bg-[#282830]">All (24h)</button>
+              <button type="button" onclick="setCalendarSelectedDayHoursPreset('none')" class="px-2.5 py-1 rounded-[6px] text-[10px] font-bold bg-[#1d1d22] text-[#d0d0d8] hover:bg-[#282830]">Clear</button>
             </div>
           </div>
-          <div class="grid grid-cols-6 gap-1" id="calendarHoursGrid">
-            <!-- 0:00 to 23:00 populated dynamically -->
+
+          <!-- 24 Clickable Tiles (Black -> Green) -->
+          <div class="grid grid-cols-6 gap-2" id="calendarHoursGrid">
+            <!-- 0:00 to 23:00 tiles populated dynamically -->
+          </div>
+
+          <div class="flex items-center gap-2 pt-1">
+            <button type="button" onclick="calendarReturnToDaysView()" class="dv-pill active w-full" style="height:40px; font-size:12px; font-weight:700;">
+              Apply Hours for This Day
+            </button>
           </div>
         </div>
 
-        <div class="flex items-center gap-2.5 pt-2">
+        <div id="calendarFooterActions" class="flex items-center gap-2.5 pt-2">
           <button type="button" onclick="closeDiscordCalendarModal()" class="dv-pill inactive w-full" style="height:42px; font-size:13px; font-weight:700;">Cancel</button>
-          <button type="button" onclick="saveCurrentAccountCalendar()" class="dv-pill active w-full" style="height:42px; font-size:13px; font-weight:700;">Save Schedule</button>
+          <button type="button" onclick="saveCurrentAccountCalendar()" class="dv-pill active w-full" style="height:42px; font-size:13px; font-weight:700; background:#54d487; color:#000000;">Save Schedule</button>
         </div>
       </div>
     </div>
@@ -6231,8 +6246,9 @@
 
     // --- Discord Calendar Modal Logic ---
     let calendarSelectedAccountId = null;
-    let calendarSelectedDays = new Set();
-    let calendarSelectedHours = new Set();
+    let calendarCurrentEditingDay = 1;
+    // Map of day (1-31) -> Set of active hours (0-23)
+    let calendarDayHoursMap = {};
 
     window.toggleCalendarAccountMenu = function() {
       const menu = document.getElementById('calendarAccountMenu');
@@ -6287,8 +6303,8 @@
     window.openDiscordCalendarModal = function() {
       const modal = document.getElementById('discordCalendarModal');
       if (!modal) return;
+      calendarReturnToDaysView();
       renderCalendarAccountOptions();
-      buildCalendarDaysAndHoursGrid();
       renderCalendarForCurrentAccount();
       modal.style.display = 'flex';
     };
@@ -6300,61 +6316,36 @@
       if (menu) menu.style.display = 'none';
     };
 
-    function buildCalendarDaysAndHoursGrid() {
-      // Build 1-31 Days Grid
-      const daysGrid = document.getElementById('calendarMonthDaysGrid');
-      if (daysGrid && !daysGrid.children.length) {
-        let html = '';
-        for (let d = 1; d <= 31; d++) {
-          html += `<button type="button" data-mday="${d}" onclick="toggleCalendarMonthDay(${d})" class="cal-mday-btn h-8 rounded-[8px] text-[11px] font-bold border transition">${d}</button>`;
-        }
-        daysGrid.innerHTML = html;
-      }
-
-      // Build 0:00 - 23:00 Hours Grid
-      const hoursGrid = document.getElementById('calendarHoursGrid');
-      if (hoursGrid && !hoursGrid.children.length) {
-        let html = '';
-        for (let h = 0; h < 24; h++) {
-          const str = (h < 10 ? '0' : '') + h + ':00';
-          html += `<button type="button" data-hour="${h}" onclick="toggleCalendarHour(${h})" class="cal-hour-btn h-7 rounded-[7px] text-[10px] font-bold border transition">${str}</button>`;
-        }
-        hoursGrid.innerHTML = html;
-      }
-    }
-
     window.renderCalendarForCurrentAccount = function() {
       const accountId = calendarSelectedAccountId;
       const enabledCheckbox = document.getElementById('calendarScheduleEnabled');
       if (!accountId) return;
 
       const schedule = getDiscordCalendarSchedule();
-      const accSchedule = schedule[String(accountId)] || { enabled: false, daysOfMonth: null, hours: null };
+      const accSchedule = schedule[String(accountId)] || { enabled: false, dayHoursMap: {} };
 
       if (enabledCheckbox) enabledCheckbox.checked = !!accSchedule.enabled;
 
-      // Days of month
-      const daysArr = Array.isArray(accSchedule.daysOfMonth) && accSchedule.daysOfMonth.length > 0
-        ? accSchedule.daysOfMonth
-        : Array.from({ length: 31 }, (_, i) => i + 1);
-      calendarSelectedDays = new Set(daysArr);
+      calendarDayHoursMap = {};
+      const savedMap = accSchedule.dayHoursMap || {};
+      for (let d = 1; d <= 31; d++) {
+        if (Array.isArray(savedMap[String(d)])) {
+          calendarDayHoursMap[d] = new Set(savedMap[String(d)]);
+        } else {
+          // Default: 24 hours active for every day
+          calendarDayHoursMap[d] = new Set(Array.from({ length: 24 }, (_, i) => i));
+        }
+      }
 
-      // Hours of day
-      const hoursArr = Array.isArray(accSchedule.hours) && accSchedule.hours.length > 0
-        ? accSchedule.hours
-        : Array.from({ length: 24 }, (_, i) => i);
-      calendarSelectedHours = new Set(hoursArr);
-
-      updateCalendarDaysUI();
-      updateCalendarHoursUI();
+      renderCalendarDaysMonthGrid();
       onCalendarEnabledToggle();
     };
 
     window.onCalendarEnabledToggle = function() {
       const enabledCheckbox = document.getElementById('calendarScheduleEnabled');
       const isEnabled = enabledCheckbox && enabledCheckbox.checked;
-      const daysContainer = document.getElementById('calendarDaysContainer');
-      const hoursContainer = document.getElementById('calendarHoursContainer');
+      const daysContainer = document.getElementById('calendarDaysViewWrapper');
+      const hoursContainer = document.getElementById('calendarHoursViewWrapper');
       if (daysContainer) {
         daysContainer.style.opacity = isEnabled ? '1' : '0.4';
         daysContainer.style.pointerEvents = isEnabled ? 'auto' : 'none';
@@ -6365,83 +6356,113 @@
       }
     };
 
-    window.toggleCalendarMonthDay = function(day) {
-      if (calendarSelectedDays.has(day)) {
-        if (calendarSelectedDays.size > 1) calendarSelectedDays.delete(day);
-      } else {
-        calendarSelectedDays.add(day);
+    function renderCalendarDaysMonthGrid() {
+      const daysGrid = document.getElementById('calendarMonthDaysGrid');
+      if (!daysGrid) return;
+      let html = '';
+      for (let d = 1; d <= 31; d++) {
+        const activeCount = calendarDayHoursMap[d] ? calendarDayHoursMap[d].size : 24;
+        const isFull = activeCount === 24;
+        const isOff = activeCount === 0;
+        let badgeColor = isFull ? '#54d487' : (isOff ? '#ff4b4b' : '#F1DAFD');
+        let subText = isFull ? '24h' : (isOff ? 'Off' : activeCount + 'h');
+
+        html += `
+          <button type="button" onclick="openCalendarDayHoursPage(${d})" class="cal-day-tile flex flex-col items-center justify-between p-2 rounded-[10px] bg-[#0c0c0e] hover:bg-[#141418] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.20)] transition cursor-pointer h-[58px]">
+            <span class="text-[12px] font-bold text-white">${d}</span>
+            <span class="text-[10px] font-semibold" style="color:${badgeColor};">${subText}</span>
+          </button>
+        `;
       }
-      updateCalendarDaysUI();
+      daysGrid.innerHTML = html;
+    }
+
+    // Opens the dedicated hours page for clicked day
+    window.openCalendarDayHoursPage = function(dayNumber) {
+      calendarCurrentEditingDay = dayNumber;
+      const daysView = document.getElementById('calendarDaysViewWrapper');
+      const hoursView = document.getElementById('calendarHoursViewWrapper');
+      const backBtn = document.getElementById('calendarBackToDaysBtn');
+      const title = document.getElementById('calendarModalTitle');
+      const dayHeader = document.getElementById('calendarSelectedDayHeader');
+
+      if (daysView) daysView.style.display = 'none';
+      if (hoursView) hoursView.style.display = 'flex';
+      if (backBtn) backBtn.classList.remove('hidden');
+      if (title) title.textContent = `Day ${dayNumber} Hours`;
+      if (dayHeader) dayHeader.textContent = `Day ${dayNumber} Monitoring Hours`;
+
+      renderCalendarHoursTiles();
     };
 
-    window.toggleCalendarHour = function(hour) {
-      if (calendarSelectedHours.has(hour)) {
-        if (calendarSelectedHours.size > 1) calendarSelectedHours.delete(hour);
-      } else {
-        calendarSelectedHours.add(hour);
-      }
-      updateCalendarHoursUI();
+    window.calendarReturnToDaysView = function() {
+      const daysView = document.getElementById('calendarDaysViewWrapper');
+      const hoursView = document.getElementById('calendarHoursViewWrapper');
+      const backBtn = document.getElementById('calendarBackToDaysBtn');
+      const title = document.getElementById('calendarModalTitle');
+
+      if (hoursView) hoursView.style.display = 'none';
+      if (daysView) daysView.style.display = 'flex';
+      if (backBtn) backBtn.classList.add('hidden');
+      if (title) title.textContent = 'Auto React Schedule';
+
+      renderCalendarDaysMonthGrid();
     };
 
-    window.toggleCalendarSelectAllDays = function() {
-      const btn = document.getElementById('calendarSelectAllDaysBtn');
-      if (calendarSelectedDays.size === 31) {
-        calendarSelectedDays.clear();
-        calendarSelectedDays.add(new Date().getDate()); // keep current day selected
-        if (btn) btn.textContent = 'Select All (1–31)';
-      } else {
-        calendarSelectedDays = new Set(Array.from({ length: 31 }, (_, i) => i + 1));
-        if (btn) btn.textContent = 'Deselect All';
+    function renderCalendarHoursTiles() {
+      const hoursGrid = document.getElementById('calendarHoursGrid');
+      if (!hoursGrid) return;
+      const activeHours = calendarDayHoursMap[calendarCurrentEditingDay] || new Set();
+
+      let html = '';
+      for (let h = 0; h < 24; h++) {
+        const isActive = activeHours.has(h);
+        const timeLabel = (h < 10 ? '0' : '') + h + ':00';
+        // Black tile (unselected) vs Green tile (active monitoring)
+        const bgStyle = isActive
+          ? 'background: #54d487; color: #000000; border-color: #54d487; box-shadow: 0 0 12px rgba(84, 212, 135, 0.35); font-weight: 800;'
+          : 'background: #080808; color: #6a6a75; border-color: rgba(255,255,255,0.06); font-weight: 600;';
+
+        html += `
+          <button type="button" onclick="toggleCalendarTileHour(${h})" class="h-10 rounded-[8px] border text-[11px] flex items-center justify-center transition active:scale-95 cursor-pointer" style="${bgStyle}">
+            ${timeLabel}
+          </button>
+        `;
       }
-      updateCalendarDaysUI();
+      hoursGrid.innerHTML = html;
+    }
+
+    window.toggleCalendarTileHour = function(hour) {
+      if (!calendarDayHoursMap[calendarCurrentEditingDay]) {
+        calendarDayHoursMap[calendarCurrentEditingDay] = new Set();
+      }
+      const set = calendarDayHoursMap[calendarCurrentEditingDay];
+      if (set.has(hour)) {
+        set.delete(hour);
+      } else {
+        set.add(hour);
+      }
+      renderCalendarHoursTiles();
     };
 
-    window.setCalendarQuickHours = function(preset) {
+    window.setCalendarSelectedDayHoursPreset = function(preset) {
+      if (!calendarDayHoursMap[calendarCurrentEditingDay]) {
+        calendarDayHoursMap[calendarCurrentEditingDay] = new Set();
+      }
       if (preset === 'all') {
-        calendarSelectedHours = new Set(Array.from({ length: 24 }, (_, i) => i));
-      } else if (preset === 'day') {
-        calendarSelectedHours = new Set([9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
-      } else if (preset === 'night') {
-        calendarSelectedHours = new Set([21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        calendarDayHoursMap[calendarCurrentEditingDay] = new Set(Array.from({ length: 24 }, (_, i) => i));
+      } else if (preset === 'none') {
+        calendarDayHoursMap[calendarCurrentEditingDay].clear();
       }
-      updateCalendarHoursUI();
+      renderCalendarHoursTiles();
     };
 
-    function updateCalendarDaysUI() {
-      const buttons = document.querySelectorAll('.cal-mday-btn');
-      buttons.forEach(btn => {
-        const d = parseInt(btn.dataset.mday, 10);
-        if (calendarSelectedDays.has(d)) {
-          btn.style.background = '#F1DAFD';
-          btn.style.color = '#000000';
-          btn.style.borderColor = '#F1DAFD';
-        } else {
-          btn.style.background = '#141417';
-          btn.style.color = '#8f8f8f';
-          btn.style.borderColor = 'rgba(255,255,255,0.08)';
-        }
-      });
-      const selectAllBtn = document.getElementById('calendarSelectAllDaysBtn');
-      if (selectAllBtn) {
-        selectAllBtn.textContent = calendarSelectedDays.size === 31 ? 'Deselect All' : 'Select All (1–31)';
+    window.setCalendarAllDaysAllHours = function() {
+      for (let d = 1; d <= 31; d++) {
+        calendarDayHoursMap[d] = new Set(Array.from({ length: 24 }, (_, i) => i));
       }
-    }
-
-    function updateCalendarHoursUI() {
-      const buttons = document.querySelectorAll('.cal-hour-btn');
-      buttons.forEach(btn => {
-        const h = parseInt(btn.dataset.hour, 10);
-        if (calendarSelectedHours.has(h)) {
-          btn.style.background = '#5865F2';
-          btn.style.color = '#ffffff';
-          btn.style.borderColor = '#5865F2';
-        } else {
-          btn.style.background = '#141417';
-          btn.style.color = '#8f8f8f';
-          btn.style.borderColor = 'rgba(255,255,255,0.08)';
-        }
-      });
-    }
+      renderCalendarDaysMonthGrid();
+    };
 
     window.saveCurrentAccountCalendar = function() {
       const accountId = calendarSelectedAccountId;
@@ -6449,11 +6470,17 @@
       const enabledCheckbox = document.getElementById('calendarScheduleEnabled');
       const isEnabled = enabledCheckbox && enabledCheckbox.checked;
 
+      const serializableDayHours = {};
+      for (let d = 1; d <= 31; d++) {
+        if (calendarDayHoursMap[d]) {
+          serializableDayHours[String(d)] = Array.from(calendarDayHoursMap[d]);
+        }
+      }
+
       const schedule = getDiscordCalendarSchedule();
       schedule[String(accountId)] = {
         enabled: isEnabled,
-        daysOfMonth: Array.from(calendarSelectedDays),
-        hours: Array.from(calendarSelectedHours)
+        dayHoursMap: serializableDayHours
       };
       saveDiscordCalendarSchedule(schedule);
       closeDiscordCalendarModal();
@@ -6566,13 +6593,23 @@
       const accSchedule = schedule[String(accountId)];
       if (!accSchedule || !accSchedule.enabled) return true; // Default to active if no restriction configured
 
-      // 1. Day of the month check (1-31)
       const dayOfMonth = dateObj.getDate();
+      const currentHour = dateObj.getHours();
+
+      // Check per-day schedule if defined
+      const dayHoursMap = accSchedule.dayHoursMap || {};
+      const scheduledForDay = dayHoursMap[String(dayOfMonth)];
+
+      if (Array.isArray(scheduledForDay)) {
+        // If an explicit hour list was chosen for this day, account must be on during currentHour
+        return scheduledForDay.includes(currentHour);
+      }
+
+      // Check legacy active days of month
       const activeDays = Array.isArray(accSchedule.daysOfMonth) ? accSchedule.daysOfMonth : null;
       if (activeDays && activeDays.length > 0 && !activeDays.includes(dayOfMonth)) return false;
 
-      // 2. Active hours check (0-23)
-      const currentHour = dateObj.getHours();
+      // Legacy global hours
       const activeHours = Array.isArray(accSchedule.hours) ? accSchedule.hours : null;
       if (activeHours && activeHours.length > 0 && !activeHours.includes(currentHour)) return false;
 
