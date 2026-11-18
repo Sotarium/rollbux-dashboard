@@ -2146,7 +2146,7 @@ export default async function handler(req, res) {
   // Direct DiscordViewer Windows executable download
   if ((pathname === '/download/file' || pathname === '/download/DiscordViewer.exe') && req.method === 'GET') {
     res.writeHead(302, {
-      'Location': 'https://github.com/Sotarium/rollbux-dashboard/releases/latest/download/DiscordViewer.exe'
+      'Location': '/DiscordViewer.exe'
     });
     res.end();
     return;

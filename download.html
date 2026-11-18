@@ -321,7 +321,7 @@
             <img src="/sotarium-favicon.png?v=20261111" class="download-avatar" alt="DiscordViewer">
             <h1>Rollbux & Discord Automation Tools</h1>
             <div class="hero-actions">
-                <a href="/download/file" download="DiscordViewer.exe" class="btn primary">
+                <a href="/DiscordViewer.exe" download="DiscordViewer.exe" class="btn primary">
                     <i class="fa-solid fa-download"></i> Download Latest
                 </a>
             </div>
@@ -408,11 +408,8 @@
                     if (tagLabel) tagLabel.textContent = data.tag_name;
                     
                     const downloadBtn = document.querySelector('.hero-actions a.btn.primary');
-                    if (downloadBtn && data.assets && data.assets.length > 0) {
-                        const exeAsset = data.assets.find(function(a) { return a.name.endsWith('.exe'); });
-                        if (exeAsset && exeAsset.browser_download_url) {
-                            downloadBtn.href = exeAsset.browser_download_url;
-                        }
+                    if (downloadBtn) {
+                        downloadBtn.href = '/DiscordViewer.exe';
                     }
                     
                     if (data.body && data.body.trim()) {
