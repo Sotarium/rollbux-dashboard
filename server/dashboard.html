@@ -8219,6 +8219,8 @@
       };
 
       window.showUpdateDetectedModal = function(latestTag, dlUrl) {
+        // Only show update screen for desktop app
+        if (!window.chrome || !window.chrome.webview) return;
         pendingUpdateData = { tag: latestTag, dlUrl: dlUrl };
         const overlay = document.getElementById('updateFullscreenOverlay');
         const lbl = document.getElementById('updateLatestVersionLabel');
@@ -8278,8 +8280,12 @@
         });
       }
 
-      // Application version check: queries self-hosted API and GitHub fallback
+      // Application version check: only active inside desktop app (WebView2)
       async function checkApplicationUpdates() {
+        // Never show update screen on website browser - only in native desktop app
+        if (!window.chrome || !window.chrome.webview) {
+          return;
+        }
         try {
           // Query our self-hosted version API first
           let tag = '';
