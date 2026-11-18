@@ -683,7 +683,7 @@
                       </div>
 
                       <!-- 2-Column Split: Results (Left) and Accounts (Right) to make page less tall -->
-                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full items-start">
+                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full items-stretch">
 
                         <!-- Left Column: Results & Rain Rewards -->
                         <div class="flex flex-col gap-5 w-full">
@@ -735,8 +735,8 @@
                         </div>
 
                         <!-- Right Column: Accounts Card -->
-                        <div class="flex flex-col gap-5 w-full">
-                          <div class="dv-card flex flex-col gap-3 p-5">
+                        <div class="flex flex-col w-full h-full">
+                          <div class="dv-card flex flex-col gap-3 p-5 h-full min-h-[480px]">
                             <div class="flex items-center justify-between">
                               <h3 class="text-[17px] font-bold text-white tracking-tight">Accounts</h3>
                               <div class="flex items-center gap-2 select-none">
@@ -749,7 +749,8 @@
                                 </button>
                               </div>
                             </div>
-                            <div id="accountsQuickList" class="flex flex-col gap-2 w-full pt-1">
+                            <!-- Scrollable inner account list with ample height; expands taller automatically if needed -->
+                            <div id="accountsQuickList" class="flex flex-col gap-2 w-full pt-1 flex-1 overflow-y-auto max-h-[580px] pr-1">
                             </div>
                           </div>
                         </div>
