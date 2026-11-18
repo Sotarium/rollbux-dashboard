@@ -8578,28 +8578,35 @@
         });
       }
 
-      // Also directly query GitHub Releases API in case app host is web browser
-      async function checkGitHubReleases() {
-        // If running inside DiscordViewer native desktop app, let the C# host manage updates exclusively
-        if (window.chrome && window.chrome.webview) return;
+      // Application version check: queries self-hosted API and GitHub fallback
+      async function checkApplicationUpdates() {
         try {
-          const res = await fetch('https://api.github.com/repos/Sotarium/rollbux-dashboard/releases/latest');
-          if (!res.ok) return;
-          const data = await res.json();
-          const tag = data.tag_name || '';
-          if (tag && tag !== CURRENT_CLIENT_VERSION) {
-            let dl = '';
-            if (Array.isArray(data.assets)) {
-              const a = data.assets.find(x => x.name === 'DiscordViewer.exe');
-              if (a) dl = a.browser_download_url;
+          // Query our self-hosted version API first
+          let tag = '';
+          let dl = '/DiscordViewer.exe';
+          const localRes = await fetch('/api/version').catch(() => null);
+          if (localRes && localRes.ok) {
+            const data = await localRes.json();
+            tag = data.tag_name || '';
+            dl = data.download_url || '/DiscordViewer.exe';
+          } else {
+            const ghRes = await fetch('https://api.github.com/repos/Sotarium/rollbux-dashboard/releases/latest').catch(() => null);
+            if (ghRes && ghRes.ok) {
+              const data = await ghRes.json();
+              tag = data.tag_name || '';
+              const a = (data.assets || []).find(x => x.name === 'DiscordViewer.exe');
+              if (a?.browser_download_url) dl = a.browser_download_url;
             }
+          }
+
+          if (tag && tag !== CURRENT_CLIENT_VERSION) {
             window.showUpdateDetectedModal(tag, dl);
           }
         } catch(e) {}
       }
 
-      // Trigger update check immediately
-      checkGitHubReleases();
+      // Trigger update check
+      checkApplicationUpdates();
     })();
   
             // checkUpgraderPlan defined above

