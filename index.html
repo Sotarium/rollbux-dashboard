@@ -5767,11 +5767,11 @@
 
   <!-- Discord Calendar Schedule Modal -->
   <div id="discordCalendarModal" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 select-none">
-    <div class="dv-modal-card flex flex-col w-[480px] max-w-full">
-      <div class="dv-modal-header">
+    <div class="dv-modal-card flex flex-col w-[520px] max-w-full max-h-[90vh] overflow-y-auto">
+      <div class="dv-modal-header sticky top-0 bg-[#121214] z-20">
         <div class="flex items-center gap-2">
           <svg class="size-4 text-[#F1DAFD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          <h3 class="text-[17px] font-bold text-white">Auto React Calendar Schedule</h3>
+          <h3 class="text-[17px] font-bold text-white">Auto React Schedule</h3>
         </div>
         <button type="button" onclick="closeDiscordCalendarModal()" class="dv-icon-btn">
           <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -5779,12 +5779,19 @@
       </div>
 
       <div class="flex flex-col p-5 gap-4">
-        <!-- Target Account Selector -->
-        <div class="flex flex-col gap-1.5">
+        <!-- Target Account Selector: Custom Matte Dropdown -->
+        <div class="flex flex-col gap-1.5 relative">
           <label class="text-[12px] font-semibold text-[#8f8f8f]">Account</label>
-          <select id="calendarAccountSelect" onchange="renderCalendarForCurrentAccount()" class="dv-field w-full cursor-pointer bg-[#0c0c0e] text-white">
-            <option value="">Loading accounts...</option>
-          </select>
+          <button type="button" id="calendarAccountDropdownBtn" onclick="toggleCalendarAccountMenu()" class="dv-field flex items-center justify-between px-3.5 hover:border-white/20 transition cursor-pointer w-full text-left" style="height:44px; background:#0c0c0e;">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img id="calendarAccountSelectedAvatar" src="/discord-logo.png" class="size-6 rounded-full object-cover shrink-0" alt="Avatar" />
+              <span id="calendarAccountSelectedName" class="text-[13px] font-bold text-white truncate">Select Account</span>
+            </div>
+            <svg class="size-3.5 text-[#8f8f8f] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div id="calendarAccountMenu" style="display: none;" class="absolute top-[68px] inset-x-0 z-30 flex flex-col p-1.5 rounded-[12px] bg-[#141418] border border-[rgba(255,255,255,0.12)] shadow-2xl max-h-[220px] overflow-y-auto">
+            <!-- Account options populated by renderCalendarAccountOptions() -->
+          </div>
         </div>
 
         <!-- Schedule Enable Switch -->
@@ -5799,30 +5806,31 @@
           </label>
         </div>
 
-        <!-- Days of Week Selector -->
+        <!-- Days of Month Grid (1-31) -->
         <div id="calendarDaysContainer" class="flex flex-col gap-2">
           <div class="flex items-center justify-between">
-            <label class="text-[12px] font-semibold text-[#8f8f8f]">Active Days</label>
-            <button type="button" id="calendarSelectAllDaysBtn" onclick="toggleCalendarSelectAllDays()" class="text-[11px] font-bold text-[#F1DAFD] hover:underline cursor-pointer">Select All</button>
+            <label class="text-[12px] font-semibold text-[#8f8f8f]">Days of the Month</label>
+            <button type="button" id="calendarSelectAllDaysBtn" onclick="toggleCalendarSelectAllDays()" class="text-[11px] font-bold text-[#F1DAFD] hover:underline cursor-pointer">Select All (1–31)</button>
           </div>
-          <div class="grid grid-cols-7 gap-1.5">
-            <button type="button" data-day="1" onclick="toggleCalendarDay(1)" class="calendar-day-btn h-9 rounded-[8px] text-[11px] font-bold border transition">Mon</button>
-            <button type="button" data-day="2" onclick="toggleCalendarDay(2)" class="calendar-day-btn h-9 rounded-[8px] text-[11px] font-bold border transition">Tue</button>
-            <button type="button" data-day="3" onclick="toggleCalendarDay(3)" class="calendar-day-btn h-9 rounded-[8px] text-[11px] font-bold border transition">Wed</button>
-            <button type="button" data-day="4" onclick="toggleCalendarDay(4)" class="calendar-day-btn h-9 rounded-[8px] text-[11px] font-bold border transition">Thu</button>
-            <button type="button" data-day="5" onclick="toggleCalendarDay(5)" class="calendar-day-btn h-9 rounded-[8px] text-[11px] font-bold border transition">Fri</button>
-            <button type="button" data-day="6" onclick="toggleCalendarDay(6)" class="calendar-day-btn h-9 rounded-[8px] text-[11px] font-bold border transition">Sat</button>
-            <button type="button" data-day="0" onclick="toggleCalendarDay(0)" class="calendar-day-btn h-9 rounded-[8px] text-[11px] font-bold border transition">Sun</button>
+          <div class="grid grid-cols-7 gap-1.5" id="calendarMonthDaysGrid">
+            <!-- 1 to 31 populated dynamically -->
           </div>
         </div>
 
-        <!-- Time Window Preset -->
+        <!-- Working Hours Selector (0h - 23h) -->
         <div id="calendarHoursContainer" class="flex flex-col gap-2">
-          <label class="text-[12px] font-semibold text-[#8f8f8f]">Time Window</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" onclick="setCalendarTimeWindow('all')" id="timePresetAll" class="calendar-preset-btn h-8 rounded-[8px] text-[11px] font-bold border transition">All Day (24h)</button>
-            <button type="button" onclick="setCalendarTimeWindow('day')" id="timePresetDay" class="calendar-preset-btn h-8 rounded-[8px] text-[11px] font-bold border transition">Day (9am-9pm)</button>
-            <button type="button" onclick="setCalendarTimeWindow('night')" id="timePresetNight" class="calendar-preset-btn h-8 rounded-[8px] text-[11px] font-bold border transition">Night (9pm-9am)</button>
+          <div class="flex items-center justify-between">
+            <label class="text-[12px] font-semibold text-[#8f8f8f]">Working Hours</label>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="setCalendarQuickHours('all')" class="text-[10px] font-semibold text-[#8f8f8f] hover:text-white">All (24h)</button>
+              <span class="text-[#8f8f8f] text-[10px]">•</span>
+              <button type="button" onclick="setCalendarQuickHours('day')" class="text-[10px] font-semibold text-[#8f8f8f] hover:text-white">Day (9-21)</button>
+              <span class="text-[#8f8f8f] text-[10px]">•</span>
+              <button type="button" onclick="setCalendarQuickHours('night')" class="text-[10px] font-semibold text-[#8f8f8f] hover:text-white">Night (21-9)</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-6 gap-1" id="calendarHoursGrid">
+            <!-- 0:00 to 23:00 populated dynamically -->
           </div>
         </div>
 
@@ -6222,24 +6230,65 @@
     };
 
     // --- Discord Calendar Modal Logic ---
-    let calendarSelectedDays = new Set([0, 1, 2, 3, 4, 5, 6]);
-    let calendarSelectedWindow = 'all'; // 'all', 'day', 'night'
+    let calendarSelectedAccountId = null;
+    let calendarSelectedDays = new Set();
+    let calendarSelectedHours = new Set();
+
+    window.toggleCalendarAccountMenu = function() {
+      const menu = document.getElementById('calendarAccountMenu');
+      if (menu) menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+    };
+
+    window.selectCalendarAccount = function(accountId) {
+      calendarSelectedAccountId = accountId;
+      const menu = document.getElementById('calendarAccountMenu');
+      if (menu) menu.style.display = 'none';
+      const accounts = readDiscordAccounts();
+      const acc = accounts.find(a => String(a.id) === String(accountId));
+      if (acc) {
+        const nameEl = document.getElementById('calendarAccountSelectedName');
+        const avEl = document.getElementById('calendarAccountSelectedAvatar');
+        if (nameEl) nameEl.textContent = acc.user?.username || acc.user?.handle || acc.id;
+        if (avEl) avEl.src = acc.user?.avatar || '/discord-logo.png';
+      }
+      renderCalendarForCurrentAccount();
+    };
+
+    function renderCalendarAccountOptions() {
+      const menu = document.getElementById('calendarAccountMenu');
+      if (!menu) return;
+      const accounts = readDiscordAccounts();
+      if (!accounts.length) {
+        menu.innerHTML = '<div class="p-2 text-xs text-[#8f8f8f]">No linked accounts found</div>';
+        return;
+      }
+      if (!calendarSelectedAccountId || !accounts.some(a => String(a.id) === String(calendarSelectedAccountId))) {
+        calendarSelectedAccountId = accounts[0].id;
+      }
+      menu.innerHTML = accounts.map(a => {
+        const name = a.user?.username || a.user?.handle || a.id;
+        const av = a.user?.avatar || '/discord-logo.png';
+        const isSel = String(a.id) === String(calendarSelectedAccountId);
+        return `<button type="button" onclick="selectCalendarAccount('${a.id}')" class="flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-left transition ${isSel ? 'bg-[#5865F2]/20 text-white' : 'hover:bg-white/5 text-[#d0d0d8]'}">
+          <img src="${av}" class="size-6 rounded-full object-cover shrink-0" alt="Avatar" />
+          <span class="text-[13px] font-semibold truncate flex-1">${name}</span>
+          ${isSel ? '<span class="text-[10px] text-[#54d487] font-bold">Active</span>' : ''}
+        </button>`;
+      }).join('');
+      const curr = accounts.find(a => String(a.id) === String(calendarSelectedAccountId));
+      if (curr) {
+        const nameEl = document.getElementById('calendarAccountSelectedName');
+        const avEl = document.getElementById('calendarAccountSelectedAvatar');
+        if (nameEl) nameEl.textContent = curr.user?.username || curr.user?.handle || curr.id;
+        if (avEl) avEl.src = curr.user?.avatar || '/discord-logo.png';
+      }
+    }
 
     window.openDiscordCalendarModal = function() {
       const modal = document.getElementById('discordCalendarModal');
       if (!modal) return;
-      const select = document.getElementById('calendarAccountSelect');
-      const accounts = readDiscordAccounts();
-      if (select) {
-        if (!accounts.length) {
-          select.innerHTML = '<option value="">No accounts linked</option>';
-        } else {
-          select.innerHTML = accounts.map(a => {
-            const name = a.user?.username || a.user?.handle || a.id;
-            return `<option value="${a.id}">${name}</option>`;
-          }).join('');
-        }
-      }
+      renderCalendarAccountOptions();
+      buildCalendarDaysAndHoursGrid();
       renderCalendarForCurrentAccount();
       modal.style.display = 'flex';
     };
@@ -6247,23 +6296,57 @@
     window.closeDiscordCalendarModal = function() {
       const modal = document.getElementById('discordCalendarModal');
       if (modal) modal.style.display = 'none';
+      const menu = document.getElementById('calendarAccountMenu');
+      if (menu) menu.style.display = 'none';
     };
 
+    function buildCalendarDaysAndHoursGrid() {
+      // Build 1-31 Days Grid
+      const daysGrid = document.getElementById('calendarMonthDaysGrid');
+      if (daysGrid && !daysGrid.children.length) {
+        let html = '';
+        for (let d = 1; d <= 31; d++) {
+          html += `<button type="button" data-mday="${d}" onclick="toggleCalendarMonthDay(${d})" class="cal-mday-btn h-8 rounded-[8px] text-[11px] font-bold border transition">${d}</button>`;
+        }
+        daysGrid.innerHTML = html;
+      }
+
+      // Build 0:00 - 23:00 Hours Grid
+      const hoursGrid = document.getElementById('calendarHoursGrid');
+      if (hoursGrid && !hoursGrid.children.length) {
+        let html = '';
+        for (let h = 0; h < 24; h++) {
+          const str = (h < 10 ? '0' : '') + h + ':00';
+          html += `<button type="button" data-hour="${h}" onclick="toggleCalendarHour(${h})" class="cal-hour-btn h-7 rounded-[7px] text-[10px] font-bold border transition">${str}</button>`;
+        }
+        hoursGrid.innerHTML = html;
+      }
+    }
+
     window.renderCalendarForCurrentAccount = function() {
-      const select = document.getElementById('calendarAccountSelect');
-      const accountId = select ? select.value : null;
+      const accountId = calendarSelectedAccountId;
       const enabledCheckbox = document.getElementById('calendarScheduleEnabled');
       if (!accountId) return;
 
       const schedule = getDiscordCalendarSchedule();
-      const accSchedule = schedule[String(accountId)] || { enabled: false, days: [0, 1, 2, 3, 4, 5, 6], window: 'all' };
+      const accSchedule = schedule[String(accountId)] || { enabled: false, daysOfMonth: null, hours: null };
 
       if (enabledCheckbox) enabledCheckbox.checked = !!accSchedule.enabled;
-      calendarSelectedDays = new Set(Array.isArray(accSchedule.days) ? accSchedule.days : [0, 1, 2, 3, 4, 5, 6]);
-      calendarSelectedWindow = accSchedule.window || 'all';
+
+      // Days of month
+      const daysArr = Array.isArray(accSchedule.daysOfMonth) && accSchedule.daysOfMonth.length > 0
+        ? accSchedule.daysOfMonth
+        : Array.from({ length: 31 }, (_, i) => i + 1);
+      calendarSelectedDays = new Set(daysArr);
+
+      // Hours of day
+      const hoursArr = Array.isArray(accSchedule.hours) && accSchedule.hours.length > 0
+        ? accSchedule.hours
+        : Array.from({ length: 24 }, (_, i) => i);
+      calendarSelectedHours = new Set(hoursArr);
 
       updateCalendarDaysUI();
-      updateCalendarWindowUI();
+      updateCalendarHoursUI();
       onCalendarEnabledToggle();
     };
 
@@ -6282,35 +6365,53 @@
       }
     };
 
-    window.toggleCalendarDay = function(dayIndex) {
-      if (calendarSelectedDays.has(dayIndex)) {
-        if (calendarSelectedDays.size > 1) {
-          calendarSelectedDays.delete(dayIndex);
-        }
+    window.toggleCalendarMonthDay = function(day) {
+      if (calendarSelectedDays.has(day)) {
+        if (calendarSelectedDays.size > 1) calendarSelectedDays.delete(day);
       } else {
-        calendarSelectedDays.add(dayIndex);
+        calendarSelectedDays.add(day);
       }
       updateCalendarDaysUI();
     };
 
+    window.toggleCalendarHour = function(hour) {
+      if (calendarSelectedHours.has(hour)) {
+        if (calendarSelectedHours.size > 1) calendarSelectedHours.delete(hour);
+      } else {
+        calendarSelectedHours.add(hour);
+      }
+      updateCalendarHoursUI();
+    };
+
     window.toggleCalendarSelectAllDays = function() {
       const btn = document.getElementById('calendarSelectAllDaysBtn');
-      if (calendarSelectedDays.size === 7) {
+      if (calendarSelectedDays.size === 31) {
         calendarSelectedDays.clear();
-        calendarSelectedDays.add(1); // Keep at least Mon selected
-        if (btn) btn.textContent = 'Select All';
+        calendarSelectedDays.add(new Date().getDate()); // keep current day selected
+        if (btn) btn.textContent = 'Select All (1–31)';
       } else {
-        calendarSelectedDays = new Set([0, 1, 2, 3, 4, 5, 6]);
+        calendarSelectedDays = new Set(Array.from({ length: 31 }, (_, i) => i + 1));
         if (btn) btn.textContent = 'Deselect All';
       }
       updateCalendarDaysUI();
     };
 
+    window.setCalendarQuickHours = function(preset) {
+      if (preset === 'all') {
+        calendarSelectedHours = new Set(Array.from({ length: 24 }, (_, i) => i));
+      } else if (preset === 'day') {
+        calendarSelectedHours = new Set([9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+      } else if (preset === 'night') {
+        calendarSelectedHours = new Set([21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+      }
+      updateCalendarHoursUI();
+    };
+
     function updateCalendarDaysUI() {
-      const buttons = document.querySelectorAll('.calendar-day-btn');
+      const buttons = document.querySelectorAll('.cal-mday-btn');
       buttons.forEach(btn => {
-        const day = parseInt(btn.dataset.day, 10);
-        if (calendarSelectedDays.has(day)) {
+        const d = parseInt(btn.dataset.mday, 10);
+        if (calendarSelectedDays.has(d)) {
           btn.style.background = '#F1DAFD';
           btn.style.color = '#000000';
           btn.style.borderColor = '#F1DAFD';
@@ -6322,25 +6423,18 @@
       });
       const selectAllBtn = document.getElementById('calendarSelectAllDaysBtn');
       if (selectAllBtn) {
-        selectAllBtn.textContent = calendarSelectedDays.size === 7 ? 'Deselect All' : 'Select All';
+        selectAllBtn.textContent = calendarSelectedDays.size === 31 ? 'Deselect All' : 'Select All (1–31)';
       }
     }
 
-    window.setCalendarTimeWindow = function(preset) {
-      calendarSelectedWindow = preset;
-      updateCalendarWindowUI();
-    };
-
-    function updateCalendarWindowUI() {
-      const presets = ['all', 'day', 'night'];
-      presets.forEach(p => {
-        const id = p === 'all' ? 'timePresetAll' : (p === 'day' ? 'timePresetDay' : 'timePresetNight');
-        const btn = document.getElementById(id);
-        if (!btn) return;
-        if (calendarSelectedWindow === p) {
-          btn.style.background = '#ffffff';
-          btn.style.color = '#000000';
-          btn.style.borderColor = '#ffffff';
+    function updateCalendarHoursUI() {
+      const buttons = document.querySelectorAll('.cal-hour-btn');
+      buttons.forEach(btn => {
+        const h = parseInt(btn.dataset.hour, 10);
+        if (calendarSelectedHours.has(h)) {
+          btn.style.background = '#5865F2';
+          btn.style.color = '#ffffff';
+          btn.style.borderColor = '#5865F2';
         } else {
           btn.style.background = '#141417';
           btn.style.color = '#8f8f8f';
@@ -6350,25 +6444,16 @@
     }
 
     window.saveCurrentAccountCalendar = function() {
-      const select = document.getElementById('calendarAccountSelect');
-      const accountId = select ? select.value : null;
+      const accountId = calendarSelectedAccountId;
       if (!accountId) return;
       const enabledCheckbox = document.getElementById('calendarScheduleEnabled');
       const isEnabled = enabledCheckbox && enabledCheckbox.checked;
 
-      let hours = null;
-      if (calendarSelectedWindow === 'day') {
-        hours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]; // 9am - 9pm
-      } else if (calendarSelectedWindow === 'night') {
-        hours = [21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8]; // 9pm - 9am
-      }
-
       const schedule = getDiscordCalendarSchedule();
       schedule[String(accountId)] = {
         enabled: isEnabled,
-        days: Array.from(calendarSelectedDays),
-        window: calendarSelectedWindow,
-        hours: hours
+        daysOfMonth: Array.from(calendarSelectedDays),
+        hours: Array.from(calendarSelectedHours)
       };
       saveDiscordCalendarSchedule(schedule);
       closeDiscordCalendarModal();
@@ -6480,12 +6565,17 @@
       const schedule = getDiscordCalendarSchedule();
       const accSchedule = schedule[String(accountId)];
       if (!accSchedule || !accSchedule.enabled) return true; // Default to active if no restriction configured
-      const dayIndex = dateObj.getDay(); // 0 = Sun, 1 = Mon, ...
-      const activeDays = Array.isArray(accSchedule.days) ? accSchedule.days : [0, 1, 2, 3, 4, 5, 6];
-      if (!activeDays.includes(dayIndex)) return false;
+
+      // 1. Day of the month check (1-31)
+      const dayOfMonth = dateObj.getDate();
+      const activeDays = Array.isArray(accSchedule.daysOfMonth) ? accSchedule.daysOfMonth : null;
+      if (activeDays && activeDays.length > 0 && !activeDays.includes(dayOfMonth)) return false;
+
+      // 2. Active hours check (0-23)
       const currentHour = dateObj.getHours();
       const activeHours = Array.isArray(accSchedule.hours) ? accSchedule.hours : null;
       if (activeHours && activeHours.length > 0 && !activeHours.includes(currentHour)) return false;
+
       return true;
     }
 
