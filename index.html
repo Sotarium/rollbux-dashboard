@@ -659,14 +659,8 @@
                                 <!-- Hover dashed guideline -->
                                 <line id="chartHoverLine" x1="0" y1="0" x2="0" y2="330" stroke="rgba(255,255,255,0.20)" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" class="opacity-0 transition-opacity"/>
                               </svg>
-                              <!-- HTML Hover Dot (Perfect circle, not stretched by SVG preserveAspectRatio=none) -->
-                              <div id="chartHoverDotWrap" class="absolute pointer-events-none opacity-0 transition-opacity z-10" style="width:0; height:0; transform:translate(-50%, -50%);">
-                                <div class="relative flex items-center justify-center">
-                                  <div class="absolute w-8 h-8 rounded-full bg-white/10 animate-ping opacity-75"></div>
-                                  <div class="absolute w-6 h-6 rounded-full border border-white/40 bg-white/5"></div>
-                                  <div class="size-3 rounded-full bg-white border-2 border-[#0b0b0b] shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
-                                </div>
-                              </div>
+                              <!-- HTML Hover Dot (Clean, sleek, perfectly circular) -->
+                              <div id="chartHoverDotWrap" class="absolute pointer-events-none opacity-0 transition-opacity z-20" style="width:14px; height:14px; border-radius:9999px; background:#ffffff; border:2.5px solid #0b0b0b; box-shadow:0 0 12px 2px rgba(255,255,255,0.7); transform:translate(-50%, -50%);"></div>
                               <div id="chartTooltip" class="absolute pointer-events-none opacity-0 transition-opacity z-10" style="transform:translateX(-50%);">
                                 <div class="rounded-[10px] bg-[#1a1a1a] border border-white/10 px-3 py-2 shadow-xl min-w-[90px] text-center">
                                   <div id="chartTooltipTime" class="text-[10px] text-[#8f8f8f] "></div>
@@ -2109,12 +2103,16 @@
           }
         }
 
-        const pointPixelX = (closest.x / 744) * rect.width;
-        const pointPixelY = (closest.y / 330) * rect.height;
+        // Clamp SVG X to [0, 744] so hover line and dot never cross chart borders
+        const clampedSvgX = Math.max(0, Math.min(744, closest.x));
+        const clampedSvgY = Math.max(0, Math.min(330, closest.y));
+
+        const pointPixelX = Math.max(0, Math.min(rect.width, (clampedSvgX / 744) * rect.width));
+        const pointPixelY = Math.max(0, Math.min(rect.height, (clampedSvgY / 330) * rect.height));
 
         // Position guideline & dot
-        chartHoverLine.setAttribute('x1', closest.x);
-        chartHoverLine.setAttribute('x2', closest.x);
+        chartHoverLine.setAttribute('x1', clampedSvgX);
+        chartHoverLine.setAttribute('x2', clampedSvgX);
         chartHoverLine.classList.remove('opacity-0');
 
         const dotWrap = document.getElementById('chartHoverDotWrap');
